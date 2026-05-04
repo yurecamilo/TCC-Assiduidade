@@ -106,6 +106,7 @@
     </ApplicationDefinition>
     <Compile Include="Aula.cs" />
     <Compile Include="Ausencia.cs" />
+    <Compile Include="CsvUtils.cs" />
     <Compile Include="Turma.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

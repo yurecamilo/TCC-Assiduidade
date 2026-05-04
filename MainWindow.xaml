@@ -7,8 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button x:Name="buttonFile" Content="Button" HorizontalAlignment="Left" Margin="347,136,0,0" VerticalAlignment="Top" Click="buttonFile_Click"/>
+        <Button x:Name="buttonImportarCadastro" Content="Button" HorizontalAlignment="Left" Margin="347,136,0,0" VerticalAlignment="Top" Click="buttonImportarCadastro_Click"/>
         <TextBox x:Name="tbDados" HorizontalAlignment="Left" Margin="454,136,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="249" Height="194"/>
+        <TextBox x:Name="tbTurmaId" HorizontalAlignment="Left" Margin="189,45,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="tbTurmaNome" HorizontalAlignment="Left" Margin="400,45,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>

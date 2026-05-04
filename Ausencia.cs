@@ -9,6 +9,6 @@ namespace TCC_Assiduidade
     public class Ausencia
     {
         public int AulaId { get; set; }
-        public int AlunoId { get; set; }
+        public string AlunoMatricula { get; set; }
     }
 }
