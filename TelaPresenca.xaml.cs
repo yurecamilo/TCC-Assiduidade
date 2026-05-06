@@ -21,11 +21,15 @@ namespace TCC_Assiduidade
     /// </summary>
     public partial class TelaPresenca : Window
     {
+        // String de conexão com o banco de dados MySQL
         string connectionString = "server=switchyard.proxy.rlwy.net;database=railway;user=root;password=ACaRpVAAgmoyXtiEvdYlHtLTISAzUSZS;port=26278";
+        // Construtor da janela de presença
         public TelaPresenca()
         {
             InitializeComponent();
         }
+        // Evento do botão para importar o CSV de presença
+        // Lê o arquivo CSV, valida o ID da turma e chama o método de importação de presença
         private void buttonImportarPresenca_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog
@@ -34,24 +38,30 @@ namespace TCC_Assiduidade
                 Title = "Selecionar arquivo CSV de presença"
             };
 
+            // Verifica se o campo do ID da turma está preenchido
             if (string.IsNullOrWhiteSpace(tbTurmaId.Text))
             {
                 MessageBox.Show("Informe o ID da turma.");
                 return;
             }
 
+            // Verifica se o ID da turma é um número inteiro
             if (!int.TryParse(tbTurmaId.Text, out int turmaId))
             {
                 MessageBox.Show("O ID da turma deve ser um número inteiro.");
                 return;
             }
 
+            // Define a data da aula como o momento atual
             DateTime dataAula = DateTime.Now;
 
+            // Abre o diálogo para selecionar o arquivo CSV
             if (dialog.ShowDialog() == true)
             {
+                // Lê os dados do CSV em uma lista de dicionários
                 var dadosPresenca = CsvUtils.LerCsv(dialog.FileName);
 
+                // Realiza a importação da presença e salva as ausências
                 bool importou = ImportarPresenca(turmaId, dataAula, dadosPresenca);
 
                 if (importou)
@@ -64,14 +74,17 @@ namespace TCC_Assiduidade
                 }
             }
         }
+        // Cria um registro de aula no banco de dados e retorna o ID gerado
         public int CriarAula(DateTime data, int turmaId)
         {
             try
             {
+                // Abre conexão com o banco de dados
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
 
+                    // Query para inserir a aula e retornar o ID gerado
                     string query = @"
                             INSERT INTO Aula (Data, TurmaId)
                             VALUES (@data, @turmaId);
@@ -94,8 +107,10 @@ namespace TCC_Assiduidade
                 return -1;
             }
         }
+        // Carrega todos os alunos cadastrados para uma turma específica
         public List<Aluno> CarregarAlunosDaTurma(int turmaId)
         {
+            // Lista que irá armazenar os alunos encontrados
             var alunos = new List<Aluno>();
 
             try
@@ -138,6 +153,7 @@ namespace TCC_Assiduidade
             return alunos;
         }
 
+        // Salva uma ausência de um aluno para uma determinada aula
         public bool SalvarAusencia(int aulaId, string alunoMatricula)
         {
             try
@@ -169,16 +185,21 @@ namespace TCC_Assiduidade
             }
         }
 
+        // Importa a presença dos alunos a partir do CSV, salva ausências e gera relatório
+        // Retorna true se tudo ocorreu bem, false caso contrário
         private bool ImportarPresenca(int turmaId, DateTime dataAula, List<Dictionary<string, string>> dadosPresenca)
         {
+            // Limpa o campo de texto de dados
             tbDados.Clear();
 
+            // Verifica se a turma existe no banco
             if (!TurmaExiste(turmaId))
             {
                 tbDados.AppendText("Erro: turma não encontrada.\n");
                 return false;
             }
 
+            // Cria o registro da aula e obtém o ID
             int aulaId = CriarAula(dataAula, turmaId);
 
             if (aulaId == -1)
@@ -187,6 +208,7 @@ namespace TCC_Assiduidade
                 return false;
             }
 
+            // Carrega todos os alunos da turma
             List<Aluno> alunosDaTurma = CarregarAlunosDaTurma(turmaId);
 
             if (alunosDaTurma.Count == 0)
@@ -195,8 +217,10 @@ namespace TCC_Assiduidade
                 return false;
             }
 
+            // Conjunto para armazenar as matrículas dos alunos presentes
             HashSet<string> matriculasPresentes = new HashSet<string>();
 
+            // Percorre cada linha do CSV e adiciona as matrículas presentes ao conjunto
             foreach (var linha in dadosPresenca)
             {
                 if (linha.ContainsKey("matricula_aluno"))
@@ -206,8 +230,10 @@ namespace TCC_Assiduidade
                 }
             }
 
+            // Contador de ausências salvas
             int totalAusentes = 0;
 
+            // Para cada aluno da turma, verifica se está ausente e salva no banco
             foreach (var aluno in alunosDaTurma)
             {
                 if (!matriculasPresentes.Contains(aluno.Matricula))
@@ -221,6 +247,7 @@ namespace TCC_Assiduidade
                 }
             }
 
+            // Exibe resumo da importação na interface
             tbDados.AppendText("--- IMPORTAÇÃO CONCLUÍDA ---\n\n");
             tbDados.AppendText($"Aula criada: {aulaId}\n");
             tbDados.AppendText($"Data: {dataAula:dd/MM/yyyy}\n");
@@ -228,11 +255,13 @@ namespace TCC_Assiduidade
             tbDados.AppendText($"Total de presentes no CSV: {matriculasPresentes.Count}\n");
             tbDados.AppendText($"Total de ausentes salvos: {totalAusentes}\n\n");
 
+            // Gera relatório dos alunos ausentes
             GerarRelatorioAusentes(aulaId);
 
             return true;
         }
 
+        // Verifica se uma turma existe no banco de dados
         public bool TurmaExiste(int turmaId)
         {
             try
@@ -255,6 +284,7 @@ namespace TCC_Assiduidade
             }
         }
 
+        // Gera e exibe relatório dos alunos ausentes para uma determinada aula
         public void GerarRelatorioAusentes(int aulaId)
         {
             try
