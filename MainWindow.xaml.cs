@@ -189,7 +189,12 @@ namespace TCC_Assiduidade
                 return false;
             }
         }
-        
+
+        private void buttonAbrirTelaPresenca_Click(object sender, RoutedEventArgs e)
+        {
+            TelaPresenca tela = new TelaPresenca();
+            tela.Show();
+        }
     }
 }
 
