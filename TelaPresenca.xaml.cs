@@ -2,6 +2,7 @@
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -22,7 +24,7 @@ namespace TCC_Assiduidade
     public partial class TelaPresenca : Window
     {
         // String de conexão com o banco de dados MySQL
-        string connectionString = "server=switchyard.proxy.rlwy.net;database=railway;user=root;password=ACaRpVAAgmoyXtiEvdYlHtLTISAzUSZS;port=26278";
+        string connectionString = ConfigurationManager.ConnectionStrings["MyDbConn"].ConnectionString;
         // Construtor da janela de presença
         public TelaPresenca()
         {
@@ -52,8 +54,6 @@ namespace TCC_Assiduidade
                 return;
             }
 
-            // Define a data da aula como o momento atual
-            DateTime dataAula = DateTime.Now;
 
             // Abre o diálogo para selecionar o arquivo CSV
             if (dialog.ShowDialog() == true)
@@ -62,7 +62,7 @@ namespace TCC_Assiduidade
                 var dadosPresenca = CsvUtils.LerCsv(dialog.FileName);
 
                 // Realiza a importação da presença e salva as ausências
-                bool importou = ImportarPresenca(turmaId, dataAula, dadosPresenca);
+                bool importou = ImportarPresenca(turmaId, dadosPresenca);
 
                 if (importou)
                 {
@@ -74,6 +74,7 @@ namespace TCC_Assiduidade
                 }
             }
         }
+
         // Cria um registro de aula no banco de dados e retorna o ID gerado
         public int CriarAula(DateTime data, int turmaId)
         {
@@ -107,6 +108,7 @@ namespace TCC_Assiduidade
                 return -1;
             }
         }
+
         // Carrega todos os alunos cadastrados para uma turma específica
         public List<Aluno> CarregarAlunosDaTurma(int turmaId)
         {
@@ -154,24 +156,38 @@ namespace TCC_Assiduidade
         }
 
         // Salva uma ausência de um aluno para uma determinada aula
-        public bool SalvarAusencia(int aulaId, string alunoMatricula)
+        public bool SalvarAusencia(int aulaId, List<string> alunosMatricula)
         {
+            if (alunosMatricula == null || alunosMatricula.Count == 0) return false;
             try
             {
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
 
-                    string query = @"
-                            INSERT INTO Ausencia (AulaId, AlunoMatricula)
-                            VALUES (@aulaId, @alunoMatricula)
-                        ";
+                    StringBuilder sql = new StringBuilder("INSERT INTO Ausencia (AulaId, AlunoMatricula) VALUES ");
+                    List<string> rows = new List<string>();
 
-                    using (var cmd = new MySqlCommand(query, conn))
+                    using (var cmd = new MySqlCommand())
                     {
-                        cmd.Parameters.AddWithValue("@aulaId", aulaId);
-                        cmd.Parameters.AddWithValue("@alunoMatricula", alunoMatricula);
+                        cmd.Connection = conn;
 
+                        for (int i = 0; i < alunosMatricula.Count; i++)
+                        {
+                            // Criamos nomes únicos para os parâmetros para evitar conflitos
+                            string mRef = "@m" + i;
+                            string nRef = "@n" + i;
+
+                            rows.Add($"({mRef}, {nRef})");
+
+                            cmd.Parameters.AddWithValue(mRef, aulaId);
+                            cmd.Parameters.AddWithValue(nRef, alunosMatricula[i]);
+                        }
+
+                        // Junta todas as linhas separadas por vírgula
+                        sql.Append(string.Join(",", rows));
+
+                        cmd.CommandText = sql.ToString();
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -187,10 +203,13 @@ namespace TCC_Assiduidade
 
         // Importa a presença dos alunos a partir do CSV, salva ausências e gera relatório
         // Retorna true se tudo ocorreu bem, false caso contrário
-        private bool ImportarPresenca(int turmaId, DateTime dataAula, List<Dictionary<string, string>> dadosPresenca)
+        private bool ImportarPresenca(int turmaId, List<Dictionary<string, string>> dadosPresenca)
         {
             // Limpa o campo de texto de dados
             tbDados.Clear();
+
+            DateTime dataAula;
+            DateTime.TryParse(dadosPresenca[0]["data_presenca"], out dataAula);
 
             // Verifica se a turma existe no banco
             if (!TurmaExiste(turmaId))
@@ -210,7 +229,7 @@ namespace TCC_Assiduidade
 
             // Carrega todos os alunos da turma
             List<Aluno> alunosDaTurma = CarregarAlunosDaTurma(turmaId);
-
+            VerificarEmailCadastro(alunosDaTurma, dadosPresenca);
             if (alunosDaTurma.Count == 0)
             {
                 tbDados.AppendText("Nenhum aluno cadastrado para essa turma.\n");
@@ -232,18 +251,13 @@ namespace TCC_Assiduidade
 
             // Contador de ausências salvas
             int totalAusentes = 0;
-
+            List<string> ausentes = new List<string>();
             // Para cada aluno da turma, verifica se está ausente e salva no banco
             foreach (var aluno in alunosDaTurma)
             {
                 if (!matriculasPresentes.Contains(aluno.Matricula))
                 {
-                    bool salvou = SalvarAusencia(aulaId, aluno.Matricula);
-
-                    if (salvou)
-                    {
-                        totalAusentes++;
-                    }
+                    ausentes.Add(aluno.Matricula);
                 }
             }
 
@@ -253,7 +267,7 @@ namespace TCC_Assiduidade
             tbDados.AppendText($"Data: {dataAula:dd/MM/yyyy}\n");
             tbDados.AppendText($"Total de alunos da turma: {alunosDaTurma.Count}\n");
             tbDados.AppendText($"Total de presentes no CSV: {matriculasPresentes.Count}\n");
-            tbDados.AppendText($"Total de ausentes salvos: {totalAusentes}\n\n");
+            tbDados.AppendText($"Total de ausentes salvos: {ausentes.Count}\n\n");
 
             // Gera relatório dos alunos ausentes
             GerarRelatorioAusentes(aulaId);
@@ -334,6 +348,96 @@ namespace TCC_Assiduidade
             catch (Exception ex)
             {
                 tbDados.AppendText($"Erro ao gerar relatório: {ex.Message}\n");
+            }
+        }
+
+        public void VerificarEmailCadastro(List<Aluno> alunosBanco, List<Dictionary<string, string>> dadosPresenca) 
+        {
+            List<Aluno> alunosCsv = dadosPresenca.Select(linha => new Aluno
+            {
+                Matricula = linha["matricula_aluno"], // Use o nome exato da coluna no seu CSV
+                Email = linha["email_aluno"]         // Use o nome exato da coluna no seu CSV
+            }).ToList();
+
+            List<Aluno> alunosCsvEmailCadastro = alunosCsv.Where(a =>
+            {
+                var alunoBanco = alunosBanco.FirstOrDefault(ab => ab.Matricula == a.Matricula);
+                return alunoBanco != null && (string.IsNullOrWhiteSpace(alunoBanco.Email) || alunoBanco.Email != a.Email);
+            })
+                .ToList();
+
+            AtualizarEmail(alunosCsvEmailCadastro);
+        }
+
+        public void AtualizarEmail(List<Aluno> alunos)
+        {
+            if (alunos == null || alunos.Count == 0) return;
+            try
+            {
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Cria tabela temporária de rascunho
+                            string createTemp = @"
+                                CREATE TEMPORARY TABLE IF NOT EXISTS TempAlunos (
+                                    Matricula VARCHAR(50), 
+                                    Email VARCHAR(100)
+                                );
+                                TRUNCATE TABLE TempAlunos;";
+                            new MySqlCommand(createTemp, conn, trans).ExecuteNonQuery();
+
+                            // 2. Faz o Bulk Insert para a tabela temporária (usando a lógica que já temos)
+                            // [Aqui entraria o código do SalvarAlunos adaptado para a TempAlunos]
+                            StringBuilder sql = new StringBuilder("INSERT INTO TempAlunos (Matricula, Email) VALUES ");
+                            List<string> rows = new List<string>();
+
+                            using (var cmd = new MySqlCommand())
+                            {
+                                cmd.Connection = conn;
+                                cmd.Transaction = trans;
+
+                                for (int i = 0; i < alunos.Count; i++)
+                                {
+                                    // Criamos nomes únicos para os parâmetros para evitar conflitos
+                                    string mRef = "@m" + i;
+                                    string eRef = "@e" + i;
+
+                                    rows.Add($"({mRef}, {eRef})");
+
+                                    cmd.Parameters.AddWithValue(mRef, alunos[i].Matricula);
+                                    cmd.Parameters.AddWithValue(eRef, alunos[i].Email);
+                                }
+
+                                // Junta todas as linhas separadas por vírgula
+                                sql.Append(string.Join(",", rows));
+
+                                cmd.CommandText = sql.ToString();
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            // 3. O "Pulo do Gato": Update com Join
+                            string query = @"
+                                UPDATE Aluno 
+                                INNER JOIN TempAlunos ON Aluno.Matricula = TempAlunos.Matricula
+                                SET Aluno.Email = TempAlunos.Email
+                                WHERE Aluno.Email <> TempAlunos.Email OR Aluno.Email IS NULL;";
+
+                            new MySqlCommand(query, conn, trans).ExecuteNonQuery();
+
+                            trans.Commit();
+                        }
+                        catch { trans.Rollback(); throw; }
+                    }
+                }
+                tbDados.AppendText("Emails atualizados com sucesso!\n");
+            }
+            catch (Exception ex)
+            {
+                tbDados.AppendText($"Erro ao atualizar E-mail: {ex.Message}\n");
             }
         }
     }

@@ -7,13 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button x:Name="buttonImportarCadastro" Content="Button" HorizontalAlignment="Left" Margin="347,136,0,0" VerticalAlignment="Top" Click="buttonImportarCadastro_Click"/>
-        <TextBox x:Name="tbDados" HorizontalAlignment="Left" Margin="454,136,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="249" Height="194"/>
+        <Button x:Name="buttonImportarCadastro" Content="Button" HorizontalAlignment="Left" Margin="479,46,0,0" VerticalAlignment="Top" Click="buttonImportarCadastro_Click" RenderTransformOrigin="5.419,-3.987" Width="84"/>
+        <TextBox x:Name="tbDados" HorizontalAlignment="Left" Margin="189,105,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="271" Height="194"/>
         <TextBox x:Name="tbTurmaId" HorizontalAlignment="Left" Margin="189,45,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="tbTurmaNome" HorizontalAlignment="Left" Margin="400,45,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Button Content="Abrir Tela de Presença"
-        Height="40"
-        Width="200"
-        Click="buttonAbrirTelaPresenca_Click" Margin="187,272,413,122"/>
+        <TextBox x:Name="tbTurmaNome" HorizontalAlignment="Center" Margin="0,47,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+        <Button Content="Abrir Tela de Presença" 
+        Click="buttonAbrirTelaPresenca_Click" Margin="479,105,149,276" RenderTransformOrigin="0.496,0.875"/>
     </Grid>
 </Window>
