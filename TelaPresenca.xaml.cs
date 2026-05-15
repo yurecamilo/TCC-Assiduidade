@@ -3,7 +3,6 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -30,6 +29,46 @@ namespace TCC_Assiduidade
         {
             InitializeComponent();
         }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            CarregarTurmas();
+        }
+
+        public void CarregarTurmas()
+        {
+            var turmas = new List<Turma>();
+
+            try
+            {
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT Id, Nome FROM Turma ORDER BY Nome";
+
+                    using (var cmd = new MySqlCommand(query, conn))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            turmas.Add(new Turma
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                Nome = reader["Nome"].ToString()
+                            });
+                        }
+                    }
+                }
+
+                cbTurmas.ItemsSource = turmas;
+            }
+            catch (Exception ex)
+            {
+                tbDados.AppendText($"Erro ao carregar turmas: {ex.Message}\n");
+            }
+        }
+
         // Evento do botão para importar o CSV de presença
         // Lê o arquivo CSV, valida o ID da turma e chama o método de importação de presença
         private void buttonImportarPresenca_Click(object sender, RoutedEventArgs e)
@@ -40,20 +79,13 @@ namespace TCC_Assiduidade
                 Title = "Selecionar arquivo CSV de presença"
             };
 
-            // Verifica se o campo do ID da turma está preenchido
-            if (string.IsNullOrWhiteSpace(tbTurmaId.Text))
+            if (cbTurmas.SelectedValue == null)
             {
-                MessageBox.Show("Informe o ID da turma.");
+                MessageBox.Show("Selecione uma turma.");
                 return;
             }
 
-            // Verifica se o ID da turma é um número inteiro
-            if (!int.TryParse(tbTurmaId.Text, out int turmaId))
-            {
-                MessageBox.Show("O ID da turma deve ser um número inteiro.");
-                return;
-            }
-
+            int turmaId = Convert.ToInt32(cbTurmas.SelectedValue);
 
             // Abre o diálogo para selecionar o arquivo CSV
             if (dialog.ShowDialog() == true)
@@ -229,7 +261,6 @@ namespace TCC_Assiduidade
 
             // Carrega todos os alunos da turma
             List<Aluno> alunosDaTurma = CarregarAlunosDaTurma(turmaId);
-            VerificarEmailCadastro(alunosDaTurma, dadosPresenca);
             if (alunosDaTurma.Count == 0)
             {
                 tbDados.AppendText("Nenhum aluno cadastrado para essa turma.\n");
@@ -249,8 +280,6 @@ namespace TCC_Assiduidade
                 }
             }
 
-            // Contador de ausências salvas
-            int totalAusentes = 0;
             List<string> ausentes = new List<string>();
             // Para cada aluno da turma, verifica se está ausente e salva no banco
             foreach (var aluno in alunosDaTurma)
@@ -260,6 +289,7 @@ namespace TCC_Assiduidade
                     ausentes.Add(aluno.Matricula);
                 }
             }
+            SalvarAusencia(aulaId, ausentes);
 
             // Exibe resumo da importação na interface
             tbDados.AppendText("--- IMPORTAÇÃO CONCLUÍDA ---\n\n");
@@ -351,95 +381,6 @@ namespace TCC_Assiduidade
             }
         }
 
-        public void VerificarEmailCadastro(List<Aluno> alunosBanco, List<Dictionary<string, string>> dadosPresenca) 
-        {
-            List<Aluno> alunosCsv = dadosPresenca.Select(linha => new Aluno
-            {
-                Matricula = linha["matricula_aluno"], // Use o nome exato da coluna no seu CSV
-                Email = linha["email_aluno"]         // Use o nome exato da coluna no seu CSV
-            }).ToList();
-
-            List<Aluno> alunosCsvEmailCadastro = alunosCsv.Where(a =>
-            {
-                var alunoBanco = alunosBanco.FirstOrDefault(ab => ab.Matricula == a.Matricula);
-                return alunoBanco != null && (string.IsNullOrWhiteSpace(alunoBanco.Email) || alunoBanco.Email != a.Email);
-            })
-                .ToList();
-
-            AtualizarEmail(alunosCsvEmailCadastro);
-        }
-
-        public void AtualizarEmail(List<Aluno> alunos)
-        {
-            if (alunos == null || alunos.Count == 0) return;
-            try
-            {
-                using (var conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
-                    using (var trans = conn.BeginTransaction())
-                    {
-                        try
-                        {
-                            // 1. Cria tabela temporária de rascunho
-                            string createTemp = @"
-                                CREATE TEMPORARY TABLE IF NOT EXISTS TempAlunos (
-                                    Matricula VARCHAR(50), 
-                                    Email VARCHAR(100)
-                                );
-                                TRUNCATE TABLE TempAlunos;";
-                            new MySqlCommand(createTemp, conn, trans).ExecuteNonQuery();
-
-                            // 2. Faz o Bulk Insert para a tabela temporária (usando a lógica que já temos)
-                            // [Aqui entraria o código do SalvarAlunos adaptado para a TempAlunos]
-                            StringBuilder sql = new StringBuilder("INSERT INTO TempAlunos (Matricula, Email) VALUES ");
-                            List<string> rows = new List<string>();
-
-                            using (var cmd = new MySqlCommand())
-                            {
-                                cmd.Connection = conn;
-                                cmd.Transaction = trans;
-
-                                for (int i = 0; i < alunos.Count; i++)
-                                {
-                                    // Criamos nomes únicos para os parâmetros para evitar conflitos
-                                    string mRef = "@m" + i;
-                                    string eRef = "@e" + i;
-
-                                    rows.Add($"({mRef}, {eRef})");
-
-                                    cmd.Parameters.AddWithValue(mRef, alunos[i].Matricula);
-                                    cmd.Parameters.AddWithValue(eRef, alunos[i].Email);
-                                }
-
-                                // Junta todas as linhas separadas por vírgula
-                                sql.Append(string.Join(",", rows));
-
-                                cmd.CommandText = sql.ToString();
-                                cmd.ExecuteNonQuery();
-                            }
-
-                            // 3. O "Pulo do Gato": Update com Join
-                            string query = @"
-                                UPDATE Aluno 
-                                INNER JOIN TempAlunos ON Aluno.Matricula = TempAlunos.Matricula
-                                SET Aluno.Email = TempAlunos.Email
-                                WHERE Aluno.Email <> TempAlunos.Email OR Aluno.Email IS NULL;";
-
-                            new MySqlCommand(query, conn, trans).ExecuteNonQuery();
-
-                            trans.Commit();
-                        }
-                        catch { trans.Rollback(); throw; }
-                    }
-                }
-                tbDados.AppendText("Emails atualizados com sucesso!\n");
-            }
-            catch (Exception ex)
-            {
-                tbDados.AppendText($"Erro ao atualizar E-mail: {ex.Message}\n");
-            }
-        }
     }
 
 }
