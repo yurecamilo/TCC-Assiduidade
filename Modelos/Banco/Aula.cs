@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TCC_Assiduidade
+namespace TCC_Assiduidade.Modelos
 {
     public class Aula
     {

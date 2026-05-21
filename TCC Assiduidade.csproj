@@ -51,7 +51,8 @@
       <HintPath>packages\K4os.Hash.xxHash.1.0.8\lib\net462\K4os.Hash.xxHash.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.5.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+      <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MySql.Data, Version=9.7.0.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>packages\MySql.Data.9.7.0\lib\net462\MySql.Data.dll</HintPath>
@@ -104,27 +105,42 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Aula.cs" />
-    <Compile Include="Ausencia.cs" />
-    <Compile Include="CsvUtils.cs" />
-    <Compile Include="TelaPresenca.xaml.cs">
+    <Compile Include="Modelos\Banco\Aula.cs" />
+    <Compile Include="Modelos\Banco\Ausencia.cs" />
+    <Compile Include="Servicos\ArquivoService.cs" />
+    <Compile Include="Modelos\Relatorios\RelatorioAusente.cs" />
+    <Compile Include="Repositories\AlunoRepository.cs" />
+    <Compile Include="Repositories\AulaRepository.cs" />
+    <Compile Include="Repositories\AusenciaRepository.cs" />
+    <Compile Include="Servicos\AulaService.cs" />
+    <Compile Include="Servicos\AusenciaService.cs" />
+    <Compile Include="Servicos\RelatorioService.cs" />
+    <Compile Include="Repositories\TurmaRepository.cs" />
+    <Compile Include="Servicos\AlunoService.cs" />
+    <Compile Include="Servicos\ImportacaoService.cs" />
+    <Compile Include="Servicos\TurmaService.cs" />
+    <Compile Include="ViewModel\Base\BaseViewModel.cs" />
+    <Compile Include="ViewModel\CadastroViewModel.cs" />
+    <Compile Include="ViewModel\Base\RelayCommand.cs" />
+    <Compile Include="ViewModel\PresencaViewModel.cs" />
+    <Compile Include="View\TelaPresenca.xaml.cs">
       <DependentUpon>TelaPresenca.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Turma.cs" />
-    <Page Include="TelaCadastro.xaml">
+    <Compile Include="Modelos\Banco\Turma.cs" />
+    <Page Include="View\TelaCadastro.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Aluno.cs" />
+    <Compile Include="Modelos\Banco\Aluno.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TelaCadastro.xaml.cs">
+    <Compile Include="View\TelaCadastro.xaml.cs">
       <DependentUpon>TelaCadastro.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="TelaPresenca.xaml">
+    <Page Include="View\TelaPresenca.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -156,5 +172,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
