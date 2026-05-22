@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using TCC_Assiduidade.Servicos;
+using TCC_Assiduidade.View;
 using TCC_Assiduidade.ViewModel.Base;
 using TCC_Assiduidade.ViewModels.Base;
 
