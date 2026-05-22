@@ -1,6 +1,8 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
 using System.Configuration;
+using System.Collections.Generic;
+using TCC_Assiduidade.Modelos;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -28,6 +30,45 @@ namespace TCC_Assiduidade.Repositories
                 }
             }
             return aulaId > 0 ? aulaId : -1;
+        }
+
+        public List<ResumoAulaRelatorio> ObterResumoAulas()
+        {
+            var aulas = new List<ResumoAulaRelatorio>();
+
+            using (var conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+                    SELECT
+                        Aula.Id AS AulaId,
+                        Aula.Data,
+                        Turma.Nome AS Turma,
+                        COUNT(Ausencia.AlunoMatricula) AS NumeroAusentes
+                    FROM Aula
+                    INNER JOIN Turma ON Turma.Id = Aula.TurmaId
+                    LEFT JOIN Ausencia ON Ausencia.AulaId = Aula.Id
+                    GROUP BY Aula.Id, Aula.Data, Turma.Nome
+                    ORDER BY Aula.Data DESC, Aula.Id DESC;
+                ";
+
+                using (var cmd = new MySqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        aulas.Add(new ResumoAulaRelatorio
+                        {
+                            AulaId = Convert.ToInt32(reader["AulaId"]),
+                            Data = Convert.ToDateTime(reader["Data"]),
+                            Turma = reader["Turma"].ToString(),
+                            NumeroAusentes = Convert.ToInt32(reader["NumeroAusentes"])
+                        });
+                    }
+                }
+            }
+
+            return aulas;
         }
     }
 }

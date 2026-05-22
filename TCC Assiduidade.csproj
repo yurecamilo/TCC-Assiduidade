@@ -109,6 +109,9 @@
     <Compile Include="Modelos\Banco\Ausencia.cs" />
     <Compile Include="Servicos\ArquivoService.cs" />
     <Compile Include="Modelos\Relatorios\RelatorioAusente.cs" />
+    <Compile Include="Modelos\Relatorios\ResumoAulaRelatorio.cs" />
+    <Compile Include="Modelos\Resultados\ResultadoImportacaoCadastro.cs" />
+    <Compile Include="Modelos\Resultados\ResultadoImportacaoPresenca.cs" />
     <Compile Include="Repositories\AlunoRepository.cs" />
     <Compile Include="Repositories\AulaRepository.cs" />
     <Compile Include="Repositories\AusenciaRepository.cs" />
@@ -122,7 +125,17 @@
     <Compile Include="ViewModel\Base\BaseViewModel.cs" />
     <Compile Include="ViewModel\CadastroViewModel.cs" />
     <Compile Include="ViewModel\Base\RelayCommand.cs" />
+    <Compile Include="ViewModel\MenuViewModel.cs" />
     <Compile Include="ViewModel\PresencaViewModel.cs" />
+    <Compile Include="ViewModel\RelatoriosAulasViewModel.cs" />
+    <Compile Include="View\TelaMenu.xaml.cs">
+      <DependentUpon>TelaMenu.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="View\TelaRelatoriosAulas.xaml.cs">
+      <DependentUpon>TelaRelatoriosAulas.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="View\TelaPresenca.xaml.cs">
       <DependentUpon>TelaPresenca.xaml</DependentUpon>
     </Compile>
@@ -140,6 +153,14 @@
       <DependentUpon>TelaCadastro.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\TelaMenu.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\TelaRelatoriosAulas.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\TelaPresenca.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

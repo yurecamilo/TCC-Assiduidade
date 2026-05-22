@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Resultados;
 
 namespace TCC_Assiduidade.Servicos
 {
@@ -21,13 +22,15 @@ namespace TCC_Assiduidade.Servicos
             _relatorioService = new RelatorioService();
         }
 
-        public string Importacao(string turmaNome, List<Dictionary<string, string>> dados)
+        public ResultadoImportacaoCadastro Importacao(string turmaNome, List<Dictionary<string, string>> dados)
         {
-            string resposta = "";
-
             if (string.IsNullOrWhiteSpace(turmaNome))
             {
-                return "Nome da turma inválido.";
+                return new ResultadoImportacaoCadastro
+                {
+                    Sucesso = false,
+                    Mensagem = "Nome da turma invalido."
+                };
             }
 
             Turma turma = _turmaService.ObterTurmaPorNome(turmaNome);
@@ -35,16 +38,24 @@ namespace TCC_Assiduidade.Servicos
             if (turma == null)
             {
                 int turmaId = _turmaService.Adicionar(turmaNome);
-                if (turmaId == -1) 
-                    return "Erro ao criar turma.";
+                if (turmaId == -1)
+                {
+                    return new ResultadoImportacaoCadastro
+                    {
+                        Sucesso = false,
+                        Mensagem = "Erro ao criar turma."
+                    };
+                }
 
                 turma = new Turma { Id = turmaId, Nome = turmaNome };
-
-                resposta += $"Turma {turma.Nome} criada com sucesso. ";
             }
             else
             {
-                return $"A turma {turma.Nome} já está cadastrada no sistema.";
+                return new ResultadoImportacaoCadastro
+                {
+                    Sucesso = false,
+                    Mensagem = $"A turma {turma.Nome} ja esta cadastrada no sistema."
+                };
             }
 
             List<Aluno> alunosParaSalvar = new List<Aluno>();
@@ -60,38 +71,51 @@ namespace TCC_Assiduidade.Servicos
                 };
 
                 alunosParaSalvar.Add(aluno);
-
-                resposta += $"\n- {aluno.Nome} (Matricula: {aluno.Matricula})";
             }
 
             _alunoService.Adicionar(alunosParaSalvar);
 
-            return resposta;
+            return new ResultadoImportacaoCadastro
+            {
+                Sucesso = true,
+                Mensagem = $"Turma {turma.Nome} criada com sucesso. {alunosParaSalvar.Count} alunos importados.",
+                Alunos = alunosParaSalvar
+            };
         }
 
-
-        public string ImportarPresenca(int turmaId, List<Dictionary<string, string>> dadosPresenca)
+        public ResultadoImportacaoPresenca ImportarPresenca(int turmaId, List<Dictionary<string, string>> dadosPresenca)
         {
-            string resposta = "";
             DateTime dataAula;
             DateTime.TryParse(dadosPresenca[0]["data_presenca"], out dataAula);
 
             if (_turmaService.ObterTurmaPorId(turmaId) == null)
             {
-                return "Turma não encontrada.";
+                return new ResultadoImportacaoPresenca
+                {
+                    Sucesso = false,
+                    Mensagem = "Turma nao encontrada."
+                };
             }
 
             int aulaId = _aulaService.Adicionar(dataAula, turmaId);
 
             if (aulaId == -1)
             {
-                return "Erro ao criar aula.";
+                return new ResultadoImportacaoPresenca
+                {
+                    Sucesso = false,
+                    Mensagem = "Erro ao criar aula."
+                };
             }
 
             List<Aluno> alunosDaTurma = _alunoService.ObterPorTurma(turmaId);
             if (alunosDaTurma.Count == 0)
             {
-                return "Nenhum aluno encontrado na turma.";
+                return new ResultadoImportacaoPresenca
+                {
+                    Sucesso = false,
+                    Mensagem = "Nenhum aluno encontrado na turma."
+                };
             }
 
             HashSet<string> matriculasPresentes = new HashSet<string>();
@@ -114,24 +138,23 @@ namespace TCC_Assiduidade.Servicos
                     ausentes.Add(aluno.Matricula);
                 }
             }
+
             _ausenciaService.Adicionar(aulaId, ausentes);
 
-            resposta += "Presença importada e ausências registradas com sucesso!";
-            resposta+= "\n\n------------------------------------\n\n";
-            resposta += $"Aula criada: {aulaId}\n";
-            resposta += $"Data: {dataAula:dd/MM/yyyy}\n";
-            resposta += $"Total de alunos da turma: {alunosDaTurma.Count}\n";
-            resposta += $"Total de presentes no CSV: {matriculasPresentes.Count}\n";
-            resposta += $"Total de ausentes salvos: {ausentes.Count}";
-            resposta += "\n\n------------------------------------\n\n";
-            resposta += "Alunos ausentes:\n";
-
             List<RelatorioAusente> relatorioAusentes = _relatorioService.ObterDadosRelatorio(aulaId);
-            foreach (var ausente in relatorioAusentes)
+
+            return new ResultadoImportacaoPresenca
             {
-                resposta += $"- {ausente.Aluno} (Matrícula: {ausente.Matricula}, Email: {ausente.Email})\n";
-            }
-            return resposta;
+                Sucesso = true,
+                Mensagem =
+                    "Presenca importada e ausencias registradas com sucesso!\n\n" +
+                    $"Aula criada: {aulaId}\n" +
+                    $"Data: {dataAula:dd/MM/yyyy}\n" +
+                    $"Total de alunos da turma: {alunosDaTurma.Count}\n" +
+                    $"Total de presentes no CSV: {matriculasPresentes.Count}\n" +
+                    $"Total de ausentes salvos: {ausentes.Count}",
+                Ausentes = relatorioAusentes
+            };
         }
     }
 }

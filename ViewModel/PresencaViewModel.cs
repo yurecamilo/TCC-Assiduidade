@@ -1,9 +1,11 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
-using TCC_Assiduidade.Servicos;     
+using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Resultados;
+using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
 using TCC_Assiduidade.ViewModels.Base;
 
@@ -16,7 +18,7 @@ namespace TCC_Assiduidade
 
         private List<Turma> _turmas;
         private Turma _turmaSelecionada;
-        private string _tbDados;
+        private List<RelatorioAusente> _ausentes;
 
         public List<Turma> Turmas
         {
@@ -24,10 +26,10 @@ namespace TCC_Assiduidade
             set { _turmas = value; OnPropertyChanged(); }
         }
 
-        public string TbDados
+        public List<RelatorioAusente> Ausentes
         {
-            get => _tbDados;
-            set { _tbDados = value; OnPropertyChanged(); }
+            get => _ausentes;
+            set { _ausentes = value; OnPropertyChanged(); }
         }
 
         public Turma TurmaSelecionada
@@ -41,17 +43,19 @@ namespace TCC_Assiduidade
         }
 
         public ICommand ImportarPresencaCommand { get; private set; }
+
         public PresencaViewModel()
         {
             _turmaService = new TurmaService();
             _importacaoService = new ImportacaoService();
+            Ausentes = new List<RelatorioAusente>();
             ImportarPresencaCommand = new RelayCommand(ExecutarImportacao);
             CarregarTurmasDoBanco();
         }
 
         private void ExecutarImportacao()
         {
-            TbDados = string.Empty;
+            Ausentes = new List<RelatorioAusente>();
 
             if (TurmaSelecionada == null)
             {
@@ -70,11 +74,15 @@ namespace TCC_Assiduidade
                 try
                 {
                     List<Dictionary<string, string>> dadosCsv = ArquivoService.LerCsv(dialog.FileName);
-                    TbDados = _importacaoService.ImportarPresenca(TurmaSelecionada.Id, dadosCsv);
+                    ResultadoImportacaoPresenca resultado = _importacaoService.ImportarPresenca(TurmaSelecionada.Id, dadosCsv);
+
+                    Ausentes = resultado.Ausentes;
+                    MessageBox.Show(resultado.Mensagem);
                 }
                 catch (Exception ex)
                 {
-                    TbDados = $"Erro crítico: {ex.Message}\n";
+                    Ausentes = new List<RelatorioAusente>();
+                    MessageBox.Show("Erro critico: " + ex.Message);
                 }
             }
         }

@@ -1,48 +1,83 @@
 <Window x:Class="TCC_Assiduidade.View.TelaPresenca"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Importar Presença"
-        Height="499"
-        Width="675"
-        WindowStartupLocation="CenterScreen">
-    <!-- MODIFICAÇÃO 1: Removemos o Loaded="Window_Loaded" porque a ViewModel busca as turmas sozinha ao nascer -->
+        Title="Importar Presenca"
+        Height="720"
+        Width="1100"
+        MinHeight="650"
+        MinWidth="960"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
 
-    <Grid Margin="20">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Padding" Value="10,6"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="MinHeight" Value="54"/>
+            <Setter Property="Padding" Value="18,8"/>
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+        </Style>
+    </Window.Resources>
 
-        <StackPanel>
+    <Grid Margin="56">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <TextBlock Text="Tela de Importação de Presença"
-                       FontSize="22"
-                       FontWeight="Bold"
-                       Margin="0,0,0,20"/>
+        <TextBlock Grid.Row="0"
+                   Text="Tela de Importacao de Presenca"
+                   FontSize="36"
+                   FontWeight="Bold"/>
 
-            <TextBlock Text="Turma:"/>
+        <TextBlock Grid.Row="2"
+                   Text="Turma:"
+                   FontWeight="SemiBold"/>
 
-            <!-- MODIFICAÇÃO 2: Adicionados o ItemsSource para encher a lista e SelectedItem para capturar a escolha -->
-            <ComboBox x:Name="cbTurmas"
-                      ItemsSource="{Binding Turmas}"
-                      SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
-                      DisplayMemberPath="Nome"
-                      Height="30"
-                      Margin="0,5,0,15"
-                      VerticalContentAlignment="Center"/>
+        <ComboBox x:Name="cbTurmas"
+                  Grid.Row="4"
+                  ItemsSource="{Binding Turmas}"
+                  SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                  DisplayMemberPath="Nome"
+                  Height="54"
+                  VerticalContentAlignment="Center"/>
 
-            <!-- MODIFICAÇÃO 3: Trocado 'Click' por 'Command' para disparar a leitura do CSV de presenças -->
-            <Button Content="Importar CSV de Presença"
-                    Command="{Binding ImportarPresencaCommand}"
-                    Height="40"/>
+        <Button Grid.Row="6"
+                Content="Importar CSV de Presenca"
+                Command="{Binding ImportarPresencaCommand}"/>
 
-            <!-- MODIFICAÇÃO 4: Adicionado o Binding para receber o TextoLog do processamento e IsReadOnly para proteção -->
-            <TextBox x:Name="tbDados"
-                     Text="{Binding TbDados, Mode=OneWay}"
-                     IsReadOnly="True"
-                     Margin="0,20,0,0"
-                     Height="220"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"/>
-
-        </StackPanel>
-
+        <DataGrid Grid.Row="8"
+                  ItemsSource="{Binding Ausentes}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Aula" Binding="{Binding AulaId}" Width="*"/>
+                <DataGridTextColumn Header="Data" Binding="{Binding Data, StringFormat={}{0:dd/MM/yyyy}}" Width="*"/>
+                <DataGridTextColumn Header="Turma" Binding="{Binding Turma}" Width="2*"/>
+                <DataGridTextColumn Header="Matricula" Binding="{Binding Matricula}" Width="*"/>
+                <DataGridTextColumn Header="Aluno" Binding="{Binding Aluno}" Width="2*"/>
+                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Window>

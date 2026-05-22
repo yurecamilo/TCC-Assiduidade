@@ -1,0 +1,81 @@
+<Window x:Class="TCC_Assiduidade.View.TelaRelatoriosAulas"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Relatorios de Aulas"
+        Height="720"
+        Width="1100"
+        MinHeight="650"
+        MinWidth="960"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="MinHeight" Value="42"/>
+            <Setter Property="Padding" Value="16,8"/>
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="RowHeight" Value="48"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="56">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="28"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Relatorios de Aulas"
+                   FontSize="40"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"/>
+
+        <TextBlock Grid.Row="2"
+                   Text="Aulas registradas"
+                   FontSize="24"
+                   FontWeight="SemiBold"/>
+
+        <DataGrid Grid.Row="4"
+                  ItemsSource="{Binding Aulas}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Data da Aula"
+                                    Binding="{Binding Data, StringFormat={}{0:dd/MM/yyyy}}"
+                                    Width="*"/>
+                <DataGridTextColumn Header="Nome da Turma"
+                                    Binding="{Binding Turma}"
+                                    Width="2*"/>
+                <DataGridTextColumn Header="Numero de Ausentes"
+                                    Binding="{Binding NumeroAusentes}"
+                                    Width="*"/>
+                <DataGridTemplateColumn Header="Relatorio"
+                                        Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Gerar HTML"
+                                    Command="{Binding DataContext.GerarHtmlCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    CommandParameter="{Binding}"
+                                    Margin="4"
+                                    MinHeight="36"
+                                    FontSize="16"
+                                    Padding="12,4"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TCC_Assiduidade.Modelos;
 using TCC_Assiduidade.Repositories;
 
 namespace TCC_Assiduidade.Servicos
@@ -21,6 +22,11 @@ namespace TCC_Assiduidade.Servicos
             if (dataAula == null || dataAula > DateTime.Now) return -1;
             if (turmaId <= 0) return -1;
             return _aulaRepository.Adicionar(dataAula, turmaId);
+        }
+
+        public List<ResumoAulaRelatorio> ObterResumoAulas()
+        {
+            return _aulaRepository.ObterResumoAulas();
         }
     }
 }
