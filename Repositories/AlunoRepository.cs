@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
 using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Relatorios;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -156,7 +157,7 @@ namespace TCC_Assiduidade.Repositories
             {
                 conn.Open();
 
-                string query = "SELECT Matricula, Nome FROM Aluno";
+                string query = "SELECT Matricula, Nome, Email, TurmaId FROM Aluno";
 
                 using (var cmd = new MySqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -166,12 +167,78 @@ namespace TCC_Assiduidade.Repositories
                         alunos.Add(new Aluno
                         {
                             Matricula = reader["Matricula"].ToString(),
-                            Nome = reader["Nome"].ToString()
+                            Nome = reader["Nome"].ToString(),
+                            Email = reader["Email"].ToString(),
+                            TurmaId = Convert.ToInt32(reader["TurmaId"])
                         });
                     }
                 }
             }
             return alunos;
+        }
+
+        public List<AlunoExibicaoDTO> ObterPerfilAluno()
+        {
+            var lista = new List<AlunoExibicaoDTO>();
+
+            string sql = @"
+                SELECT 
+                    a.Matricula, 
+                    a.Nome, 
+                    a.Email, 
+                    COALESCE(t.Nome, 'Sem turma') AS NomeTurma,
+                    -- Subqueries ou Joins para calcular a frequência (Exemplo genérico):
+                    COALESCE((SELECT COUNT(*) FROM Ausencia aus WHERE aus.AlunoMatricula = a.Matricula), 0) AS TotalFaltas,
+                    COALESCE((SELECT COUNT(*) FROM Aula WHERE Aula.TurmaId = a.TurmaId), 0) AS TotalAulas
+                FROM Aluno a
+                LEFT JOIN Turma t ON a.TurmaId = t.Id;";
+
+            using (var conn = new MySqlConnection(connectionString))
+            {
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // 1. Pega os valores inteiros do banco
+                            int faltas = Convert.ToInt32(reader["TotalFaltas"]);
+                            int totalAulas = Convert.ToInt32(reader["TotalAulas"]);
+
+
+                            // 3. Calcula o percentual de assiduidade (com proteção para divisão por zero)
+                            double percentualAssiduidade = 100.0; // Se não tiver aulas, assume 100%
+                            if (totalAulas > 0)
+                            {
+                                percentualAssiduidade = ((double)(totalAulas - faltas) / totalAulas) * 100;
+                                // Arredonda para 1 casa decimal (ex: 95.4%)
+                                percentualAssiduidade = Math.Round(percentualAssiduidade, 1);
+                            }
+
+                            // 4. Monta o seu DTO preenchendo a propriedade DadosFrequencia
+                            var alunoDTO = new AlunoExibicaoDTO
+                            {
+                                Matricula = reader["matricula"].ToString(),
+                                Nome = reader["nome"].ToString(),
+                                Email = reader["email"].ToString(),
+                                Turma = reader["nometurma"].ToString(),
+
+                                DadosFrequencia = new RelatorioFrequencia
+                                {
+                                    TotalFaltas = faltas,
+                                    TotalAulas = totalAulas,
+                                    Assiduidade = percentualAssiduidade
+                                }
+                            };
+
+                            lista.Add(alunoDTO);
+                        }
+                    }
+                }
+            }
+
+            return lista;
         }
     }
 }

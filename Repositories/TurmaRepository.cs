@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using TCC_Assiduidade.Modelos;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -125,6 +126,38 @@ namespace TCC_Assiduidade.Repositories
                 }
             }
             return turmas;
+        }
+
+        public List<TurmaExibicaoDTO> ObterTurmasComContagem()
+        {
+            var lista = new List<TurmaExibicaoDTO>();
+
+            string sql = @"
+                SELECT t.Id, t.Nome, COUNT(a.Matricula) AS QuantidadeAlunos
+                FROM Turma t
+                LEFT JOIN Aluno a ON a.TurmaId = t.Id
+                GROUP BY t.Id, t.Nome;";
+
+            using (var conn = new MySqlConnection(connectionString))
+            {
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    conn.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            lista.Add(new TurmaExibicaoDTO
+                            {
+                                Nome = reader["nome"].ToString(),
+                                QuantidadeAlunos = Convert.ToInt32(reader["QuantidadeAlunos"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return lista;
         }
     }
 }

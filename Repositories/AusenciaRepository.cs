@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Relatorios;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -87,5 +88,6 @@ namespace TCC_Assiduidade.Repositories
             }
             return lista;
         }
+
     }
 }

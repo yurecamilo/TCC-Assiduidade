@@ -8,7 +8,7 @@ namespace TCC_Assiduidade.View
         public TelaRelatoriosAulas()
         {
             InitializeComponent();
-            DataContext = new RelatoriosAulasViewModel();
+            DataContext = new RelatoriosViewModel();
         }
     }
 }

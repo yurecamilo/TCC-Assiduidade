@@ -14,6 +14,8 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -50,9 +52,18 @@
     <Reference Include="K4os.Hash.xxHash, Version=1.0.8.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
       <HintPath>packages\K4os.Hash.xxHash.1.0.8\lib\net462\K4os.Hash.xxHash.dll</HintPath>
     </Reference>
+    <Reference Include="MaterialDesignColors, Version=5.3.2.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>packages\MaterialDesignColors.5.3.2\lib\net462\MaterialDesignColors.dll</HintPath>
+    </Reference>
+    <Reference Include="MaterialDesignThemes.Wpf, Version=5.3.2.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>packages\MaterialDesignThemes.5.3.2\lib\net462\MaterialDesignThemes.Wpf.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Xaml.Behaviors.Wpf.1.1.77\lib\net462\Microsoft.Xaml.Behaviors.dll</HintPath>
     </Reference>
     <Reference Include="MySql.Data, Version=9.7.0.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>packages\MySql.Data.9.7.0\lib\net462\MySql.Data.dll</HintPath>
@@ -107,9 +118,12 @@
     </ApplicationDefinition>
     <Compile Include="Modelos\Banco\Aula.cs" />
     <Compile Include="Modelos\Banco\Ausencia.cs" />
+    <Compile Include="Modelos\DTO\AlunoExibicaoDTO.cs" />
+    <Compile Include="Modelos\DTO\TurmaExibicaoDTO.cs" />
+    <Compile Include="Modelos\Relatorios\RelatorioFrequencia.cs" />
     <Compile Include="Servicos\ArquivoService.cs" />
     <Compile Include="Modelos\Relatorios\RelatorioAusente.cs" />
-    <Compile Include="Modelos\Relatorios\ResumoAulaRelatorio.cs" />
+    <Compile Include="Modelos\DTO\AulaExibicaoDTO.cs" />
     <Compile Include="Modelos\Resultados\ResultadoImportacaoCadastro.cs" />
     <Compile Include="Modelos\Resultados\ResultadoImportacaoPresenca.cs" />
     <Compile Include="Repositories\AlunoRepository.cs" />
@@ -117,30 +131,81 @@
     <Compile Include="Repositories\AusenciaRepository.cs" />
     <Compile Include="Servicos\AulaService.cs" />
     <Compile Include="Servicos\AusenciaService.cs" />
+    <Compile Include="Servicos\DataCacheService.cs" />
     <Compile Include="Servicos\RelatorioService.cs" />
     <Compile Include="Repositories\TurmaRepository.cs" />
     <Compile Include="Servicos\AlunoService.cs" />
     <Compile Include="Servicos\ImportacaoService.cs" />
     <Compile Include="Servicos\TurmaService.cs" />
+    <Compile Include="ViewModel\AlunosViewModel.cs" />
+    <Compile Include="ViewModel\AulasViewModel.cs" />
     <Compile Include="ViewModel\Base\BaseViewModel.cs" />
-    <Compile Include="ViewModel\CadastroViewModel.cs" />
+    <Compile Include="ViewModel\ANTIGO\CadastroViewModel.cs" />
     <Compile Include="ViewModel\Base\RelayCommand.cs" />
-    <Compile Include="ViewModel\MenuViewModel.cs" />
-    <Compile Include="ViewModel\PresencaViewModel.cs" />
-    <Compile Include="ViewModel\RelatoriosAulasViewModel.cs" />
-    <Compile Include="View\TelaMenu.xaml.cs">
+    <Compile Include="ViewModel\ANTIGO\MenuViewModel.cs" />
+    <Compile Include="ViewModel\ANTIGO\PresencaViewModel.cs" />
+    <Compile Include="ViewModel\Popups\ResumoAulaViewModel.cs" />
+    <Compile Include="ViewModel\RelatoriosViewModel.cs" />
+    <Compile Include="ViewModel\Popups\ImportarCadastroViewModel.cs" />
+    <Compile Include="ViewModel\Popups\ImportarPresencaViewModel.cs" />
+    <Compile Include="ViewModel\TurmasViewModel.cs" />
+    <Compile Include="View\AlunosView.xaml.cs">
+      <DependentUpon>AlunosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\AulasView.xaml.cs">
+      <DependentUpon>AulasView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Converters\NullToVisibilityConverter.cs" />
+    <Compile Include="View\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\DashboardView.xaml.cs">
+      <DependentUpon>DashboardView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ANTIGO\TelaMenu.xaml.cs">
       <DependentUpon>TelaMenu.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View\TelaRelatoriosAulas.xaml.cs">
+    <Compile Include="View\ANTIGO\TelaRelatoriosAulas.xaml.cs">
       <DependentUpon>TelaRelatoriosAulas.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View\TelaPresenca.xaml.cs">
+    <Compile Include="View\ANTIGO\TelaPresenca.xaml.cs">
       <DependentUpon>TelaPresenca.xaml</DependentUpon>
     </Compile>
     <Compile Include="Modelos\Banco\Turma.cs" />
-    <Page Include="View\TelaCadastro.xaml">
+    <Compile Include="View\Popups\ImportarCadastro.xaml.cs">
+      <DependentUpon>ImportarCadastro.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Popups\ImportarPresenca.xaml.cs">
+      <DependentUpon>ImportarPresenca.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Popups\ResumoAula.xaml.cs">
+      <DependentUpon>ResumoAula.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\RelatoriosView.xaml.cs">
+      <DependentUpon>RelatoriosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\TurmasView.xaml.cs">
+      <DependentUpon>TurmasView.xaml</DependentUpon>
+    </Compile>
+    <Page Include="View\AlunosView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\AulasView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\DashboardView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ANTIGO\TelaCadastro.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -149,19 +214,39 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View\TelaCadastro.xaml.cs">
+    <Compile Include="View\ANTIGO\TelaCadastro.xaml.cs">
       <DependentUpon>TelaCadastro.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="View\TelaMenu.xaml">
+    <Page Include="View\ANTIGO\TelaMenu.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\TelaRelatoriosAulas.xaml">
+    <Page Include="View\ANTIGO\TelaRelatoriosAulas.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\TelaPresenca.xaml">
+    <Page Include="View\ANTIGO\TelaPresenca.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\ImportarCadastro.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\ImportarPresenca.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\ResumoAula.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\RelatoriosView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\TurmasView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -195,4 +280,11 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="packages\MaterialDesignThemes.5.3.2\build\MaterialDesignThemes.targets" Condition="Exists('packages\MaterialDesignThemes.5.3.2\build\MaterialDesignThemes.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Este projeto faz referência a pacotes do NuGet que não estão presentes neste computador. Use a Restauração de Pacotes do NuGet para baixá-los.  Para obter mais informações, consulte http://go.microsoft.com/fwlink/?LinkID=322105. O arquivo ausente é {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\MaterialDesignThemes.5.3.2\build\MaterialDesignThemes.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\MaterialDesignThemes.5.3.2\build\MaterialDesignThemes.targets'))" />
+  </Target>
 </Project>

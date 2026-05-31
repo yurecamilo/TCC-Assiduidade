@@ -2,7 +2,7 @@ using System;
 
 namespace TCC_Assiduidade.Modelos
 {
-    public class ResumoAulaRelatorio
+    public class AulaExibicaoDTO
     {
         public int AulaId { get; set; }
         public DateTime Data { get; set; }

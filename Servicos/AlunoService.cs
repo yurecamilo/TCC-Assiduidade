@@ -41,9 +41,14 @@ namespace TCC_Assiduidade.Servicos
         public Aluno ObterAlunoPorMatricula(string matricula)
         {
             if (string.IsNullOrWhiteSpace(matricula)) return null;
-            if (matricula.Length != 8) return null; 
+            if (matricula.Length != 8) return null;
 
             return _alunoRepository.ObterPorMatricula(matricula);
+        }
+
+        public List<AlunoExibicaoDTO> ObterPerfilAluno()
+        {
+            return _alunoRepository.ObterPerfilAluno();
         }
     }
 }

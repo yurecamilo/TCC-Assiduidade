@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace TCC_Assiduidade.ViewModels.Base
+namespace TCC_Assiduidade.ViewModel.Base
 {
     public class RelayCommand : ICommand
     {

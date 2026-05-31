@@ -32,9 +32,9 @@ namespace TCC_Assiduidade.Repositories
             return aulaId > 0 ? aulaId : -1;
         }
 
-        public List<ResumoAulaRelatorio> ObterResumoAulas()
+        public List<AulaExibicaoDTO> ObterResumoAulas()
         {
-            var aulas = new List<ResumoAulaRelatorio>();
+            var aulas = new List<AulaExibicaoDTO>();
 
             using (var conn = new MySqlConnection(connectionString))
             {
@@ -57,7 +57,7 @@ namespace TCC_Assiduidade.Repositories
                 {
                     while (reader.Read())
                     {
-                        aulas.Add(new ResumoAulaRelatorio
+                        aulas.Add(new AulaExibicaoDTO
                         {
                             AulaId = Convert.ToInt32(reader["AulaId"]),
                             Data = Convert.ToDateTime(reader["Data"]),

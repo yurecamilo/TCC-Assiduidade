@@ -24,7 +24,7 @@ namespace TCC_Assiduidade.Servicos
             return _aulaRepository.Adicionar(dataAula, turmaId);
         }
 
-        public List<ResumoAulaRelatorio> ObterResumoAulas()
+        public List<AulaExibicaoDTO> ObterResumoAulas()
         {
             return _aulaRepository.ObterResumoAulas();
         }

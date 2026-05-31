@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Input;
 using TCC_Assiduidade.View;
 using TCC_Assiduidade.ViewModel.Base;
-using TCC_Assiduidade.ViewModels.Base;
 
 namespace TCC_Assiduidade.ViewModel
 {

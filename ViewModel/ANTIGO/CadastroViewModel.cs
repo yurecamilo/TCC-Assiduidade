@@ -8,7 +8,6 @@ using TCC_Assiduidade.Modelos.Resultados;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.View;
 using TCC_Assiduidade.ViewModel.Base;
-using TCC_Assiduidade.ViewModels.Base;
 
 namespace TCC_Assiduidade.ViewModel
 {

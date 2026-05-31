@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TCC_Assiduidade.Modelos;
 using TCC_Assiduidade.Repositories;
 
 namespace TCC_Assiduidade.Servicos
@@ -43,6 +44,11 @@ namespace TCC_Assiduidade.Servicos
                 return null;
 
             return _turmaRepository.ObterTurmaPorId(turmaId);
+        }
+
+        public List<TurmaExibicaoDTO> ObterTurmasComContagem()
+        {
+            return _turmaRepository.ObterTurmasComContagem();
         }
     }
 }

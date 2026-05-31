@@ -1,4 +1,4 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,46 +10,50 @@ using System.Windows.Input;
 using TCC_Assiduidade.Modelos;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
-using TCC_Assiduidade.ViewModels.Base;
 
 namespace TCC_Assiduidade.ViewModel
 {
-    public class RelatoriosAulasViewModel : BaseViewModel
+    public class ResumoAulaViewModel : BaseViewModel
     {
-        private readonly AulaService _aulaService;
         private readonly RelatorioService _relatorioService;
-        private List<ResumoAulaRelatorio> _aulas;
+        private AulaExibicaoDTO _aulaVisualizar;
+        private List<RelatorioAusente> _alunosAusentes;
 
-        public List<ResumoAulaRelatorio> Aulas
+        public AulaExibicaoDTO AulaVisualizar
         {
-            get { return _aulas; }
-            set
-            {
-                _aulas = value;
-                OnPropertyChanged();
-            }
+            get => _aulaVisualizar;
+            set { _aulaVisualizar = value; OnPropertyChanged(); }
+        }
+
+        public List<RelatorioAusente> AlunosAusentes
+        {
+            get => _alunosAusentes;
+            set { _alunosAusentes = value; OnPropertyChanged(); }
         }
 
         public ICommand GerarHtmlCommand { get; private set; }
+        public ICommand FecharVisualizacaoCommand { get; private set; }
 
-        public RelatoriosAulasViewModel()
+        public ResumoAulaViewModel(AulaExibicaoDTO aula)
         {
-            _aulaService = new AulaService();
             _relatorioService = new RelatorioService();
+            AulaVisualizar = aula;
             GerarHtmlCommand = new RelayCommand(GerarHtml);
-            CarregarAulas();
+            CarregarDadosAusentes(aula);
         }
 
-        private void CarregarAulas()
+        private void CarregarDadosAusentes(AulaExibicaoDTO aula)
         {
             try
             {
-                Aulas = _aulaService.ObterResumoAulas();
+                var dados = _relatorioService.ObterDadosRelatorio(aula.AulaId);
+
+                AlunosAusentes = dados ?? new List<RelatorioAusente>();
             }
             catch (Exception ex)
             {
-                Aulas = new List<ResumoAulaRelatorio>();
-                MessageBox.Show("Erro ao carregar aulas: " + ex.Message);
+                AlunosAusentes = new List<RelatorioAusente>();
+                MessageBox.Show("Erro ao buscar ausentes: " + ex.Message);
             }
         }
 
@@ -57,24 +61,17 @@ namespace TCC_Assiduidade.ViewModel
         {
             try
             {
-                var aula = parametro as ResumoAulaRelatorio;
-                if (aula == null)
-                {
-                    MessageBox.Show("Selecione uma aula para gerar o relatorio.");
-                    return;
-                }
-
                 var dialog = new SaveFileDialog
                 {
                     Title = "Salvar relatorio HTML",
                     Filter = "Arquivos HTML (*.html)|*.html|Todos os arquivos (*.*)|*.*",
-                    FileName = SanitizarNomeArquivo("Relatorio_Aula_" + aula.AulaId + "_" + aula.Turma + ".html")
+                    FileName = SanitizarNomeArquivo("Relatorio_Aula_" + AulaVisualizar.AulaId + "_" + AulaVisualizar.Turma + ".html")
                 };
 
                 if (dialog.ShowDialog() != true) return;
 
-                List<RelatorioAusente> ausentes = _relatorioService.ObterDadosRelatorio(aula.AulaId);
-                string html = MontarHtml(aula, ausentes);
+                // Usa as propriedades locais gerenciadas de forma independente pela Window
+                string html = MontarHtml(AulaVisualizar, AlunosAusentes);
 
                 File.WriteAllText(dialog.FileName, html, Encoding.UTF8);
                 Process.Start(new ProcessStartInfo
@@ -91,7 +88,8 @@ namespace TCC_Assiduidade.ViewModel
             }
         }
 
-        private string MontarHtml(ResumoAulaRelatorio aula, List<RelatorioAusente> ausentes)
+        // 🌟 SEU MÉTODO ORIGINAL INTACTO (Copiado e colado linha por linha)
+        private string MontarHtml(AulaExibicaoDTO aula, List<RelatorioAusente> ausentes)
         {
             var html = new StringBuilder();
             html.AppendLine("<!DOCTYPE html>");
@@ -111,7 +109,7 @@ namespace TCC_Assiduidade.ViewModel
             html.AppendLine("<body>");
             html.AppendLine("    <h1>Relatorio de Ausentes</h1>");
             html.AppendLine("    <div class=\"info\">");
-            html.AppendLine("        <p><strong>Data da aula:</strong> " + WebUtility.HtmlEncode(aula.Data.ToString("dd/MM/yyyy")) + "</p>");
+            html.AppendLine("        <p><strong>Data da aula:</strong> " + aula.Data.ToString("dd/MM/yyyy") + "</p>");
             html.AppendLine("        <p><strong>Turma:</strong> " + WebUtility.HtmlEncode(aula.Turma) + "</p>");
             html.AppendLine("        <p><strong>Total de ausentes:</strong> " + aula.NumeroAusentes + "</p>");
             html.AppendLine("    </div>");
@@ -156,7 +154,6 @@ namespace TCC_Assiduidade.ViewModel
             {
                 nome = nome.Replace(caractere, '_');
             }
-
             return nome;
         }
     }

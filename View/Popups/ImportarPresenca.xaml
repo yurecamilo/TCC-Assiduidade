@@ -1,0 +1,131 @@
+﻿<Window x:Class="TCC_Assiduidade.View.Popups.ImportarPresenca"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TCC_Assiduidade.View"
+        xmlns:conv="clr-namespace:TCC_Assiduidade.View.Converters"
+        mc:Ignorable="d"
+        Title="Processo de Importação" 
+        Height="400" Width="520"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Window.Resources>
+        <conv:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        <Style x:Key="PopUpActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2A5C60"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="15,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PopUpCancelButtonStyle" TargetType="Button" BasedOn="{StaticResource PopUpActionButtonStyle}">
+            <Setter Property="Background" Value="#757575"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="#E5EFEF" CornerRadius="12" BorderBrush="#B6C9C9" BorderThickness="1" Margin="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15" Direction="270" ShadowDepth="3" Opacity="0.3"/>
+        </Border.Effect>
+
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,5">
+                <TextBlock Text="Importação de Presença de Alunos" 
+                           FontSize="20" FontWeight="Bold" Foreground="#11181C" 
+                           VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Background="Transparent" BorderThickness="0" 
+                        Foreground="#889898" FontSize="18" FontWeight="Bold" Cursor="Hand" 
+                        Click="BtnCancelar_Click"/>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
+                <StackPanel>
+
+                    <TextBlock Text="Passo 1: Seleção da turma" FontSize="15" FontWeight="Bold" Foreground="#222" Margin="0,0,0,8"/>
+                    <Border BorderBrush="#BFCFCF" BorderThickness="1" CornerRadius="8" Padding="15" Background="#F0F7F7" Margin="0,0,0,15">
+                        <StackPanel>
+                            <Grid>
+                                <ComboBox x:Name="CbTurmas" 
+                                   Height="38" 
+                                   FontSize="14" 
+                                   VerticalContentAlignment="Center"
+                                   ItemsSource="{Binding Turmas}"
+                                   SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                                   DisplayMemberPath="Nome">         
+                                </ComboBox>
+
+                                <TextBlock Text="Selecionar a turma de destino..." 
+                                    Foreground="#99AAB5" 
+                                    FontSize="14" 
+                                    VerticalAlignment="Center" 
+                                    Margin="10,0,30,0"
+                                    IsHitTestVisible="False">            
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas, Converter={StaticResource NullToVisibility}}" Value="Visible">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Passo 2: Seleção de arquivo" FontSize="15" FontWeight="Bold" Foreground="#222" Margin="0,0,0,8"/>
+                    <Border BorderBrush="#BFCFCF" BorderThickness="1" CornerRadius="8" Padding="15" Background="#F0F7F7">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Button Grid.Column="0" Style="{StaticResource PopUpActionButtonStyle}" Width="150" Height="38" Command="{Binding SelecionarArquivoCommand}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,11L16,15H13V18H11V15H8L12,11Z" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Escolher Arquivo" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <TextBox Grid.Column="1" BorderBrush="Transparent" Height="38" Margin="10,0,0,0" IsReadOnly="True" Background="Transparent" VerticalContentAlignment="Center" Padding="8,0" FontSize="14" Foreground="#556666"
+                                    Text="{Binding CaminhoArquivo, Mode=OneWay}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="2">
+                <Button Content="Iniciar Importação" Style="{StaticResource PopUpActionButtonStyle}" HorizontalAlignment="Stretch" Height="40" FontSize="15"
+                Command="{Binding IniciarImportacaoCommand}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
