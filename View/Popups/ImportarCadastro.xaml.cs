@@ -11,7 +11,7 @@ namespace TCC_Assiduidade.View.Popups
         public ImportarCadastro()
         {
             InitializeComponent();
-            _viewModel = new ImportarCadastroViewModel();
+            _viewModel = new ImportarCadastroViewModel(this.Close);
             this.DataContext = _viewModel; 
         }
 

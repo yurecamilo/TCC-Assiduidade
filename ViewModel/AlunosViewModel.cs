@@ -17,16 +17,16 @@ namespace TCC_Assiduidade.ViewModel
         private IEnumerable<AlunoExibicaoDTO> _alunos;
         private AlunoExibicaoDTO _alunoSelecionado;
         private string _textoBusca;
-        private IEnumerable<TurmaExibicaoDTO> _turmas;
-        private TurmaExibicaoDTO _turmaSelecionada;
+        private List<Turma> _turmas;
+        private Turma _turmaSelecionada;
 
-        public IEnumerable<TurmaExibicaoDTO> Turmas
+        public List<Turma> Turmas
         {
             get => _turmas;
             set { _turmas = value; OnPropertyChanged(); }
         }
 
-        public TurmaExibicaoDTO TurmaSelecionada
+        public Turma TurmaSelecionada
         {
             get => _turmaSelecionada;
             set
@@ -73,7 +73,7 @@ namespace TCC_Assiduidade.ViewModel
         public AlunosViewModel()
         {
             Alunos = new List<AlunoExibicaoDTO>();
-            Turmas = new List<TurmaExibicaoDTO>(); // Evita nulo antes do binding
+            Turmas = new List<Turma>(); // Evita nulo antes do binding
 
             BuscarCommand = new RelayCommand(ExecutarBusca);
             EditarTurmaCommand = new RelayCommand(ExecutarEditar);
@@ -81,6 +81,8 @@ namespace TCC_Assiduidade.ViewModel
             FecharPerfilCommand = new RelayCommand(ExecutarFecharPerfil);
             LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
             VisualizarDadosCommand = new RelayCommand(ExecutarVisualizar);
+
+            DataCacheService.CacheAtualizado += OnCacheAtualizado;
 
             _ = CarregarDadosIniciaisAsync();
         }
@@ -107,20 +109,15 @@ namespace TCC_Assiduidade.ViewModel
 
         private void InicializarComboBoxTurmas()
         {
-            var listaCombo = new List<TurmaExibicaoDTO>();
-            listaCombo.Add(new TurmaExibicaoDTO
+            try
             {
-                Nome = "Todas as turmas",
-                TurmaOriginal = new Turma { Nome = "Todas as turmas" }
-            });
-
-            if (DataCacheService.TurmasCache != null)
-            {
-                listaCombo.AddRange(DataCacheService.TurmasCache);
+                var _listaCombo = DataCacheService.TurmaModeloCache ?? new List<Turma>();
+                Turmas = _listaCombo;
             }
-
-            Turmas = listaCombo;
-            TurmaSelecionada = listaCombo[0];
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao carregar turmas do cache: " + ex.Message);
+            }
         }
 
         private void ExecutarBusca()
@@ -173,6 +170,18 @@ namespace TCC_Assiduidade.ViewModel
 
         private void ExecutarExcluir(object obj)
         {
+        }
+
+        private void OnCacheAtualizado()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+
+                InicializarComboBoxTurmas();
+
+                ExecutarBusca();
+            });
         }
     }
 }

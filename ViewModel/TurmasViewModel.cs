@@ -40,7 +40,6 @@ namespace TCC_Assiduidade.ViewModel
             {
                 _textoBusca = value;
                 OnPropertyChanged();
-
                 ExecutarBusca();
             }
         }
@@ -59,10 +58,21 @@ namespace TCC_Assiduidade.ViewModel
             EditarTurmaCommand = new RelayCommand(ExecutarEditar);
             ExcluirTurmaCommand = new RelayCommand(ExecutarExcluir);
 
-            // 🌟 ADICIONADO: Instancia o comando mapeando para o método executor
             LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
 
+            DataCacheService.CacheAtualizado += OnCacheAtualizado;
+
             _ = CarregarTurmasAsync();
+        }
+
+        private void OnCacheAtualizado()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                _listaOriginalDoBanco = DataCacheService.TurmasCache ?? new List<TurmaExibicaoDTO>();
+
+                ExecutarBusca();
+            });
         }
 
         private async Task CarregarTurmasAsync()
@@ -123,10 +133,7 @@ namespace TCC_Assiduidade.ViewModel
         private async void AtualizarCacheAposMudanca()
         {
             await DataCacheService.ForçarAtualizacaoAsync();
-            _listaOriginalDoBanco = DataCacheService.TurmasCache ?? new List<TurmaExibicaoDTO>();
-
-            // Mantém o filtro aplicado mesmo após dar refresh por um insert/update/delete
-            ExecutarBusca();
         }
+
     }
 }

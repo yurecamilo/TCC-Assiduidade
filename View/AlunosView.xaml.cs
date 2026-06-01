@@ -1,4 +1,6 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
+using TCC_Assiduidade.View.Popups;
 using TCC_Assiduidade.ViewModel;
 
 namespace TCC_Assiduidade.View
@@ -14,6 +16,16 @@ namespace TCC_Assiduidade.View
             InitializeComponent();
             _viewModel = new AlunosViewModel();
             DataContext = _viewModel;
+        }
+
+        public void BtnCadastrarAluno_Click(object sender, RoutedEventArgs e)
+        {
+                NovoAluno janelaPopUp = new NovoAluno();
+    
+                janelaPopUp.Owner = Window.GetWindow(this);
+                janelaPopUp.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+    
+                janelaPopUp.ShowDialog();
         }
     }
 }

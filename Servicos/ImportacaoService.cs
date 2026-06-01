@@ -49,14 +49,14 @@ namespace TCC_Assiduidade.Servicos
 
                 turma = new Turma { Id = turmaId, Nome = turmaNome };
             }
-            else
-            {
-                return new ResultadoImportacaoCadastro
-                {
-                    Sucesso = false,
-                    Mensagem = $"A turma {turma.Nome} ja esta cadastrada no sistema."
-                };
-            }
+            //else
+            //{
+            //    return new ResultadoImportacaoCadastro
+            //    {
+            //        Sucesso = false,
+            //        Mensagem = $"A turma {turma.Nome} ja esta cadastrada no sistema."
+            //    };
+            //}
 
             List<Aluno> alunosParaSalvar = new List<Aluno>();
 

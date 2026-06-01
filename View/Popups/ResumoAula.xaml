@@ -125,11 +125,25 @@
                         <Style TargetType="DataGridCell">
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
                             <Setter Property="Padding" Value="10,0"/>
                         </Style>
+
                         <Style TargetType="DataGridRow">
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="Background" Value="Transparent"/>
+                            <Style.Resources>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#11181C" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#11181C" />
+                            </Style.Resources>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#DDEEEB"/>
+                                    <Setter Property="Foreground" Value="#11181C"/>
+                                </Trigger>
+                            </Style.Triggers>
                         </Style>
                         <Style x:Key="AlinhamentoTextoStyle" TargetType="TextBlock">
                             <Setter Property="Padding" Value="12,0,0,0"/>

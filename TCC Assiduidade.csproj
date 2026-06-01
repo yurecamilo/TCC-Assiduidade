@@ -140,11 +140,11 @@
     <Compile Include="ViewModel\AlunosViewModel.cs" />
     <Compile Include="ViewModel\AulasViewModel.cs" />
     <Compile Include="ViewModel\Base\BaseViewModel.cs" />
-    <Compile Include="ViewModel\ANTIGO\CadastroViewModel.cs" />
     <Compile Include="ViewModel\Base\RelayCommand.cs" />
-    <Compile Include="ViewModel\ANTIGO\MenuViewModel.cs" />
-    <Compile Include="ViewModel\ANTIGO\PresencaViewModel.cs" />
+    <Compile Include="ViewModel\Popups\NovaTurmaViewModel.cs" />
+    <Compile Include="ViewModel\Popups\NovoAlunoViewModel.cs" />
     <Compile Include="ViewModel\Popups\ResumoAulaViewModel.cs" />
+    <Compile Include="ViewModel\Popups\ResumoTurmaViewModel.cs" />
     <Compile Include="ViewModel\RelatoriosViewModel.cs" />
     <Compile Include="ViewModel\Popups\ImportarCadastroViewModel.cs" />
     <Compile Include="ViewModel\Popups\ImportarPresencaViewModel.cs" />
@@ -162,17 +162,6 @@
     <Compile Include="View\DashboardView.xaml.cs">
       <DependentUpon>DashboardView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\ANTIGO\TelaMenu.xaml.cs">
-      <DependentUpon>TelaMenu.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="View\ANTIGO\TelaRelatoriosAulas.xaml.cs">
-      <DependentUpon>TelaRelatoriosAulas.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="View\ANTIGO\TelaPresenca.xaml.cs">
-      <DependentUpon>TelaPresenca.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Modelos\Banco\Turma.cs" />
     <Compile Include="View\Popups\ImportarCadastro.xaml.cs">
       <DependentUpon>ImportarCadastro.xaml</DependentUpon>
@@ -180,8 +169,17 @@
     <Compile Include="View\Popups\ImportarPresenca.xaml.cs">
       <DependentUpon>ImportarPresenca.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\Popups\NovaTurma.xaml.cs">
+      <DependentUpon>NovaTurma.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Popups\NovoAluno.xaml.cs">
+      <DependentUpon>NovoAluno.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Popups\ResumoAula.xaml.cs">
       <DependentUpon>ResumoAula.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Popups\ResumoTurma.xaml.cs">
+      <DependentUpon>ResumoTurma.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RelatoriosView.xaml.cs">
       <DependentUpon>RelatoriosView.xaml</DependentUpon>
@@ -205,31 +203,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\ANTIGO\TelaCadastro.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="Modelos\Banco\Aluno.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View\ANTIGO\TelaCadastro.xaml.cs">
-      <DependentUpon>TelaCadastro.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Page Include="View\ANTIGO\TelaMenu.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\ANTIGO\TelaRelatoriosAulas.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\ANTIGO\TelaPresenca.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="View\Popups\ImportarCadastro.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -238,7 +216,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\Popups\NovaTurma.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\NovoAluno.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Popups\ResumoAula.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\ResumoTurma.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

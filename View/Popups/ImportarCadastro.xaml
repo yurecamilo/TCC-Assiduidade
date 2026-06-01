@@ -7,7 +7,7 @@
         xmlns:conv="clr-namespace:TCC_Assiduidade.View.Converters"
         mc:Ignorable="d"
         Title="Processo de Importação" 
-        Height="400" Width="520"
+        Height="450" Width="520"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -15,6 +15,9 @@
 
     <Window.Resources>
         <conv:NullToVisibilityConverter x:Key="NullToVisibility"/>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
         <Style x:Key="InputStyleWithPlaceholder" TargetType="TextBox">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#B0C8D6"/>
@@ -32,9 +35,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}" 
                             BorderThickness="{TemplateBinding BorderThickness}" 
                             CornerRadius="5"/>
-
                             <ScrollViewer x:Name="PART_ContentHost" Margin="5,0"/>
-
                             <TextBlock x:Name="PlaceholderText" 
                                Text="{TemplateBinding Tag}" 
                                Foreground="#99AAB5" 
@@ -44,7 +45,6 @@
                                Margin="12,0" 
                                Visibility="Collapsed"/>
                         </Grid>
-
                         <ControlTemplate.Triggers>
                             <Trigger Property="Text" Value="">
                                 <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
@@ -57,6 +57,45 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="#E0EBEB"/>
+            <Setter Property="BorderBrush" Value="#BFCFCF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,0,30,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="GridBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" />
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                            <ToggleButton Focusable="false" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press" HorizontalAlignment="Right" Width="30" Background="Transparent" BorderThickness="0">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent">
+                                            <Path Data="M7,10L12,15L17,10H7Z" Fill="#2A5C60" HorizontalAlignment="Center" VerticalAlignment="Center" Width="14" Height="14" Stretch="Uniform" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid MinWidth="{TemplateBinding ActualWidth}" MaxHeight="200">
+                                    <Border Background="White" BorderBrush="#BFCFCF" BorderThickness="1" CornerRadius="0,0,5,5" Margin="0,1,0,0">
+                                        <ScrollViewer>
+                                            <ItemsPresenter />
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="PopUpActionButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#2A5C60"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
@@ -88,11 +127,11 @@
         <Grid Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="0,0,0,5">
+            <Grid Grid.Row="0" Margin="0,0,0,15">
                 <TextBlock Text="Importação de Cadastro de Alunos" 
                            FontSize="20" FontWeight="Bold" Foreground="#11181C" 
                            VerticalAlignment="Center" HorizontalAlignment="Left"/>
@@ -103,24 +142,62 @@
                         Click="BtnCancelar_Click"/>
             </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,15">
                 <StackPanel>
 
-                    <TextBlock Text="Passo 1: Cadastro da turma" FontSize="15" FontWeight="Bold" Foreground="#222" Margin="0,0,0,8"/>
+                    <TextBlock Text="Passo 1: Definição da Turma" FontSize="15" FontWeight="Bold" Foreground="#222" Margin="0,0,0,8"/>
                     <Border BorderBrush="#BFCFCF" BorderThickness="1" CornerRadius="8" Padding="15" Background="#F0F7F7" Margin="0,0,0,15">
                         <StackPanel>
 
-                            <Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                <RadioButton Content="Criar Nova Turma" 
+                                             IsChecked="{Binding IsNovaTurma, Mode=TwoWay}" 
+                                             FontSize="14" Foreground="#11181C" Margin="0,0,25,0" Cursor="Hand"/>
+                                <RadioButton Content="Turma Existente" 
+                                             IsChecked="{Binding IsTurmaExistente, Mode=TwoWay}" 
+                                             FontSize="14" Foreground="#11181C" Cursor="Hand"/>
+                            </StackPanel>
+
+                            <Grid Visibility="{Binding IsNovaTurma, Converter={StaticResource BoolToVis}}">
                                 <TextBox Style="{StaticResource InputStyleWithPlaceholder}" 
-                                     Tag="Digite o nome da nova turma..."
-                                     Text="{Binding NovaTurmaNome, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     Background="#E0EBEB" 
-                                     BorderBrush="#BFCFCF" 
-                                     BorderThickness="1"
-                                     Height="38" 
-                                     FontSize="14" 
-                                     VerticalContentAlignment="Center" 
-                                     Padding="8,0"/>
+                                         Tag="Digite o nome da nova turma"
+                                         Text="{Binding NovaTurmaNome, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="#E0EBEB" 
+                                         BorderBrush="#BFCFCF" 
+                                         BorderThickness="1"
+                                         Height="38" 
+                                         FontSize="14" 
+                                         VerticalContentAlignment="Center" 
+                                         Padding="8,0"/>
+                            </Grid>
+
+                            <Grid Visibility="{Binding IsTurmaExistente, Converter={StaticResource BoolToVis}}">
+                                <ComboBox x:Name="CbTurmas" 
+                                           Height="38" 
+                                           Style="{StaticResource ComboBoxStyle}"
+                                           FontSize="14" 
+                                           VerticalContentAlignment="Center"
+                                           ItemsSource="{Binding Turmas}"
+                                           SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                                           DisplayMemberPath="Nome">
+                                </ComboBox>
+                                <TextBlock Text="Selecionar a turma de destino" 
+                                    Foreground="#99AAB5" 
+                                    FontSize="14" 
+                                    VerticalAlignment="Center" 
+                                    Margin="10,0,30,0"
+                                    IsHitTestVisible="False">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas, Converter={StaticResource NullToVisibility}}" Value="Visible">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </Grid>
 
                         </StackPanel>
@@ -135,7 +212,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Button Grid.Column="0" Style="{StaticResource PopUpActionButtonStyle}" Width="150" Height="38" Command="{Binding SelecionarArquivoCommand}">
+                                <Button Grid.Column="0" Style="{StaticResource PopUpActionButtonStyle}" Width="150" Height="38" Command="{Binding SelecionarArquivoCommand}" Cursor="Hand">
                                     <StackPanel Orientation="Horizontal">
                                         <Path Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,11L16,15H13V18H11V15H8L12,11Z" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Escolher Arquivo" VerticalAlignment="Center"/>
@@ -151,7 +228,7 @@
             </ScrollViewer>
 
             <StackPanel Grid.Row="2">
-                <Button Content="Iniciar Importação" Style="{StaticResource PopUpActionButtonStyle}" HorizontalAlignment="Stretch" Height="40" FontSize="15"
+                <Button Content="Iniciar Importação" Style="{StaticResource PopUpActionButtonStyle}" HorizontalAlignment="Stretch" Height="40" FontSize="15" Cursor="Hand"
                         Command="{Binding IniciarImportacaoCommand}"/>
             </StackPanel>
         </Grid>

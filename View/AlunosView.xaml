@@ -131,7 +131,7 @@
         <TextBlock Grid.Row="0" Text="Gerenciamento de Alunos" Foreground="White" FontSize="26" FontWeight="Bold" Margin="0,0,0,20"/>
 
         <Grid Grid.Row="1" Margin="0,0,0,15">
-            <Button HorizontalAlignment="Right" Style="{StaticResource ActionButtonStyle}" Command="{Binding AbrirPopupCadastroCommand}" Width="130" Height="38" Padding="15,0" Cursor="Hand">
+            <Button HorizontalAlignment="Right" Style="{StaticResource ActionButtonStyle}" Click="BtnCadastrarAluno_Click" Width="130" Height="38" Padding="15,0" Cursor="Hand">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Path Data="{StaticResource IconeAdicionar}" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0"/>
                     <TextBlock Text="Adicionar" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
@@ -158,10 +158,37 @@
                             <Button Grid.Column="1" Content="Limpar busca" Style="{StaticResource AlertButtonStyle}" Height="38" Width="100" Margin="8,0,0,0" FontSize="14" Cursor="Hand" Command="{Binding LimparBuscaCommand}"/>
                         </Grid>
                     </StackPanel>
-                    <StackPanel HorizontalAlignment="Left" Margin="20,5,0,0" Grid.Column="1">
-                        <TextBlock Text="Selecionar Turma" Foreground="#555" FontSize="13" FontWeight="SemiBold"/>
+                    <StackPanel HorizontalAlignment="Left" Margin="20,0,0,0" Grid.Column="1">
+                        <TextBlock Margin="0,0,0,5" Text="Selecionar Turma" Foreground="#555" FontSize="13" FontWeight="SemiBold"/>
 
-                        <ComboBox Style="{StaticResource ComboBoxStyle}" ItemsSource="{Binding Turmas}" SelectedItem="{Binding TurmaSelecionada}" DisplayMemberPath="Nome" Width="200" HorizontalAlignment="Left"/>
+                        <Grid>
+                            <ComboBox x:Name="CbTurmas" 
+                                       Height="38" 
+                                       Style="{StaticResource ComboBoxStyle}"
+                                       FontSize="14" 
+                                       ItemsSource="{Binding Turmas}"
+                                       SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                                       DisplayMemberPath="Nome">        
+                            </ComboBox>
+
+                            <TextBlock Text="Selecionar a turma de destino" 
+                                        Foreground="#99AAB5" 
+                                        FontSize="14" 
+                                        VerticalAlignment="Center" 
+                                        Margin="10,0,30,0"
+                                        IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas, Converter={StaticResource NullToVisibility}}" Value="Visible">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
                     </StackPanel>
                 </Grid>
             </StackPanel>

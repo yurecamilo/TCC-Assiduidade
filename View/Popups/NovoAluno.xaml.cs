@@ -16,16 +16,14 @@ using TCC_Assiduidade.ViewModel.Popups;
 namespace TCC_Assiduidade.View.Popups
 {
     /// <summary>
-    /// Lógica interna para ImportarPresenca.xaml
+    /// Lógica interna para NovoAluno.xaml
     /// </summary>
-    public partial class ImportarPresenca : Window
+    public partial class NovoAluno : Window
     {
-        private readonly ImportarPresencaViewModel _viewModel;
-        public ImportarPresenca()
+        public NovoAluno()
         {
             InitializeComponent();
-            _viewModel = new ImportarPresencaViewModel(this.Close);
-            this.DataContext = _viewModel;
+            this.DataContext = new NovoAlunoViewModel(this.Close);
         }
 
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)

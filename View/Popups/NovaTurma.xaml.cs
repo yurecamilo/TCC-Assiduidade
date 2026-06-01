@@ -16,16 +16,16 @@ using TCC_Assiduidade.ViewModel.Popups;
 namespace TCC_Assiduidade.View.Popups
 {
     /// <summary>
-    /// Lógica interna para ImportarPresenca.xaml
+    /// Lógica interna para NovaTurma.xaml
     /// </summary>
-    public partial class ImportarPresenca : Window
+    public partial class NovaTurma : Window
     {
-        private readonly ImportarPresencaViewModel _viewModel;
-        public ImportarPresenca()
+        private readonly NovaTurmaViewModel _viewModel;
+        public NovaTurma()
         {
             InitializeComponent();
-            _viewModel = new ImportarPresencaViewModel(this.Close);
-            this.DataContext = _viewModel;
+            _viewModel = new NovaTurmaViewModel(this.Close);
+            DataContext = _viewModel;
         }
 
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)

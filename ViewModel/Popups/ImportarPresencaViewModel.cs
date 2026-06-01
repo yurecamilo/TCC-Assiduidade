@@ -49,11 +49,13 @@ namespace TCC_Assiduidade.ViewModel.Popups
         public ICommand IniciarImportacaoCommand { get; private set; }
         public ICommand SelecionarArquivoCommand { get; private set; }
 
-        public ImportarPresencaViewModel()
+        private readonly Action _fecharJanela;
+        public ImportarPresencaViewModel(Action fecharJanela)
         {
+            _fecharJanela = fecharJanela;
             _turmaService = new TurmaService();
             _importacaoService = new ImportacaoService();
-            IniciarImportacaoCommand = new RelayCommand(ExecutarImportacao);
+            IniciarImportacaoCommand = new RelayCommand(async () => await ExecutarImportacao());
             SelecionarArquivoCommand = new RelayCommand(SelecionarArquivo);
             _ = CarregarTurmasDoBanco();
         }
@@ -72,7 +74,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             }
         }
 
-        private void ExecutarImportacao()
+        private async Task ExecutarImportacao()
         {
 
             if (TurmaSelecionada == null)
@@ -92,6 +94,8 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 {
                     List<Dictionary<string, string>> dadosCsv = ArquivoService.LerCsv(_caminhoArquivoCompleto);
                     ResultadoImportacaoPresenca resultado = _importacaoService.ImportarPresenca(TurmaSelecionada.Id, dadosCsv);
+
+                    await DataCacheService.ForçarAtualizacaoAsync();
 
                     MessageBox.Show(resultado.Mensagem);
                 }
