@@ -6,7 +6,10 @@
         xmlns:local="clr-namespace:TCC_Assiduidade.View"
         xmlns:conv="clr-namespace:TCC_Assiduidade.View.Converters"
         mc:Ignorable="d"
-        AllowsTransparency="True" Background="Transparent">
+        WindowStyle="None"
+        AllowsTransparency="True" Background="Transparent"
+        Height="225"
+        Width="280">
 
     <Window.Resources>
         <Style x:Key="CleanInputStyle" TargetType="TextBox">
@@ -57,7 +60,18 @@
         </Style>
     </Window.Resources>
 
-    <Border Background="#ECF8F6" CornerRadius="12" BorderBrush="#B6C9C9" BorderThickness="1" Margin="10">
+    <Border Background="#ECF8F6"
+        CornerRadius="12"
+        BorderBrush="#B6C9C9"
+        BorderThickness="1"
+        Margin="10">
+
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="15"
+                          Direction="270"
+                          ShadowDepth="3"
+                          Opacity="0.3"/>
+        </Border.Effect>
         <Grid Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

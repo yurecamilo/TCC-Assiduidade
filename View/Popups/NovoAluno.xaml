@@ -107,15 +107,19 @@
         </Border.Effect>
 
         <Grid Margin="25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="181*"/>
+            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="Novo Aluno" FontSize="20" FontWeight="Bold" Foreground="#11181C" Margin="0,0,0,20"/>
+            <TextBlock Grid.Row="0" Text="Novo Aluno" FontSize="20" FontWeight="Bold" Foreground="#11181C" Margin="0,0,0,20" Grid.ColumnSpan="2"/>
 
-            <StackPanel Grid.Row="1">
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
                 <StackPanel Margin="0,0,0,15">
                     <TextBlock Text="Matrícula" FontSize="13" Foreground="#555" Margin="0,0,0,5"/>
                     <Border BorderBrush="#B0C8D6" BorderThickness="1" CornerRadius="5" Background="White" Height="38">
@@ -146,7 +150,7 @@
                 <StackPanel>
                     <TextBlock Text="Turma" FontSize="13" Foreground="#555" Margin="0,0,0,5"/>
                     <Grid>
-    <ComboBox x:Name="CbTurmas" 
+                        <ComboBox x:Name="CbTurmas" 
                Height="38" 
                Style="{StaticResource ComboBoxStyle}"
                FontSize="14" 
@@ -154,30 +158,30 @@
                ItemsSource="{Binding Turmas}"
                SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
                DisplayMemberPath="Nome">
-    </ComboBox>
+                        </ComboBox>
 
-    <TextBlock Text="Selecionar a turma de destino" 
+                        <TextBlock Text="Selecionar a turma de destino" 
         Foreground="#99AAB5" 
         FontSize="14" 
         VerticalAlignment="Center" 
         Margin="10,0,30,0"
-        IsHitTestVisible="False">            
-        <TextBlock.Style>
-            <Style TargetType="TextBlock">
-                <Setter Property="Visibility" Value="Visible"/>
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas, Converter={StaticResource NullToVisibility}}" Value="Visible">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </TextBlock.Style>
-    </TextBlock>
-</Grid>
+        IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas, Converter={StaticResource NullToVisibility}}" Value="Visible">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </StackPanel>
             </StackPanel>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0" Grid.Column="1">
                 <Button Content="Cancelar" Width="90" Height="38" Background="#757575" Style="{StaticResource PopUpActionButtonStyle}" Margin="0,0,10,0" Click="BtnCancelar_Click"/>
                 <Button Content="Salvar" Width="90" Height="38" Style="{StaticResource PopUpActionButtonStyle}" Command="{Binding SalvarAlunoCommand}"/>
             </StackPanel>

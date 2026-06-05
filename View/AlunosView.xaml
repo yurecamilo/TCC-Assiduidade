@@ -168,7 +168,7 @@
                                        FontSize="14" 
                                        ItemsSource="{Binding Turmas}"
                                        SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
-                                       DisplayMemberPath="Nome">        
+                                       DisplayMemberPath="Nome">
                             </ComboBox>
 
                             <TextBlock Text="Selecionar a turma de destino" 
@@ -274,7 +274,7 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="1" Background="#ECF8F6" CornerRadius="15" Padding="18" Width="370" VerticalAlignment="Top" Margin="15,0,0,0" Visibility="{Binding AlunoSelecionado, Converter={StaticResource NullToVisibility}}">
+            <Border Grid.Column="1" Background="#ECF8F6" CornerRadius="15" Padding="18" Width="370" VerticalAlignment="Center" Margin="15,0,0,0" Visibility="{Binding AlunoSelecionado, Converter={StaticResource NullToVisibility}}">
                 <StackPanel>
                     <Grid Margin="0,0,0,10">
                         <TextBlock Text="Perfil Rápido do Aluno" FontSize="16" FontWeight="Bold" Foreground="#11181C" VerticalAlignment="Center"/>
@@ -290,26 +290,55 @@
                             </TextBlock>
                         </StackPanel>
                     </Border>
-                    <UniformGrid Columns="2" Rows="2" Margin="0,0,0,15">
-                        <Border BorderBrush="#B0C8D6" BorderThickness="0,0,1,1" Padding="8">
-                            <StackPanel>
-                                <TextBlock Text="Assiduidade Geral" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.Assiduidade, StringFormat={}{0}%, FallbackValue='0%'}" FontSize="22" FontWeight="Bold" Foreground="#236B73" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                        <Border BorderBrush="#B0C8D6" BorderThickness="0,0,0,1" Padding="8">
-                            <StackPanel>
-                                <TextBlock Text="Total de Faltas" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.TotalFaltas, StringFormat={}{0} Faltas, FallbackValue='0 Faltas'}" FontSize="20" FontWeight="Bold" Foreground="#AA3333" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                        <Border BorderBrush="#B0C8D6" BorderThickness="0,0,1,0" Padding="8">
-                            <StackPanel>
-                                <TextBlock Text="Aulas ministradas" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.TotalAulas, StringFormat={}{0} Aulas, FallbackValue='0 Aulas'}" FontSize="20" FontWeight="Bold" Foreground="#333" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-                    </UniformGrid>
+                    <Grid>
+                        <UniformGrid x:Name="DadosAssiduidade" Columns="2" Rows="2" Margin="0,0,0,15">
+                            <UniformGrid.Style>
+                                <Style TargetType="UniformGrid">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding TemAulas}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </UniformGrid.Style>
+
+                            <Border BorderBrush="#B0C8D6" BorderThickness="0,0,1,1" Padding="8">
+                                <StackPanel>
+                                    <TextBlock Text="Assiduidade Geral" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.Assiduidade, StringFormat={}{0}%, FallbackValue='0%'}" FontSize="22" FontWeight="Bold" Foreground="#236B73" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border BorderBrush="#B0C8D6" BorderThickness="0,0,0,1" Padding="8">
+                                <StackPanel>
+                                    <TextBlock Text="Total de Faltas" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.TotalFaltas, StringFormat={}{0} Faltas, FallbackValue='0 Faltas'}" FontSize="20" FontWeight="Bold" Foreground="#AA3333" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border BorderBrush="#B0C8D6" BorderThickness="0,0,1,0" Padding="8">
+                                <StackPanel>
+                                    <TextBlock Text="Aulas ministradas" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.TotalAulas, StringFormat={}{0} Aulas, FallbackValue='0 Aulas'}" FontSize="20" FontWeight="Bold" Foreground="#333" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+
+                        <TextBlock Text="Nenhuma aula registrada para este aluno/turma." 
+           FontSize="14" Foreground="#777" FontStyle="Italic" 
+           VerticalAlignment="Center" HorizontalAlignment="Center" 
+           TextWrapping="Wrap" Margin="10">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding AlunoSelecionado.TemAulas}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </StackPanel>
             </Border>
         </Grid>

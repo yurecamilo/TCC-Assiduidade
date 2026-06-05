@@ -19,13 +19,11 @@ namespace TCC_Assiduidade.ViewModel
         private string _textoBusca;
         private List<Turma> _turmas;
         private Turma _turmaSelecionada;
-
         public List<Turma> Turmas
         {
             get => _turmas;
             set { _turmas = value; OnPropertyChanged(); }
         }
-
         public Turma TurmaSelecionada
         {
             get => _turmaSelecionada;
@@ -46,7 +44,23 @@ namespace TCC_Assiduidade.ViewModel
         public AlunoExibicaoDTO AlunoSelecionado
         {
             get => _alunoSelecionado;
-            set { _alunoSelecionado = value; OnPropertyChanged(); }
+            set
+            {
+                _alunoSelecionado = value;
+                OnPropertyChanged();
+
+                // Avisa a interface que o status de aulas também mudou
+                OnPropertyChanged(nameof(TemAulas));
+            }
+        }
+
+        public bool TemAulas
+        {
+            get
+            {
+                // Verifica diretamente do campo privado _alunoSelecionado
+                return _alunoSelecionado?.DadosFrequencia != null && _alunoSelecionado.DadosFrequencia.TotalAulas > 0;
+            }
         }
 
         public string TextoBusca
