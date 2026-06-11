@@ -1,7 +1,6 @@
-﻿using Microsoft.Win32; // Use este, é o padrão do WPF
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -37,9 +36,30 @@ namespace TCC_Assiduidade.ViewModel
 
     public class RelatorioAlunosViewModel : BaseViewModel
     {
+        private List<AlunoExibicaoDTO> _listaOriginalDoBanco = new List<AlunoExibicaoDTO>();
         private readonly RelatoriosViewModel _pai;
+
+        private List<Turma> _turmas;
+        private Turma _turmaSelecionada;
         private List<AlunoRelatorioItem> _alunos;
         private bool _selecionarTodos;
+        private string _textoBusca;
+
+        public List<Turma> Turmas
+        {
+            get => _turmas;
+            set { _turmas = value; OnPropertyChanged(); }
+        }
+        public Turma TurmaSelecionada
+        {
+            get => _turmaSelecionada;
+            set
+            {
+                _turmaSelecionada = value;
+                OnPropertyChanged();
+                ExecutarBusca();
+            }
+        }
         public bool SelecionarTodos
         {
             get => _selecionarTodos;
@@ -61,6 +81,19 @@ namespace TCC_Assiduidade.ViewModel
                 }
             }
         }
+
+        public string TextoBusca
+        {
+            get => _textoBusca;
+            set
+            {
+                _textoBusca = value;
+                OnPropertyChanged();
+
+                ExecutarBusca();
+            }
+        }
+
         public List<AlunoRelatorioItem> Alunos
         {
             get => _alunos;
@@ -69,14 +102,33 @@ namespace TCC_Assiduidade.ViewModel
 
         public ICommand VoltarCommand { get; }
         public ICommand GerarRelatorioLoteCommand { get; }
+        public ICommand BuscarCommand { get; private set; }
+        public ICommand LimparBuscaCommand { get; private set; }
 
         public RelatorioAlunosViewModel(RelatoriosViewModel pai)
         {
             _pai = pai;
+
             VoltarCommand = new RelayCommand(() => _pai.ConteudoAtual = null);
             GerarRelatorioLoteCommand = new RelayCommand(GerarRelatorioLote);
+            BuscarCommand = new RelayCommand(ExecutarBusca);
+            LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
+
+            DataCacheService.CacheAtualizado += OnCacheAtualizado;
 
             _ = CarregarDadosAsync();
+        }
+
+        private void OnCacheAtualizado()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+
+                InicializarComboBoxTurmas();
+
+                ExecutarBusca();
+            });
         }
 
         private async Task CarregarDadosAsync()
@@ -86,8 +138,9 @@ namespace TCC_Assiduidade.ViewModel
                 await Task.Delay(100);
             }
 
-            // Carrega direto na lista única
-            Alunos = DataCacheService.AlunosCache?.Select(a => new AlunoRelatorioItem
+            _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+
+            Alunos = _listaOriginalDoBanco.Select(a => new AlunoRelatorioItem
             {
                 Nome = a.Nome,
                 Matricula = a.Matricula,
@@ -96,6 +149,83 @@ namespace TCC_Assiduidade.ViewModel
                 DadosFrequencia = a.DadosFrequencia,
                 IsSelected = false
             }).ToList() ?? new List<AlunoRelatorioItem>();
+
+            InicializarComboBoxTurmas();
+        }
+
+        private void InicializarComboBoxTurmas()
+        {
+            try
+            {
+                var listaDoCache = DataCacheService.TurmaModeloCache ?? new List<Turma>();
+
+                var _listaCombo = new List<Turma>
+                {
+                    new Turma { Id = 0, Nome = "Selecionar turma" } // Item fictício
+                };
+
+                _listaCombo.AddRange(listaDoCache);
+
+                Turmas = _listaCombo;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro ao carregar turmas do cache: " + ex.Message);
+            }
+        }
+
+        private void ExecutarBusca()
+        {
+            try
+            {
+                string buscaTexto = (TextoBusca ?? "").Trim().ToLower();
+                string turmaFiltro = (TurmaSelecionada?.Nome ?? "Selecionar turma").Trim();
+
+                if (turmaFiltro == "Selecionar turma")
+                {
+                    Alunos = _listaOriginalDoBanco.Select(a => new AlunoRelatorioItem
+                    {
+                        Nome = a.Nome,
+                        Matricula = a.Matricula,
+                        Turma = a.Turma,
+                        Email = a.Email,
+                        DadosFrequencia = a.DadosFrequencia,
+                        IsSelected = false
+                    }).ToList() ?? new List<AlunoRelatorioItem>();
+                }
+                else
+                {
+                    Alunos = _listaOriginalDoBanco.Where(a =>
+                    {
+                        bool bateTexto = string.IsNullOrWhiteSpace(buscaTexto) ||
+                                         (a.Nome != null && a.Nome.ToLower().Contains(buscaTexto)) ||
+                                         (a.Email != null && a.Email.ToLower().Contains(buscaTexto)) ||
+                                         (a.Matricula != null && a.Matricula.ToLower().Contains(buscaTexto));
+
+                        bool bateTurma = (turmaFiltro == "Todas as turmas") ||
+                                         (a.Turma != null && a.Turma.Trim().Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
+
+                        return bateTexto && bateTurma;
+                    }).Select(a => new AlunoRelatorioItem
+                    {
+                        Nome = a.Nome,
+                        Matricula = a.Matricula,
+                        Turma = a.Turma,
+                        Email = a.Email,
+                        DadosFrequencia = a.DadosFrequencia,
+                        IsSelected = false
+                    }).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erro durante a filtragem combinada de alunos: " + ex.Message);
+            }
+        }
+
+        private void ExecutarLimparBusca()
+        {
+            TextoBusca = string.Empty;
         }
 
         private void GerarRelatorioLote()

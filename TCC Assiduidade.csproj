@@ -140,7 +140,7 @@
     <Compile Include="ViewModel\AlunosViewModel.cs" />
     <Compile Include="ViewModel\Relatorios\AlunoExibicaoViewModel.cs" />
     <Compile Include="ViewModel\Relatorios\RelatorioAlunosViewModel.cs" />
-    <Compile Include="ViewModel\Relatorios\RelatoriosAulaViewModel.cs" />
+    <Compile Include="ViewModel\Relatorios\RelatorioAulasViewModel.cs" />
     <Compile Include="ViewModel\Base\BaseViewModel.cs" />
     <Compile Include="ViewModel\Base\RelayCommand.cs" />
     <Compile Include="ViewModel\Popups\NovaTurmaViewModel.cs" />
@@ -150,6 +150,7 @@
     <Compile Include="ViewModel\RelatoriosViewModel.cs" />
     <Compile Include="ViewModel\Popups\ImportarCadastroViewModel.cs" />
     <Compile Include="ViewModel\Popups\ImportarPresencaViewModel.cs" />
+    <Compile Include="ViewModel\Relatorios\RelatorioTurmasViewModel.cs" />
     <Compile Include="ViewModel\TurmasViewModel.cs" />
     <Compile Include="View\AlunosView.xaml.cs">
       <DependentUpon>AlunosView.xaml</DependentUpon>
@@ -188,6 +189,9 @@
     </Compile>
     <Compile Include="View\RelatoriosView.xaml.cs">
       <DependentUpon>RelatoriosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Relatórios\RelatorioTurmasView.xaml.cs">
+      <DependentUpon>RelatorioTurmasView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\TurmasView.xaml.cs">
       <DependentUpon>TurmasView.xaml</DependentUpon>
@@ -242,6 +246,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\RelatoriosView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Relatórios\RelatorioTurmasView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

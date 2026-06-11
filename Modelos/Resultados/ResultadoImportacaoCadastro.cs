@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TCC_Assiduidade.Modelos;
 
 namespace TCC_Assiduidade.Modelos.Resultados
 {

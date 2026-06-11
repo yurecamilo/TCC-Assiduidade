@@ -1,16 +1,4 @@
-using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using TCC_Assiduidade.Modelos;
-using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.View;
 using TCC_Assiduidade.ViewModel.Base;
 
@@ -39,6 +27,11 @@ namespace TCC_Assiduidade.ViewModel
         public ICommand AbrirRelatorioAlunosCommand => new RelayCommand(() =>
         {
             ConteudoAtual = new RelatorioAlunosView(this);
+        });
+
+        public ICommand AbrirRelatorioTurmasCommand => new RelayCommand(() =>
+        {
+            ConteudoAtual = new RelatorioTurmasView(this);
         });
     }
 }

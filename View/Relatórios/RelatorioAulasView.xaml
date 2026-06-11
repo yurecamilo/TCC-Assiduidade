@@ -13,9 +13,7 @@
         <conv:NullToVisibilityConverter x:Key="NullToVisibility"/>
 
         <Geometry x:Key="IconeVisualizar">M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z</Geometry>
-        <Geometry x:Key="IconeExcluir">M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z</Geometry>
-        <Geometry x:Key="IconeEditar">M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z</Geometry>
-
+     
         <Style x:Key="ActionButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#236B73"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
@@ -148,17 +146,19 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="20"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Button Grid.Row="0" Command="{Binding VoltarCommand}" Style="{StaticResource ActionButtonStyle}" 
-                Background="Transparent" HorizontalAlignment="Left" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="←" FontSize="18" FontWeight="Bold" Margin="0,0,8,0"/>
-                <TextBlock Text="Voltar para Relatórios" VerticalAlignment="Center"/>
-            </StackPanel>
+        Background="Transparent" HorizontalAlignment="Left" Margin="0,0,0,5">
+            <TextBlock Text="← Voltar para Relatórios" FontWeight="Regular"/>
         </Button>
-        <TextBlock Grid.Row="1" Text="Aulas" 
-                   Foreground="White" FontSize="26" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+            <TextBlock Text="Relatório de Aula" Foreground="#ffffff" FontSize="26" FontWeight="Bold"/>
+            <TextBlock Text="Selecione a aula desejada para gerar o relatório" Foreground="#A0AAB0" FontSize="16"/>
+        </StackPanel>
 
         <Border Grid.Row="2" Background="#ECF8F6" CornerRadius="15" Padding="20">
             <StackPanel>
@@ -233,7 +233,7 @@
                     Padding="20" 
                     ClipToBounds="True" 
                     VerticalAlignment="Top" 
-                    MaxHeight="400">
+                    MaxHeight="290">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -244,6 +244,7 @@
 
                     <DataGrid Grid.Row="1" x:Name="GridAulas" AutoGenerateColumns="False" 
                               ItemsSource="{Binding Aulas}"
+                                SelectedItem="{Binding AulaSelecionada, Mode=TwoWay}"
                               Background="Transparent" BorderThickness="0"
                               RowBackground="Transparent" AlternatingRowBackground="#DDEEEB"
                               GridLinesVisibility="None" HeadersVisibility="Column" IsReadOnly="True"
@@ -294,6 +295,24 @@
                         </DataGrid.ColumnHeaderStyle>
 
                         <DataGrid.Columns>
+                            <DataGridTemplateColumn Width="50">
+                                <DataGridTemplateColumn.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    </Style>
+                                </DataGridTemplateColumn.CellStyle>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <RadioButton GroupName="SelecaoAulaUnica" 
+                             IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                             HorizontalAlignment="Center" 
+                             VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                             <DataGridTextColumn Header="DATA" Binding="{Binding Data, StringFormat={}{0:dd/MM/yyyy}}" Width="140" ElementStyle="{StaticResource AlinhamentoTextoStyle}" CellStyle="{StaticResource CelulaClicavelStyle}"/>
                             <DataGridTextColumn Header="TURMA" Binding="{Binding Turma}" Width="1.2*" ElementStyle="{StaticResource AlinhamentoTextoStyle}" CellStyle="{StaticResource CelulaClicavelStyle}"/>
                             <DataGridTextColumn Header="N° DE FALTAS" Binding="{Binding NumeroAusentes}" Width="1*" ElementStyle="{StaticResource AlinhamentoTextoStyle}" CellStyle="{StaticResource CelulaClicavelStyle}"/>
@@ -315,22 +334,11 @@
 
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Width="100" VerticalAlignment="Center" Margin="10,0,0,0">
-
+                                        <StackPanel Orientation="Horizontal" Width="100" VerticalAlignment="Center" >
                                             <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"
-                                                    FocusVisualStyle="{x:Null}"
-                                                    Click="BtnVisualizarAula_Click">
-                                                <Path Data="{StaticResource IconeVisualizar}" Fill="#236B73" Width="16" Height="16" Stretch="Uniform"/>
-                                            </Button>
-
-                                            <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"
-                                                    FocusVisualStyle="{x:Null}">
-                                                <Path Data="{StaticResource IconeEditar}" Fill="#236B73" Width="16" Height="16" Stretch="Uniform"/>
-                                            </Button>
-
-                                            <Button Background="Transparent" BorderThickness="0" Cursor="Hand"
-                                                    FocusVisualStyle="{x:Null}">
-                                                <Path Data="{StaticResource IconeExcluir}" Fill="#AA3333" Width="16" Height="16" Stretch="Uniform"/>
+                            FocusVisualStyle="{x:Null}"
+                            Click="BtnVisualizarAula_Click">
+                                                <TextBlock Text="Visualizar" HorizontalAlignment="Center"/>
                                             </Button>
                                         </StackPanel>
                                     </DataTemplate>
@@ -341,5 +349,17 @@
                 </Grid>
             </Border>
         </Grid>
+        <Button Grid.Row="6" 
+            Style="{StaticResource ActionButtonStyle}"
+            Command="{Binding GerarHtmlCommand}"
+            CommandParameter="{Binding AulaSelecionada}"
+            Height="45" 
+            HorizontalAlignment="Stretch"
+            Cursor="Hand"
+            FocusVisualStyle="{x:Null}" Grid.Column="1" >
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Gerar HTML" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+        </Button>
     </Grid>
 </UserControl>

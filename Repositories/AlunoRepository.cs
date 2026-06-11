@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SqlClient;
 using System.Text;
 using TCC_Assiduidade.Modelos;
 using TCC_Assiduidade.Modelos.Relatorios;

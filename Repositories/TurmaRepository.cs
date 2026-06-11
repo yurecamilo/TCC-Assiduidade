@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using TCC_Assiduidade.Modelos;
 
@@ -136,7 +133,8 @@ namespace TCC_Assiduidade.Repositories
                 SELECT t.Id, t.Nome, COUNT(a.Matricula) AS QuantidadeAlunos
                 FROM Turma t
                 LEFT JOIN Aluno a ON a.TurmaId = t.Id
-                GROUP BY t.Id, t.Nome;";
+                GROUP BY t.Id, t.Nome
+                ORDER BY t.Nome;";
 
             using (var conn = new MySqlConnection(connectionString))
             {
@@ -149,6 +147,11 @@ namespace TCC_Assiduidade.Repositories
                         {
                             lista.Add(new TurmaExibicaoDTO
                             {
+                                TurmaOriginal = new Turma
+                                {
+                                    Id = Convert.ToInt32(reader["Id"]),
+                                    Nome = reader["Nome"].ToString()
+                                },
                                 Nome = reader["nome"].ToString(),
                                 QuantidadeAlunos = Convert.ToInt32(reader["QuantidadeAlunos"])
                             });

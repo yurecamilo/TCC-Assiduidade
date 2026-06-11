@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TCC_Assiduidade.Modelos;
-using TCC_Assiduidade.Servicos;
 
 namespace TCC_Assiduidade.Servicos
 {

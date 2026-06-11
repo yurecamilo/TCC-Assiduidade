@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using Microsoft.Win32;
 using TCC_Assiduidade.ViewModel.Popups;
 
 namespace TCC_Assiduidade.View.Popups

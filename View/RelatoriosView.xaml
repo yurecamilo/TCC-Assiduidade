@@ -11,7 +11,7 @@
 
     <UserControl.Resources>
         <conv:NullToVisibilityConverter x:Key="NullToVisibility"/>
-        
+
         <StreamGeometry x:Key="IconeAlunos">M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z</StreamGeometry>
         <StreamGeometry x:Key="IconeAulas">M6.5 20C8.2 20 10.65 20.65 12 21.5C13.35 20.65 15.8 20 17.5 20C19.15 20 20.85 20.3 22.25 21.05C22.35 21.1 22.4 21.1 22.5 21.1C22.75 21.1 23 20.85 23 20.6V6C22.4 5.55 21.75 5.25 21 5C19.89 4.65 18.67 4.5 17.5 4.5C15.55 4.5 13.45 4.9 12 6C10.55 4.9 8.45 4.5 6.5 4.5C5.33 4.5 4.11 4.65 3 5C2.25 5.25 1.6 5.55 1 6V20.6C1 20.85 1.25 21.1 1.5 21.1C1.6 21.1 1.65 21.1 1.75 21.05C3.15 20.3 4.85 20 6.5 20M12 19.5V8C13.35 7.15 15.8 6.5 17.5 6.5C18.7 6.5 19.9 6.65 21 7V18.5C19.9 18.15 18.7 18 17.5 18C15.8 18 13.35 18.65 12 19.5Z</StreamGeometry>
         <StreamGeometry x:Key="IconeTurmas">M16 17V19H2V17S2 13 9 13 16 17 16 17M12.5 7.5A3.5 3.5 0 1 0 9 11A3.5 3.5 0 0 0 12.5 7.5M15.94 13A5.32 5.32 0 0 1 18 17V19H22V17S22 13.37 15.94 13M15 4A3.39 3.39 0 0 0 13.07 4.59A5 5 0 0 1 13.07 10.41A3.39 3.39 0 0 0 15 11A3.5 3.5 0 0 0 15 4Z</StreamGeometry>
@@ -40,12 +40,12 @@
             </Setter>
         </Style>
 
-
         <DataTemplate DataType="{x:Type vm:RelatorioAlunosViewModel}"></DataTemplate>
-
-        <DataTemplate DataType="{x:Type vm:RelatoriosAulaViewModel}"></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:RelatorioAulasViewModel}"></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:RelatorioTurmasViewModel}"></DataTemplate>
     </UserControl.Resources>
-    <Grid Margin="25">
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -54,6 +54,7 @@
             <Grid.Style>
                 <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Visible"/>
+                    <Setter Property="Margin" Value="25,25,25,25"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding ConteudoAtual, Converter={StaticResource NullToVisibility}}" Value="Visible">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -101,6 +102,12 @@
             </StackPanel>
         </Grid>
 
-        <ContentControl Grid.Row="0" Content="{Binding ConteudoAtual}"/>
+        <ContentControl Grid.Row="0" Content="{Binding ConteudoAtual}">
+            <ContentControl.Style>
+                <Style TargetType="ContentControl">
+                    <Setter Property="Margin" Value="25,5,25,25"/>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
     </Grid>
 </UserControl>

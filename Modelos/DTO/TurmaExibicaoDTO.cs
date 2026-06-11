@@ -1,6 +1,8 @@
-﻿namespace TCC_Assiduidade.Modelos
+﻿using TCC_Assiduidade.ViewModel.Base;
+
+namespace TCC_Assiduidade.Modelos
 {
-    public class TurmaExibicaoDTO
+    public class TurmaExibicaoDTO: BaseViewModel
     {
         public Turma TurmaOriginal { get; set; }
         public string Nome { get; set; }

@@ -5,35 +5,126 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TCC_Assiduidade.View" xmlns:viewmodel="clr-namespace:TCC_Assiduidade.ViewModel" d:DataContext="{d:DesignInstance Type=viewmodel:RelatoriosViewModel}"
              mc:Ignorable="d" 
+             xmlns:conv="clr-namespace:TCC_Assiduidade.View.Converters"
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
+        <conv:NullToVisibilityConverter x:Key="NullToVisibility"/>
+
         <Style x:Key="ActionButtonStyle" TargetType="Button">
-    <Setter Property="Background" Value="#236B73"/>
-    <Setter Property="Foreground" Value="White"/>
-    <Setter Property="BorderThickness" Value="0"/>
-    <Setter Property="Template">
-        <Setter.Value>
-            <ControlTemplate TargetType="Button">
-                <Border Background="{TemplateBinding Background}" CornerRadius="10">
-                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                </Border>
-            </ControlTemplate>
-        </Setter.Value>
-    </Setter>
-</Style>
+            <Setter Property="Background" Value="#236B73"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="InputStyleWithPlaceholder" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#B0C8D6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Border x:Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="5,0"/>
+                            <TextBlock x:Name="PlaceholderText" Text="{TemplateBinding Tag}" Foreground="#99AAB5" FontSize="14" IsHitTestVisible="False" VerticalAlignment="Center" Margin="12,0" Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="PlaceholderText" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#B0C8D6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,0,30,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="GridBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" />
+
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+
+                            <ToggleButton Focusable="false" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press" HorizontalAlignment="Right" Width="30" Background="Transparent" BorderThickness="0">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent">
+                                            <Path Data="M7,10L12,15L17,10H7Z" Fill="#236B73" HorizontalAlignment="Center" VerticalAlignment="Center" Width="14" Height="14" Stretch="Uniform" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid MinWidth="{TemplateBinding ActualWidth}" MaxHeight="200">
+                                    <Border Background="White" BorderBrush="#B0C8D6" BorderThickness="1" CornerRadius="0,0,5,5" Margin="0,1,0,0">
+                                        <ScrollViewer>
+                                            <ItemsPresenter />
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AlertButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4A6984"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Button Grid.Row="0" Command="{Binding VoltarCommand}" Style="{StaticResource ActionButtonStyle}" 
-                Background="Transparent" HorizontalAlignment="Left" Margin="0,0,0,10">
-            <TextBlock Text="← Voltar para Relatórios" FontWeight="Bold"/>
+                Background="Transparent" HorizontalAlignment="Left" Margin="0,0,0,5">
+            <TextBlock Text="← Voltar para Relatórios" FontWeight="Regular"/>
         </Button>
 
         <StackPanel Grid.Row="1" Margin="0,0,0,20">
@@ -41,7 +132,78 @@
             <TextBlock Text="Selecione os alunos desejados para gerar o relatório" Foreground="#A0AAB0" FontSize="16"/>
         </StackPanel>
 
-        <Border Grid.Row="2" Background="#ECF8F6" CornerRadius="15" Padding="20" ClipToBounds="True" MaxHeight="450">
+        <Border Grid.Row="2" Background="#ECF8F6" CornerRadius="15" Padding="20">
+            <StackPanel>
+                <TextBlock Text="Filtragem e Busca" FontSize="18" FontWeight="Bold" Foreground="#11181C" Margin="0,0,0,12"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Foreground="#555" Margin="0,0,0,5" FontSize="13" FontWeight="SemiBold" Text="Busca Avançada (Nome, Matrícula)"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="250"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" HorizontalAlignment="Left" Width="250" Style="{StaticResource InputStyleWithPlaceholder}" Tag="Digite o nome ou matrícula" Text="{Binding TextoBusca, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Grid.Column="1" Content="Limpar busca" Style="{StaticResource AlertButtonStyle}" Height="38" Width="100" Margin="8,0,0,0" FontSize="14" Cursor="Hand" Command="{Binding LimparBuscaCommand}"/>
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Left" Margin="20,0,0,0" Grid.Column="1">
+                        <TextBlock Margin="0,0,0,5" Text="Selecionar Turma" Foreground="#555" FontSize="13" FontWeight="SemiBold"/>
+
+                        <Grid>
+                            <ComboBox x:Name="CbTurmas" 
+                                      Height="38" 
+                                      FontSize="14" 
+                                      ItemsSource="{Binding Turmas}"
+                                      SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                                      DisplayMemberPath="Nome" Width="250">
+
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Foreground" Value="#11181C"/>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox" BasedOn="{StaticResource ComboBoxStyle}">
+                                        <Setter Property="Foreground" Value="#11181C"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TurmaSelecionada.Id}" Value="0">
+                                                <Setter Property="Foreground" Value="#99AAB5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
+
+                            <TextBlock Text="Selecionar turma" 
+               Foreground="#99AAB5" 
+               FontSize="14" 
+               VerticalAlignment="Center" 
+               Margin="10,0,30,0"
+               IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="4" Background="#ECF8F6" CornerRadius="15" Padding="20" ClipToBounds="True" MaxHeight="290">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -74,7 +236,7 @@
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="BorderThickness" Value="0"/>
                             <Setter Property="BorderBrush" Value="Transparent"/>
-                            <Setter Property="Padding" Value="10,0"/>
+                            <Setter Property="Padding" Value="12,0,0,0"/>
                         </Style>
 
                         <Style TargetType="DataGridRow">
@@ -101,9 +263,9 @@
                             <Setter Property="Foreground" Value="#555555"/>
                             <Setter Property="FontWeight" Value="Bold"/>
                             <Setter Property="FontSize" Value="14"/>
-                            <Setter Property="Padding" Value="10"/>
-                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                            <Setter Property="BorderBrush" Value="#B0C8D6"/>
+                            <Setter Property="Padding" Value="12"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
                             <Setter Property="VerticalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
@@ -113,17 +275,24 @@
                             <DataGridTemplateColumn.CellStyle>
                                 <Style TargetType="DataGridCell">
                                     <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
                                 </Style>
                             </DataGridTemplateColumn.CellStyle>
 
                             <DataGridTemplateColumn.Header>
-                                <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                <CheckBox HorizontalAlignment="Center" 
+                  VerticalAlignment="Center" 
+                  Margin="5,0,0,0"
                   IsChecked="{Binding DataContext.SelecionarTodos, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
                             </DataGridTemplateColumn.Header>
+
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" 
-                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Center" 
+                      Margin="0"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -134,15 +303,15 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <Button Grid.Row="1" 
-                Command="{Binding GerarRelatorioLoteCommand}" 
-                Style="{StaticResource ActionButtonStyle}" 
-                Height="40" 
-                HorizontalAlignment="Center" 
-                Margin="0,15,0,0">
-                    <TextBlock Text="Gerar Relatório" VerticalAlignment="Center" FontWeight="SemiBold" Padding="10"/>
-                </Button>
             </Grid>
         </Border>
+        <Button Grid.Row="6" 
+            Command="{Binding GerarRelatorioLoteCommand}" 
+            Style="{StaticResource ActionButtonStyle}" 
+            Height="45" 
+            HorizontalAlignment="Stretch"
+Cursor="Hand">
+            <TextBlock Text="Gerar HTML" FontSize="18" VerticalAlignment="Center" FontWeight="Bold" Padding="10"/>
+        </Button>
     </Grid>
 </UserControl>

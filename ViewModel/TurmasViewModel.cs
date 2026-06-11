@@ -45,9 +45,9 @@ namespace TCC_Assiduidade.ViewModel
         }
 
         public ICommand BuscarCommand { get; private set; }
+        public ICommand LimparBuscaCommand { get; private set; }
         public ICommand EditarTurmaCommand { get; private set; }
         public ICommand ExcluirTurmaCommand { get; private set; }
-        public ICommand LimparBuscaCommand { get; private set; }
 
         public TurmasViewModel()
         {
@@ -55,10 +55,10 @@ namespace TCC_Assiduidade.ViewModel
             Turmas = new List<TurmaExibicaoDTO>();
 
             BuscarCommand = new RelayCommand(ExecutarBusca);
+            LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
+
             EditarTurmaCommand = new RelayCommand(ExecutarEditar);
             ExcluirTurmaCommand = new RelayCommand(ExecutarExcluir);
-
-            LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
 
             DataCacheService.CacheAtualizado += OnCacheAtualizado;
 

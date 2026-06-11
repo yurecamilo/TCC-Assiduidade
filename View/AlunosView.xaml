@@ -154,15 +154,31 @@
 
                         <Grid>
                             <ComboBox x:Name="CbTurmas" 
-                                       Height="38" 
-                                       Style="{StaticResource ComboBoxStyle}"
-                                       FontSize="14" 
-                                       ItemsSource="{Binding Turmas}"
-                                       SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
-                                       DisplayMemberPath="Nome">
+                       Height="38" 
+                       FontSize="14" 
+                       ItemsSource="{Binding Turmas}"
+                       SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                       DisplayMemberPath="Nome" Width="250">
+
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Foreground" Value="#11181C"/>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox" BasedOn="{StaticResource ComboBoxStyle}">
+                                        <Setter Property="Foreground" Value="#11181C"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TurmaSelecionada.Id}" Value="0">
+                                                <Setter Property="Foreground" Value="#99AAB5"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
                             </ComboBox>
 
-                            <TextBlock Text="Selecionar a turma de destino" 
+                            <TextBlock Text="Selecionar turma" 
                                         Foreground="#99AAB5" 
                                         FontSize="14" 
                                         VerticalAlignment="Center" 
@@ -170,10 +186,10 @@
                                         IsHitTestVisible="False">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas, Converter={StaticResource NullToVisibility}}" Value="Visible">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            <DataTrigger Binding="{Binding SelectedItem, ElementName=CbTurmas}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>

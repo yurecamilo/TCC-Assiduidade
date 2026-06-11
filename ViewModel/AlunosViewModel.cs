@@ -75,9 +75,9 @@ namespace TCC_Assiduidade.ViewModel
 
         public ICommand FecharPerfilCommand { get; private set; }
         public ICommand BuscarCommand { get; private set; }
+        public ICommand LimparBuscaCommand { get; private set; }
         public ICommand EditarTurmaCommand { get; private set; }
         public ICommand ExcluirTurmaCommand { get; private set; }
-        public ICommand LimparBuscaCommand { get; private set; }
         public ICommand VisualizarDadosCommand { get; private set; }
 
         public AlunosViewModel()
@@ -86,15 +86,26 @@ namespace TCC_Assiduidade.ViewModel
             Turmas = new List<Turma>(); 
 
             BuscarCommand = new RelayCommand(ExecutarBusca);
+            LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
             EditarTurmaCommand = new RelayCommand(ExecutarEditar);
             ExcluirTurmaCommand = new RelayCommand(ExecutarExcluir);
             FecharPerfilCommand = new RelayCommand(ExecutarFecharPerfil);
-            LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
             VisualizarDadosCommand = new RelayCommand(ExecutarVisualizar);
 
             DataCacheService.CacheAtualizado += OnCacheAtualizado;
 
             _ = CarregarDadosIniciaisAsync();
+        }
+        private void OnCacheAtualizado()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+
+                InicializarComboBoxTurmas();
+
+                ExecutarBusca();
+            });
         }
 
         private async Task CarregarDadosIniciaisAsync()
@@ -121,7 +132,15 @@ namespace TCC_Assiduidade.ViewModel
         {
             try
             {
-                var _listaCombo = DataCacheService.TurmaModeloCache ?? new List<Turma>();
+                var listaDoCache = DataCacheService.TurmaModeloCache ?? new List<Turma>();
+
+                var _listaCombo = new List<Turma>
+                {
+                    new Turma { Id = 0, Nome = "Selecionar turma" } // Item fictício
+                };
+
+                _listaCombo.AddRange(listaDoCache);
+
                 Turmas = _listaCombo;
             }
             catch (Exception ex)
@@ -135,20 +154,43 @@ namespace TCC_Assiduidade.ViewModel
             try
             {
                 string buscaTexto = (TextoBusca ?? "").Trim().ToLower();
-                string turmaFiltro = (TurmaSelecionada?.Nome ?? "Todas as turmas").Trim();
+                string turmaFiltro = (TurmaSelecionada?.Nome ?? "Selecionar turma").Trim();
 
-                Alunos = _listaOriginalDoBanco.Where(a =>
+                if (turmaFiltro == "Selecionar turma")
                 {
-                    bool bateTexto = string.IsNullOrWhiteSpace(buscaTexto) ||
-                                     (a.Nome != null && a.Nome.ToLower().Contains(buscaTexto)) ||
-                                     (a.Email != null && a.Email.ToLower().Contains(buscaTexto)) ||
-                                     (a.Matricula != null && a.Matricula.ToLower().Contains(buscaTexto));
+                    Alunos = _listaOriginalDoBanco.Select(a => new AlunoRelatorioItem
+                    {
+                        Nome = a.Nome,
+                        Matricula = a.Matricula,
+                        Turma = a.Turma,
+                        Email = a.Email,
+                        DadosFrequencia = a.DadosFrequencia,
+                        IsSelected = false
+                    }).ToList() ?? new List<AlunoRelatorioItem>();
+                }
+                else
+                {
+                    Alunos = _listaOriginalDoBanco.Where(a =>
+                    {
+                        bool bateTexto = string.IsNullOrWhiteSpace(buscaTexto) ||
+                                         (a.Nome != null && a.Nome.ToLower().Contains(buscaTexto)) ||
+                                         (a.Email != null && a.Email.ToLower().Contains(buscaTexto)) ||
+                                         (a.Matricula != null && a.Matricula.ToLower().Contains(buscaTexto));
 
-                    bool bateTurma = (turmaFiltro == "Todas as turmas") ||
-                                     (a.Turma != null && a.Turma.Trim().Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
+                        bool bateTurma = (turmaFiltro == "Todas as turmas") ||
+                                         (a.Turma != null && a.Turma.Trim().Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
 
-                    return bateTexto && bateTurma;
-                }).ToList();
+                        return bateTexto && bateTurma;
+                    }).Select(a => new AlunoRelatorioItem
+                    {
+                        Nome = a.Nome,
+                        Matricula = a.Matricula,
+                        Turma = a.Turma,
+                        Email = a.Email,
+                        DadosFrequencia = a.DadosFrequencia,
+                        IsSelected = false
+                    }).ToList();
+                }
             }
             catch (Exception ex)
             {
@@ -174,24 +216,13 @@ namespace TCC_Assiduidade.ViewModel
             AlunoSelecionado = null;
         }
 
+
         private void ExecutarEditar(object obj)
         {
         }
 
         private void ExecutarExcluir(object obj)
         {
-        }
-
-        private void OnCacheAtualizado()
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
-
-                InicializarComboBoxTurmas();
-
-                ExecutarBusca();
-            });
         }
     }
 }
