@@ -31,7 +31,7 @@ namespace TCC_Assiduidade.ViewModel
             {
                 _turmaSelecionada = value;
                 OnPropertyChanged();
-                ExecutarBusca(); // Busca automática quando muda a turma
+                ExecutarBusca();
             }
         }
 
@@ -49,7 +49,6 @@ namespace TCC_Assiduidade.ViewModel
                 _alunoSelecionado = value;
                 OnPropertyChanged();
 
-                // Avisa a interface que o status de aulas também mudou
                 OnPropertyChanged(nameof(TemAulas));
             }
         }
@@ -58,7 +57,6 @@ namespace TCC_Assiduidade.ViewModel
         {
             get
             {
-                // Verifica diretamente do campo privado _alunoSelecionado
                 return _alunoSelecionado?.DadosFrequencia != null && _alunoSelecionado.DadosFrequencia.TotalAulas > 0;
             }
         }
@@ -71,8 +69,6 @@ namespace TCC_Assiduidade.ViewModel
                 _textoBusca = value;
                 OnPropertyChanged();
 
-                // 🌟 MÁGICA DA BUSCA AUTOMÁTICA POR TEXTO:
-                // Filtra a lista instantaneamente a cada letra que você digita, apaga ou limpa pelo botão ✕
                 ExecutarBusca();
             }
         }
@@ -87,7 +83,7 @@ namespace TCC_Assiduidade.ViewModel
         public AlunosViewModel()
         {
             Alunos = new List<AlunoExibicaoDTO>();
-            Turmas = new List<Turma>(); // Evita nulo antes do binding
+            Turmas = new List<Turma>(); 
 
             BuscarCommand = new RelayCommand(ExecutarBusca);
             EditarTurmaCommand = new RelayCommand(ExecutarEditar);

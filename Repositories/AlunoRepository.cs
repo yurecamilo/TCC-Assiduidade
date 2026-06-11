@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.SqlClient;
 using System.Text;
 using TCC_Assiduidade.Modelos;
 using TCC_Assiduidade.Modelos.Relatorios;
@@ -82,6 +83,65 @@ namespace TCC_Assiduidade.Repositories
             }
         }
 
+        public int ContarMatriculasExistentes(List<string> matriculas)
+        {
+            if (matriculas == null || matriculas.Count == 0) return 0;
+
+            List<string> parametros = new List<string>();
+            for (int i = 0; i < matriculas.Count; i++)
+            {
+                parametros.Add($"@p{i}");
+            }
+
+            string sql = $"SELECT COUNT(1) FROM Aluno WHERE Matricula IN ({string.Join(", ", parametros)})";
+
+            using (var conexao = new MySqlConnection(connectionString))
+            {
+                using (var comando = new MySqlCommand(sql, conexao))
+                {
+                    for (int i = 0; i < matriculas.Count; i++)
+                    {
+                        comando.Parameters.AddWithValue($"@p{i}", matriculas[i]);
+                    }
+
+                    conexao.Open();
+
+                    int totalExistente = Convert.ToInt32(comando.ExecuteScalar());
+
+                    return totalExistente;
+                }
+            }
+        }
+
+        public int ContarAlunosDeOutraTurma(int turmaId, List<string> matriculas)
+        {
+            List<string> parametros = new List<string>();
+            for (int i = 0; i < matriculas.Count; i++)
+            {
+                parametros.Add($"@p{i}");
+            }
+
+            string sql = $@"SELECT COUNT(1) FROM Aluno 
+                            WHERE TurmaId <> @turmaId 
+                            AND Matricula IN ({string.Join(", ", parametros)})";
+
+            using (var conexao = new MySqlConnection(connectionString))
+            {
+                using (var comando = new MySqlCommand(sql, conexao))
+                {
+                    comando.Parameters.AddWithValue("@turmaId", turmaId);
+
+                    for (int i = 0; i < matriculas.Count; i++)
+                    {
+                        comando.Parameters.AddWithValue($"@p{i}", matriculas[i]);
+                    }
+
+                    conexao.Open();
+                    return Convert.ToInt32(comando.ExecuteScalar());
+                }
+            }
+        }
+
         public Aluno ObterPorMatricula(string matricula)
         {
             Aluno aluno = new Aluno();
@@ -108,7 +168,6 @@ namespace TCC_Assiduidade.Repositories
                     }
                 }
             }
-
             return aluno;
         }
 
@@ -124,6 +183,7 @@ namespace TCC_Assiduidade.Repositories
                         SELECT Matricula, Nome, Email, TurmaId
                         FROM Aluno
                         WHERE TurmaId = @turmaId
+                        ORDER BY Nome ASC
                     ";
 
                 using (var cmd = new MySqlCommand(query, conn))
@@ -157,7 +217,7 @@ namespace TCC_Assiduidade.Repositories
             {
                 conn.Open();
 
-                string query = "SELECT Matricula, Nome, Email, TurmaId FROM Aluno";
+                string query = "SELECT Matricula, Nome, Email, TurmaId FROM Aluno ORDER BY Nome ASC";
 
                 using (var cmd = new MySqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -191,7 +251,8 @@ namespace TCC_Assiduidade.Repositories
                     COALESCE((SELECT COUNT(*) FROM Ausencia aus WHERE aus.AlunoMatricula = a.Matricula), 0) AS TotalFaltas,
                     COALESCE((SELECT COUNT(*) FROM Aula WHERE Aula.TurmaId = a.TurmaId), 0) AS TotalAulas
                 FROM Aluno a
-                LEFT JOIN Turma t ON a.TurmaId = t.Id;";
+                LEFT JOIN Turma t ON a.TurmaId = t.Id
+                ORDER BY a.Nome ASC;";
 
             using (var conn = new MySqlConnection(connectionString))
             {
@@ -202,21 +263,16 @@ namespace TCC_Assiduidade.Repositories
                     {
                         while (reader.Read())
                         {
-                            // 1. Pega os valores inteiros do banco
                             int faltas = Convert.ToInt32(reader["TotalFaltas"]);
                             int totalAulas = Convert.ToInt32(reader["TotalAulas"]);
 
-
-                            // 3. Calcula o percentual de assiduidade (com proteção para divisão por zero)
-                            double percentualAssiduidade = 100.0; // Se não tiver aulas, assume 100%
+                            double percentualAssiduidade = 100.0; 
                             if (totalAulas > 0)
                             {
                                 percentualAssiduidade = ((double)(totalAulas - faltas) / totalAulas) * 100;
-                                // Arredonda para 1 casa decimal (ex: 95.4%)
                                 percentualAssiduidade = Math.Round(percentualAssiduidade, 1);
                             }
 
-                            // 4. Monta o seu DTO preenchendo a propriedade DadosFrequencia
                             var alunoDTO = new AlunoExibicaoDTO
                             {
                                 Matricula = reader["matricula"].ToString(),

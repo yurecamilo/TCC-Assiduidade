@@ -21,13 +21,13 @@ namespace TCC_Assiduidade.View
     /// <summary>
     /// Interação lógica para AulasView.xam
     /// </summary>
-    public partial class AulasView : UserControl
+    public partial class RelatorioAulasView : UserControl
     {
-        private readonly AulasViewModel _viewModel;
-        public AulasView()
+        private readonly RelatoriosAulaViewModel _viewModel;
+        public RelatorioAulasView(RelatoriosViewModel pai)
         {
             InitializeComponent();
-            _viewModel = new AulasViewModel();
+            _viewModel = new RelatoriosAulaViewModel(pai);
             DataContext = _viewModel;
         }
 

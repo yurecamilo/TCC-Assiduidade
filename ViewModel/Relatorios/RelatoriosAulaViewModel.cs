@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Google.Protobuf.WellKnownTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,7 @@ using TCC_Assiduidade.ViewModel.Base;
 
 namespace TCC_Assiduidade.ViewModel
 {
-    public class AulasViewModel : BaseViewModel
+    public class RelatoriosAulaViewModel : BaseViewModel
     {
         private List<AulaExibicaoDTO> _listaOriginalDoBanco = new List<AulaExibicaoDTO>();
 
@@ -78,8 +79,14 @@ namespace TCC_Assiduidade.ViewModel
         // Comandos expostos para a View
         public ICommand LimparDatasCommand { get; private set; }
 
-        public AulasViewModel()
+        private readonly RelatoriosViewModel _pai;
+        public ICommand VoltarCommand { get; }
+
+
+        public RelatoriosAulaViewModel(RelatoriosViewModel pai)
         {
+            _pai = pai;
+            VoltarCommand = new RelayCommand(Voltar);
             // Inicialização vazia (null) para exibir o placeholder "Selecionar data"
             DataInicio = null;
             DataFim = null;
@@ -89,6 +96,13 @@ namespace TCC_Assiduidade.ViewModel
 
             InicializarComboBoxTurmas();
             _ = CarregarDadosIniciaisAsync();
+        }
+
+        private void Voltar()
+        {
+            // Ao limpar o ConteudoAtual do pai, o WPF esconde automaticamente a view filha
+            // e exibe o menu original com os botões.
+            _pai.ConteudoAtual = null;
         }
 
         private async Task CarregarDadosIniciaisAsync()

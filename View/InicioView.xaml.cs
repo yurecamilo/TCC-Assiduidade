@@ -17,11 +17,11 @@ using TCC_Assiduidade.View.Popups;
 namespace TCC_Assiduidade.View
 {
     /// <summary>
-    /// Interação lógica para DashboardView.xam
+    /// Interação lógica para InicioView.xaml
     /// </summary>
-    public partial class DashboardView : UserControl
+    public partial class InicioView : UserControl
     {
-        public DashboardView()
+        public InicioView()
         {
             InitializeComponent();
         }
@@ -44,9 +44,27 @@ namespace TCC_Assiduidade.View
             janelaPopUp.ShowDialog();
         }
 
-        private void BtnGerarRelatorio_Click(object sender, RoutedEventArgs e)
+        private void BtnCadastrarTurma_Click(object sender, RoutedEventArgs e)
         {
+            if (sender is Button botaoClicado)
+            {
+                NovaTurma janelaPopUp = new NovaTurma();
 
+                janelaPopUp.Owner = Window.GetWindow(this);
+                janelaPopUp.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+
+                janelaPopUp.ShowDialog();
+            }
+        }
+
+        public void BtnCadastrarAluno_Click(object sender, RoutedEventArgs e)
+        {
+            NovoAluno janelaPopUp = new NovoAluno();
+
+            janelaPopUp.Owner = Window.GetWindow(this);
+            janelaPopUp.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+
+            janelaPopUp.ShowDialog();
         }
     }
 }

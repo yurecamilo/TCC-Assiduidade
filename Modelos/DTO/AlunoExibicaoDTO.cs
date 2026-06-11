@@ -1,8 +1,9 @@
 ﻿using TCC_Assiduidade.Modelos.Relatorios;
+using TCC_Assiduidade.ViewModel.Base;
 
 namespace TCC_Assiduidade.Modelos
 {
-    public class AlunoExibicaoDTO
+    public class AlunoExibicaoDTO : BaseViewModel
     {
         public RelatorioFrequencia DadosFrequencia { get; set; }
 

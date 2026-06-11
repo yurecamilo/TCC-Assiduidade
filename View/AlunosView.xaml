@@ -123,23 +123,14 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Gerenciamento de Alunos" Foreground="White" FontSize="26" FontWeight="Bold" Margin="0,0,0,20"/>
 
-        <Grid Grid.Row="1" Margin="0,0,0,15">
-            <Button HorizontalAlignment="Right" Style="{StaticResource ActionButtonStyle}" Click="BtnCadastrarAluno_Click" Width="130" Height="38" Padding="15,0" Cursor="Hand">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Path Data="{StaticResource IconeAdicionar}" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0"/>
-                    <TextBlock Text="Adicionar" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-        </Grid>
-
-        <Border Grid.Row="2" Background="#ECF8F6" CornerRadius="15" Padding="20">
+        <Border Grid.Row="1" Background="#ECF8F6" CornerRadius="15" Padding="20">
             <StackPanel>
                 <TextBlock Text="Filtragem e Busca" FontSize="18" FontWeight="Bold" Foreground="#11181C" Margin="0,0,0,12"/>
                 <Grid>
@@ -194,7 +185,7 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -250,7 +241,7 @@
                         </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="MATRÍCULA" Binding="{Binding Matricula}" Width="120" ElementStyle="{StaticResource AlinhamentoTextoStyle}"/>
-                            <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" Width="2*" ElementStyle="{StaticResource AlinhamentoTextoStyle}"/>
+                            <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" Width="1.7*" ElementStyle="{StaticResource AlinhamentoTextoStyle}"/>
                             <DataGridTextColumn Header="TURMA" Binding="{Binding Turma}" Width="1*" ElementStyle="{StaticResource AlinhamentoTextoStyle}"/>
                             <DataGridTemplateColumn Header="AÇÕES" Width="120">
                                 <DataGridTemplateColumn.CellTemplate>

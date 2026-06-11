@@ -6,12 +6,12 @@ namespace TCC_Assiduidade.View
     /// <summary>
     /// Lógica interna para Dashboard.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class BaseWindow : Window
     {
-        public MainWindow()
+        public BaseWindow()
         {
             InitializeComponent();
-            ConteudoPrincipal.Content = new DashboardView();
+            ConteudoPrincipal.Content = new InicioView();
             AlternarBotaoAtivo(BtnDashboard);
         }
         private void AlternarBotaoAtivo(Button botaoClicado)
@@ -20,9 +20,7 @@ namespace TCC_Assiduidade.View
             BtnDashboard.Style = estiloNormal;
             BtnTurmas.Style = estiloNormal;
             BtnAlunos.Style = estiloNormal;
-            BtnAulas.Style = estiloNormal;
             BtnRelatorios.Style = estiloNormal;
-            BtnConfiguracoes.Style = estiloNormal;
 
             Style estiloAtivo = (Style)FindResource("ActiveMenuButtonStyle");
             botaoClicado.Style = estiloAtivo;
@@ -30,7 +28,7 @@ namespace TCC_Assiduidade.View
 
         private void BtnDashboard_Click(object sender, RoutedEventArgs e)
         {
-            ConteudoPrincipal.Content = new DashboardView();
+            ConteudoPrincipal.Content = new InicioView();
             AlternarBotaoAtivo(BtnDashboard);
         }
 
@@ -47,11 +45,6 @@ namespace TCC_Assiduidade.View
             AlternarBotaoAtivo(BtnAlunos);
         }
 
-        private void BtnAulas_Click(object sender, RoutedEventArgs e)
-        {
-            ConteudoPrincipal.Content = new AulasView();
-            AlternarBotaoAtivo(BtnAulas);
-        }
 
         private void BtnRelatorios_Click(object sender, RoutedEventArgs e)
         {
@@ -59,10 +52,5 @@ namespace TCC_Assiduidade.View
             AlternarBotaoAtivo(BtnRelatorios);
         }
 
-        private void BtnConfiguracoes_Click(object sender, RoutedEventArgs e)
-        {
-            //ConteudoPrincipal.Content = new ConfiguracoesView();
-            AlternarBotaoAtivo(BtnConfiguracoes);
-        }
     }
 }

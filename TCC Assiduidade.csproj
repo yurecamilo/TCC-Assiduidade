@@ -138,7 +138,9 @@
     <Compile Include="Servicos\ImportacaoService.cs" />
     <Compile Include="Servicos\TurmaService.cs" />
     <Compile Include="ViewModel\AlunosViewModel.cs" />
-    <Compile Include="ViewModel\AulasViewModel.cs" />
+    <Compile Include="ViewModel\Relatorios\AlunoExibicaoViewModel.cs" />
+    <Compile Include="ViewModel\Relatorios\RelatorioAlunosViewModel.cs" />
+    <Compile Include="ViewModel\Relatorios\RelatoriosAulaViewModel.cs" />
     <Compile Include="ViewModel\Base\BaseViewModel.cs" />
     <Compile Include="ViewModel\Base\RelayCommand.cs" />
     <Compile Include="ViewModel\Popups\NovaTurmaViewModel.cs" />
@@ -152,15 +154,18 @@
     <Compile Include="View\AlunosView.xaml.cs">
       <DependentUpon>AlunosView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\AulasView.xaml.cs">
-      <DependentUpon>AulasView.xaml</DependentUpon>
+    <Compile Include="View\Relatórios\RelatorioAlunosView.xaml.cs">
+      <DependentUpon>RelatorioAlunosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Relatórios\RelatorioAulasView.xaml.cs">
+      <DependentUpon>RelatorioAulasView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Converters\NullToVisibilityConverter.cs" />
-    <Compile Include="View\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
+    <Compile Include="View\BaseWindow.xaml.cs">
+      <DependentUpon>BaseWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\DashboardView.xaml.cs">
-      <DependentUpon>DashboardView.xaml</DependentUpon>
+    <Compile Include="View\InicioView.xaml.cs">
+      <DependentUpon>InicioView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Modelos\Banco\Turma.cs" />
     <Compile Include="View\Popups\ImportarCadastro.xaml.cs">
@@ -191,15 +196,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\AulasView.xaml">
+    <Page Include="View\Relatórios\RelatorioAlunosView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\MainWindow.xaml">
+    <Page Include="View\Relatórios\RelatorioAulasView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\DashboardView.xaml">
+    <Page Include="View\BaseWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\InicioView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

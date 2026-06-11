@@ -149,28 +149,6 @@
                         
                 </Button>
             </StackPanel>
-
-            <Button Grid.Column="1" 
-                    Style="{StaticResource ActionButtonStyle}" 
-                    Click="BtnCadastrarTurma_Click"
-                    Height="38"
-                    Width="130"
-                    Padding="15,0"
-                    Cursor="Hand">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Path Data="{StaticResource IconeAdicionar}"
-                          Fill="White" 
-                          Width="14" 
-                          Height="14" 
-                          Stretch="Uniform" 
-                          Margin="0,0,8,0"/>
-
-                    <TextBlock Text="Adicionar" 
-                               FontSize="14" 
-                               FontWeight="Bold" 
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
         </Grid>
 
         <Grid Grid.Row="3">

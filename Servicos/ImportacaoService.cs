@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TCC_Assiduidade.Modelos;
 using TCC_Assiduidade.Modelos.Resultados;
 
@@ -33,6 +34,30 @@ namespace TCC_Assiduidade.Servicos
                 };
             }
 
+            List<string> matriculas = new List<string>();
+            foreach (var linha in dados)
+            {
+                if (linha.ContainsKey("matricula"))
+                {
+                    string matricula = linha["matricula"].Trim();
+                    if (!string.IsNullOrEmpty(matricula))
+                    {
+                        matriculas.Add(matricula);
+                    }
+                }
+            }
+
+            int alunosExistencia = _alunoService.ObterQuantidadeMatriculasExistentes(matriculas);
+
+            if (alunosExistencia > 0)
+            {
+                return new ResultadoImportacaoCadastro
+                {
+                    Sucesso = false,
+                    Mensagem = $"Existem {alunosExistencia} alunos com matricula ja cadastrada no sistema."
+                };
+            }
+
             Turma turma = _turmaService.ObterTurmaPorNome(turmaNome);
 
             if (turma == null)
@@ -49,14 +74,6 @@ namespace TCC_Assiduidade.Servicos
 
                 turma = new Turma { Id = turmaId, Nome = turmaNome };
             }
-            //else
-            //{
-            //    return new ResultadoImportacaoCadastro
-            //    {
-            //        Sucesso = false,
-            //        Mensagem = $"A turma {turma.Nome} ja esta cadastrada no sistema."
-            //    };
-            //}
 
             List<Aluno> alunosParaSalvar = new List<Aluno>();
 
@@ -97,14 +114,26 @@ namespace TCC_Assiduidade.Servicos
                 };
             }
 
-            int aulaId = _aulaService.Adicionar(dataAula, turmaId);
+            HashSet<string> matriculasPresentes = new HashSet<string>();
+            foreach (var linha in dadosPresenca)
+            {
+                if (linha.ContainsKey("matricula_aluno"))
+                {
+                    string matricula = linha["matricula_aluno"].Trim();
+                    if (!string.IsNullOrEmpty(matricula))
+                    {
+                        matriculasPresentes.Add(matricula);
+                    }
+                }
+            }
 
-            if (aulaId == -1)
+            int alunosDeOutraTurma = _alunoService.ContarAlunosDeOutraTurma(turmaId, matriculasPresentes.ToList());
+            if (alunosDeOutraTurma > 0)
             {
                 return new ResultadoImportacaoPresenca
                 {
                     Sucesso = false,
-                    Mensagem = "Erro ao criar aula."
+                    Mensagem = $"Existem {alunosDeOutraTurma} alunos no CSV que pertencem a uma turma diferente da turma selecionada."
                 };
             }
 
@@ -118,17 +147,6 @@ namespace TCC_Assiduidade.Servicos
                 };
             }
 
-            HashSet<string> matriculasPresentes = new HashSet<string>();
-
-            foreach (var linha in dadosPresenca)
-            {
-                if (linha.ContainsKey("matricula_aluno"))
-                {
-                    string matricula = linha["matricula_aluno"].Trim();
-                    matriculasPresentes.Add(matricula);
-                }
-            }
-
             List<string> ausentes = new List<string>();
 
             foreach (var aluno in alunosDaTurma)
@@ -139,6 +157,17 @@ namespace TCC_Assiduidade.Servicos
                 }
             }
 
+
+            int aulaId = _aulaService.Adicionar(dataAula, turmaId);
+
+            if (aulaId == -1)
+            {
+                return new ResultadoImportacaoPresenca
+                {
+                    Sucesso = false,
+                    Mensagem = "Erro ao criar aula."
+                };
+            }
             _ausenciaService.Adicionar(aulaId, ausentes);
 
             List<RelatorioAusente> relatorioAusentes = _relatorioService.ObterDadosRelatorio(aulaId);

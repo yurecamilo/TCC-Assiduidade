@@ -46,6 +46,21 @@ namespace TCC_Assiduidade.Servicos
             return _alunoRepository.ObterPorMatricula(matricula);
         }
 
+        public int ObterQuantidadeMatriculasExistentes(List<string> matriculas)
+        {
+            return _alunoRepository.ContarMatriculasExistentes(matriculas);
+        }
+
+        public int ContarAlunosDeOutraTurma(int turmaId, List<string> matriculas)
+        {
+            if (turmaId <= 0 || matriculas == null || matriculas.Count == 0)
+            {
+                return 0;
+            }
+
+            return _alunoRepository.ContarAlunosDeOutraTurma(turmaId, matriculas);
+        }
+
         public List<AlunoExibicaoDTO> ObterPerfilAluno()
         {
             return _alunoRepository.ObterPerfilAluno();
