@@ -72,10 +72,7 @@ namespace TCC_Assiduidade.ViewModel
                 {
                     foreach (var aluno in Alunos)
                     {
-                        // Altera o estado do aluno
                         aluno.IsSelected = _selecionarTodos;
-
-                        // IMPORTANTE: Isso força a linha do DataGrid a atualizar o checkbox dela
                         aluno.NotificarSelecaoAlterada();
                     }
                 }
@@ -89,7 +86,6 @@ namespace TCC_Assiduidade.ViewModel
             {
                 _textoBusca = value;
                 OnPropertyChanged();
-
                 ExecutarBusca();
             }
         }
@@ -124,9 +120,7 @@ namespace TCC_Assiduidade.ViewModel
             Application.Current.Dispatcher.Invoke(() =>
             {
                 _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
-
                 InicializarComboBoxTurmas();
-
                 ExecutarBusca();
             });
         }
@@ -139,18 +133,8 @@ namespace TCC_Assiduidade.ViewModel
             }
 
             _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
-
-            Alunos = _listaOriginalDoBanco.Select(a => new AlunoRelatorioItem
-            {
-                Nome = a.Nome,
-                Matricula = a.Matricula,
-                Turma = a.Turma,
-                Email = a.Email,
-                DadosFrequencia = a.DadosFrequencia,
-                IsSelected = false
-            }).ToList() ?? new List<AlunoRelatorioItem>();
-
             InicializarComboBoxTurmas();
+            ExecutarBusca();
         }
 
         private void InicializarComboBoxTurmas()
@@ -161,11 +145,10 @@ namespace TCC_Assiduidade.ViewModel
 
                 var _listaCombo = new List<Turma>
                 {
-                    new Turma { Id = 0, Nome = "Selecionar turma" } // Item fictício
+                    new Turma { Id = 0, Nome = "Selecionar turma" }
                 };
 
                 _listaCombo.AddRange(listaDoCache);
-
                 Turmas = _listaCombo;
             }
             catch (Exception ex)
@@ -181,41 +164,29 @@ namespace TCC_Assiduidade.ViewModel
                 string buscaTexto = (TextoBusca ?? "").Trim().ToLower();
                 string turmaFiltro = (TurmaSelecionada?.Nome ?? "Selecionar turma").Trim();
 
-                if (turmaFiltro == "Selecionar turma")
+                // CORRIGIDO: Mesma lógica unificada e inteligente para o filtro funcionar sempre!
+                Alunos = _listaOriginalDoBanco.Where(a =>
                 {
-                    Alunos = _listaOriginalDoBanco.Select(a => new AlunoRelatorioItem
-                    {
-                        Nome = a.Nome,
-                        Matricula = a.Matricula,
-                        Turma = a.Turma,
-                        Email = a.Email,
-                        DadosFrequencia = a.DadosFrequencia,
-                        IsSelected = false
-                    }).ToList() ?? new List<AlunoRelatorioItem>();
-                }
-                else
+                    bool bateTexto = string.IsNullOrWhiteSpace(buscaTexto) ||
+                                     (a.Nome != null && a.Nome.ToLower().Contains(buscaTexto)) ||
+                                     (a.Email != null && a.Email.ToLower().Contains(buscaTexto)) ||
+                                     (a.Matricula != null && a.Matricula.ToLower().Contains(buscaTexto));
+
+                    bool bateTurma = (turmaFiltro == "Selecionar turma") ||
+                                     (turmaFiltro == "Todas as turmas") ||
+                                     (a.Turma != null && a.Turma.Trim().Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
+
+                    return bateTexto && bateTurma;
+                }).Select(a => new AlunoRelatorioItem
                 {
-                    Alunos = _listaOriginalDoBanco.Where(a =>
-                    {
-                        bool bateTexto = string.IsNullOrWhiteSpace(buscaTexto) ||
-                                         (a.Nome != null && a.Nome.ToLower().Contains(buscaTexto)) ||
-                                         (a.Email != null && a.Email.ToLower().Contains(buscaTexto)) ||
-                                         (a.Matricula != null && a.Matricula.ToLower().Contains(buscaTexto));
-
-                        bool bateTurma = (turmaFiltro == "Todas as turmas") ||
-                                         (a.Turma != null && a.Turma.Trim().Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
-
-                        return bateTexto && bateTurma;
-                    }).Select(a => new AlunoRelatorioItem
-                    {
-                        Nome = a.Nome,
-                        Matricula = a.Matricula,
-                        Turma = a.Turma,
-                        Email = a.Email,
-                        DadosFrequencia = a.DadosFrequencia,
-                        IsSelected = false
-                    }).ToList();
-                }
+                    Nome = a.Nome,
+                    Matricula = a.Matricula,
+                    Turma = a.Turma,
+                    Email = a.Email,
+                    DadosFrequencia = a.DadosFrequencia,
+                    DataEntrada = a.DataEntrada, // Repassando a data de histórico para o DTO
+                    IsSelected = false
+                }).ToList();
             }
             catch (Exception ex)
             {
@@ -238,7 +209,6 @@ namespace TCC_Assiduidade.ViewModel
             {
                 var html = new StringBuilder();
                 html.AppendLine("<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\">");
-                // CSS IDÊNTICO AO SEU ORIGINAL
                 html.AppendLine("<style>");
                 html.AppendLine("    body { font-family: Arial, sans-serif; margin: 32px; color: #1f2933; }");
                 html.AppendLine("    h1 { margin-bottom: 8px; color: #236B73; }");
@@ -248,10 +218,8 @@ namespace TCC_Assiduidade.ViewModel
                 html.AppendLine("    .falta { color: #AA3333; font-weight: bold; }");
                 html.AppendLine("</style></head><body>");
 
-                // TÍTULO ÚNICO
                 html.AppendLine("<h1>Ficha de Rendimento e Assiduidade</h1>");
 
-                // LOOP APENAS DOS CARTÕES
                 foreach (var aluno in selecionados)
                 {
                     html.AppendLine(GerarCartaoAluno(aluno));
@@ -265,11 +233,17 @@ namespace TCC_Assiduidade.ViewModel
 
         private string GerarCartaoAluno(AlunoExibicaoDTO aluno)
         {
+            // Formata a data de entrada de forma amigável no HTML impresso
+            string dataFormatada = aluno.DataEntrada.HasValue
+                ? aluno.DataEntrada.Value.ToString("dd/MM/yyyy")
+                : "-";
+
             var html = new StringBuilder();
             html.AppendLine("    <div class=\"card-perf\">");
             html.AppendLine($"        <p><strong>Nome Completo:</strong> {WebUtility.HtmlEncode(aluno.Nome)}</p>");
             html.AppendLine($"        <p><strong>Número de Matrícula:</strong> {WebUtility.HtmlEncode(aluno.Matricula)}</p>");
             html.AppendLine($"        <p><strong>Vínculo de Turma:</strong> {WebUtility.HtmlEncode(aluno.Turma)}</p>");
+            html.AppendLine($"        <p><strong>Data de Entrada na Turma:</strong> {dataFormatada}</p>"); // Novo campo adicionado ao HTML
             html.AppendLine($"        <p><strong>E-mail Institucional:</strong> {WebUtility.HtmlEncode(aluno.Email)}</p>");
             html.AppendLine("        <hr style='border: 0; border-top: 1px solid #B0C8D6; margin: 15px 0;'>");
             html.AppendLine($"        <p class='destaque'>Assiduidade Geral do Aluno: {aluno.DadosFrequencia?.Assiduidade}%</p>");

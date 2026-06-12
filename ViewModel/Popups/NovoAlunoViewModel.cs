@@ -19,6 +19,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
         private string _email;
         private Turma _turmaSelecionada;
         private List<Turma> _turmas;
+        private DateTime? _dataEntrada; // Nova propriedade privada para a data
 
         public string Matricula
         {
@@ -50,6 +51,13 @@ namespace TCC_Assiduidade.ViewModel.Popups
             set { _turmas = value; OnPropertyChanged(); }
         }
 
+        // NOVA PROPRIEDADE PÚBLICA: Vinculada diretamente com o SelectedDate do DatePicker no XAML
+        public DateTime? DataEntrada
+        {
+            get => _dataEntrada;
+            set { _dataEntrada = value; OnPropertyChanged(); }
+        }
+
         public ICommand SalvarAlunoCommand { get; private set; }
         private readonly Action _fecharJanela;
 
@@ -58,6 +66,9 @@ namespace TCC_Assiduidade.ViewModel.Popups
             _alunoService = new AlunoService();
             _fecharJanela = fecharJanela;
             SalvarAlunoCommand = new RelayCommand(ExecutarSalvar);
+
+            // Define a data padrão exibida na tela como o dia de hoje ao abrir a janela
+            DataEntrada = DateTime.Now.Date;
 
             // Carrega as turmas do cache para o ComboBox
             _ = CarregarTurmasDoBanco();
@@ -91,13 +102,16 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
             try
             {
+                // Mapeia o objeto Aluno repassando o dado externo de data capturado na View
                 var aluno = new Aluno
                 {
                     Matricula = Matricula,
                     Nome = Nome,
                     Email = Email,
-                    TurmaId = TurmaSelecionada.Id
+                    TurmaId = TurmaSelecionada.Id,
+                    DataEntrada = DataEntrada // Repassa a propriedade preenchida do DatePicker
                 };
+
                 _alunoService.Adicionar(aluno);
                 await DataCacheService.ForçarAtualizacaoAsync();
 

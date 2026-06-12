@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using TCC_Assiduidade.Modelos;
 using TCC_Assiduidade.Modelos.Resultados;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
@@ -22,6 +23,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
         private bool _isTurmaExistente = false;
         private List<Turma> _turmas;
         private Turma _turmaSelecionada;
+        private DateTime? _dataEntrada; // Campo privado para a data externa
 
         public List<Turma> Turmas
         {
@@ -74,6 +76,12 @@ namespace TCC_Assiduidade.ViewModel.Popups
             }
         }
 
+        // NOVA PROPRIEDADE PÚBLICA: Vinculada com o SelectedDate do DatePicker do Passo 2
+        public DateTime? DataEntrada
+        {
+            get => _dataEntrada;
+            set { _dataEntrada = value; OnPropertyChanged(); }
+        }
 
         // Comandos
         public ICommand IniciarImportacaoCommand { get; private set; }
@@ -86,6 +94,9 @@ namespace TCC_Assiduidade.ViewModel.Popups
             _importacaoService = new ImportacaoService();
             IniciarImportacaoCommand = new RelayCommand(async () => await ExecutarImportacao());
             SelecionarArquivoCommand = new RelayCommand(SelecionarArquivo);
+
+            // Define a data padrão exibida na tela como o dia de hoje ao abrir o popup
+            DataEntrada = DateTime.Now.Date;
 
             // Carrega as turmas existentes do seu cache
             _ = CarregarTurmasDoBanco();
@@ -144,13 +155,14 @@ namespace TCC_Assiduidade.ViewModel.Popups
             {
                 List<Dictionary<string, string>> dadosCsv = ArquivoService.LerCsv(_caminhoArquivoCompleto);
 
-                // Executa a importação passando o nome definido (seja novo ou existente)
-                ResultadoImportacaoCadastro resultado = _importacaoService.Importacao(nomeDaTurma, dadosCsv);
+                // ENVIANDO O DADO EXTERNO: Passamos a DataEntrada capturada na tela para a regra de negócio do Service
+                ResultadoImportacaoCadastro resultado = _importacaoService.Importacao(nomeDaTurma, dadosCsv, DataEntrada);
 
                 // Atualiza o cache global
                 await DataCacheService.ForçarAtualizacaoAsync();
 
                 MessageBox.Show(resultado.Mensagem);
+                _fecharJanela?.Invoke();
             }
             catch (Exception ex)
             {

@@ -19,11 +19,13 @@ namespace TCC_Assiduidade.ViewModel
         private string _textoBusca;
         private List<Turma> _turmas;
         private Turma _turmaSelecionada;
+
         public List<Turma> Turmas
         {
             get => _turmas;
             set { _turmas = value; OnPropertyChanged(); }
         }
+
         public Turma TurmaSelecionada
         {
             get => _turmaSelecionada;
@@ -48,7 +50,6 @@ namespace TCC_Assiduidade.ViewModel
             {
                 _alunoSelecionado = value;
                 OnPropertyChanged();
-
                 OnPropertyChanged(nameof(TemAulas));
             }
         }
@@ -68,7 +69,6 @@ namespace TCC_Assiduidade.ViewModel
             {
                 _textoBusca = value;
                 OnPropertyChanged();
-
                 ExecutarBusca();
             }
         }
@@ -83,7 +83,7 @@ namespace TCC_Assiduidade.ViewModel
         public AlunosViewModel()
         {
             Alunos = new List<AlunoExibicaoDTO>();
-            Turmas = new List<Turma>(); 
+            Turmas = new List<Turma>();
 
             BuscarCommand = new RelayCommand(ExecutarBusca);
             LimparBuscaCommand = new RelayCommand(ExecutarLimparBusca);
@@ -96,14 +96,13 @@ namespace TCC_Assiduidade.ViewModel
 
             _ = CarregarDadosIniciaisAsync();
         }
+
         private void OnCacheAtualizado()
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
-
                 InicializarComboBoxTurmas();
-
                 ExecutarBusca();
             });
         }
@@ -136,11 +135,10 @@ namespace TCC_Assiduidade.ViewModel
 
                 var _listaCombo = new List<Turma>
                 {
-                    new Turma { Id = 0, Nome = "Selecionar turma" } // Item fictício
+                    new Turma { Id = 0, Nome = "Selecionar turma" }
                 };
 
                 _listaCombo.AddRange(listaDoCache);
-
                 Turmas = _listaCombo;
             }
             catch (Exception ex)
@@ -156,41 +154,32 @@ namespace TCC_Assiduidade.ViewModel
                 string buscaTexto = (TextoBusca ?? "").Trim().ToLower();
                 string turmaFiltro = (TurmaSelecionada?.Nome ?? "Selecionar turma").Trim();
 
-                if (turmaFiltro == "Selecionar turma")
+                // LÓGICA CORRIGIDA: Filtra de forma inteligente combinando texto E turma
+                Alunos = _listaOriginalDoBanco.Where(a =>
                 {
-                    Alunos = _listaOriginalDoBanco.Select(a => new AlunoRelatorioItem
-                    {
-                        Nome = a.Nome,
-                        Matricula = a.Matricula,
-                        Turma = a.Turma,
-                        Email = a.Email,
-                        DadosFrequencia = a.DadosFrequencia,
-                        IsSelected = false
-                    }).ToList() ?? new List<AlunoRelatorioItem>();
-                }
-                else
+                    // 1. Verifica se bate com a busca por texto (se o campo estiver vazio, retorna true)
+                    bool bateTexto = string.IsNullOrWhiteSpace(buscaTexto) ||
+                                     (a.Nome != null && a.Nome.ToLower().Contains(buscaTexto)) ||
+                                     (a.Email != null && a.Email.ToLower().Contains(buscaTexto)) ||
+                                     (a.Matricula != null && a.Matricula.ToLower().Contains(buscaTexto));
+
+                    // 2. Verifica se bate com o filtro de turma selecionada
+                    bool bateTurma = (turmaFiltro == "Selecionar turma") ||
+                                     (turmaFiltro == "Todas as turmas") ||
+                                     (a.Turma != null && a.Turma.Trim().Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
+
+                    // O aluno só entra na Grid se passar nas duas condições!
+                    return bateTexto && bateTurma;
+                }).Select(a => new AlunoRelatorioItem
                 {
-                    Alunos = _listaOriginalDoBanco.Where(a =>
-                    {
-                        bool bateTexto = string.IsNullOrWhiteSpace(buscaTexto) ||
-                                         (a.Nome != null && a.Nome.ToLower().Contains(buscaTexto)) ||
-                                         (a.Email != null && a.Email.ToLower().Contains(buscaTexto)) ||
-                                         (a.Matricula != null && a.Matricula.ToLower().Contains(buscaTexto));
-
-                        bool bateTurma = (turmaFiltro == "Todas as turmas") ||
-                                         (a.Turma != null && a.Turma.Trim().Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
-
-                        return bateTexto && bateTurma;
-                    }).Select(a => new AlunoRelatorioItem
-                    {
-                        Nome = a.Nome,
-                        Matricula = a.Matricula,
-                        Turma = a.Turma,
-                        Email = a.Email,
-                        DadosFrequencia = a.DadosFrequencia,
-                        IsSelected = false
-                    }).ToList();
-                }
+                    Nome = a.Nome,
+                    Matricula = a.Matricula,
+                    Turma = a.Turma,
+                    Email = a.Email,
+                    DadosFrequencia = a.DadosFrequencia,
+                    DataEntrada = a.DataEntrada,
+                    IsSelected = false
+                }).ToList();
             }
             catch (Exception ex)
             {
@@ -207,7 +196,7 @@ namespace TCC_Assiduidade.ViewModel
         {
             if (obj is AlunoExibicaoDTO aluno)
             {
-                AlunoSelecionado = aluno; // Atribui o aluno clicado, forçando a aba a abrir!
+                AlunoSelecionado = aluno;
             }
         }
 
@@ -215,7 +204,6 @@ namespace TCC_Assiduidade.ViewModel
         {
             AlunoSelecionado = null;
         }
-
 
         private void ExecutarEditar(object obj)
         {

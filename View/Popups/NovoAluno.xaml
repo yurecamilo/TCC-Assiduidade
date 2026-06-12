@@ -6,7 +6,7 @@
         xmlns:conv="clr-namespace:TCC_Assiduidade.View.Converters"
         mc:Ignorable="d" 
         Title="Cadastrar Aluno" 
-        Height="465" Width="450"
+        Height="560" Width="450"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -124,8 +124,8 @@
                     <TextBlock Text="Matrícula" FontSize="13" Foreground="#000" Margin="0,0,0,5"/>
                     <Border BorderBrush="#B0C8D6" BorderThickness="1" CornerRadius="5" Background="White" Height="38">
                         <TextBox Style="{StaticResource CleanInputStyle}" 
-                 Tag="Ex: 20261234" 
-                 Text="{Binding Matricula, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Tag="Ex: 20261234" 
+                                 Text="{Binding Matricula, UpdateSourceTrigger=PropertyChanged}"/>
                     </Border>
                 </StackPanel>
 
@@ -133,8 +133,8 @@
                     <TextBlock Text="Nome Completo" FontSize="13" Foreground="#000" Margin="0,0,0,5"/>
                     <Border BorderBrush="#B0C8D6" BorderThickness="1" CornerRadius="5" Background="White" Height="38">
                         <TextBox Style="{StaticResource CleanInputStyle}" 
-                 Tag="Digite o nome do aluno" 
-                 Text="{Binding Nome, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Tag="Digite o nome do aluno" 
+                                 Text="{Binding Nome, UpdateSourceTrigger=PropertyChanged}"/>
                     </Border>
                 </StackPanel>
 
@@ -142,30 +142,30 @@
                     <TextBlock Text="E-mail" FontSize="13" Foreground="#000" Margin="0,0,0,5"/>
                     <Border BorderBrush="#B0C8D6" BorderThickness="1" CornerRadius="5" Background="White" Height="38">
                         <TextBox Style="{StaticResource CleanInputStyle}" 
-                 Tag="exemplo@dominio.com" 
-                 Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Tag="exemplo@dominio.com" 
+                                 Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"/>
                     </Border>
                 </StackPanel>
 
-                <StackPanel>
+                <StackPanel Margin="0,0,0,15">
                     <TextBlock Text="Turma" FontSize="13" Foreground="#000" Margin="0,0,0,5"/>
                     <Grid>
                         <ComboBox x:Name="CbTurmas" 
-               Height="38" 
-               Style="{StaticResource ComboBoxStyle}"
-               FontSize="14" 
-               VerticalContentAlignment="Center"
-               ItemsSource="{Binding Turmas}"
-               SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
-               DisplayMemberPath="Nome">
+                               Height="38" 
+                               Style="{StaticResource ComboBoxStyle}"
+                               FontSize="14" 
+                               VerticalContentAlignment="Center"
+                               ItemsSource="{Binding Turmas}"
+                               SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                               DisplayMemberPath="Nome">
                         </ComboBox>
 
                         <TextBlock Text="Selecionar a turma de destino" 
-        Foreground="#9e9e9e" 
-        FontSize="14" 
-        VerticalAlignment="Center" 
-        Margin="10,0,30,0"
-        IsHitTestVisible="False">
+                                Foreground="#9e9e9e" 
+                                FontSize="14" 
+                                VerticalAlignment="Center" 
+                                Margin="10,0,30,0"
+                                IsHitTestVisible="False">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -178,6 +178,23 @@
                             </TextBlock.Style>
                         </TextBlock>
                     </Grid>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Data de Entrada na Turma" FontSize="13" Foreground="#000" Margin="0,0,0,5"/>
+                    <Border BorderBrush="#B0C8D6" BorderThickness="1" CornerRadius="5" Background="White" Height="38">
+                        <DatePicker SelectedDate="{Binding DataEntrada, UpdateSourceTrigger=PropertyChanged}"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    VerticalAlignment="Center"
+                                    Padding="5,0"
+                                    FontSize="14"/>
+                    </Border>
+                    <TextBlock Text="* Se deixada em branco, será utilizada a data atual do sistema." 
+                               FontSize="11" 
+                               FontStyle="Italic" 
+                               Foreground="#55686A" 
+                               Margin="2,4,0,0"/>
                 </StackPanel>
             </StackPanel>
 

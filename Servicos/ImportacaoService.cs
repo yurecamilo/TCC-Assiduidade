@@ -23,14 +23,14 @@ namespace TCC_Assiduidade.Servicos
             _relatorioService = new RelatorioService();
         }
 
-        public ResultadoImportacaoCadastro Importacao(string turmaNome, List<Dictionary<string, string>> dados)
+        public ResultadoImportacaoCadastro Importacao(string turmaNome, List<Dictionary<string, string>> dados, DateTime? dataEntrada)
         {
             if (string.IsNullOrWhiteSpace(turmaNome))
             {
                 return new ResultadoImportacaoCadastro
                 {
                     Sucesso = false,
-                    Mensagem = "Nome da turma invalido."
+                    Mensagem = "Nome da turma inválido."
                 };
             }
 
@@ -54,7 +54,7 @@ namespace TCC_Assiduidade.Servicos
                 return new ResultadoImportacaoCadastro
                 {
                     Sucesso = false,
-                    Mensagem = $"Existem {alunosExistencia} alunos com matricula ja cadastrada no sistema."
+                    Mensagem = $"Existem {alunosExistencia} alunos com matrícula já cadastrada no sistema."
                 };
             }
 
@@ -81,10 +81,13 @@ namespace TCC_Assiduidade.Servicos
             {
                 var aluno = new Aluno
                 {
-                    Matricula = linha["matricula"],
-                    Nome = linha["nome"],
-                    Email = linha.ContainsKey("email") ? linha["email"] : "",
-                    TurmaId = turma.Id
+                    Matricula = linha["matricula"].Trim(),
+                    Nome = linha["nome"].Trim(),
+                    Email = linha.ContainsKey("email") ? linha["email"].Trim() : "",
+                    TurmaId = turma.Id,
+
+                    // REPASSA O DADO EXTERNO: Vincula a data escolhida no Passo 2 da tela de importação
+                    DataEntrada = dataEntrada
                 };
 
                 alunosParaSalvar.Add(aluno);
@@ -95,7 +98,7 @@ namespace TCC_Assiduidade.Servicos
             return new ResultadoImportacaoCadastro
             {
                 Sucesso = true,
-                Mensagem = $"Turma {turma.Nome} criada com sucesso. {alunosParaSalvar.Count} alunos importados.",
+                Mensagem = $"Turma {turma.Nome} processada com sucesso. {alunosParaSalvar.Count} alunos importados.",
                 Alunos = alunosParaSalvar
             };
         }

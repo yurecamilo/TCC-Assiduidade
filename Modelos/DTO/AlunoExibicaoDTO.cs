@@ -1,4 +1,5 @@
-﻿using TCC_Assiduidade.Modelos.Relatorios;
+﻿using System;
+using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.ViewModel.Base;
 
 namespace TCC_Assiduidade.Modelos
@@ -11,5 +12,6 @@ namespace TCC_Assiduidade.Modelos
         public string Nome { get; set; }
         public string Turma { get; set; }
         public string Email { get; set; }
+        public DateTime? DataEntrada { get; set; }
     }
 }

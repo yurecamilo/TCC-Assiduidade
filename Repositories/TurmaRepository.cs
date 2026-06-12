@@ -77,7 +77,7 @@ namespace TCC_Assiduidade.Repositories
             using (var conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "SELECT Id, Nome FROM Turma WHERE Id = @id"; 
+                string query = "SELECT Id, Nome FROM Turma WHERE Id = @id";
 
                 using (var cmd = new MySqlCommand(query, conn))
                 {
@@ -95,7 +95,7 @@ namespace TCC_Assiduidade.Repositories
                         }
                     }
                 }
-            } 
+            }
             return null;
         }
 
@@ -129,10 +129,15 @@ namespace TCC_Assiduidade.Repositories
         {
             var lista = new List<TurmaExibicaoDTO>();
 
+            // QUERY CORRIGIDA: Agora vincula com a tabela Matricula filtrando pela turma ativa (MAX DataEntrada)
             string sql = @"
-                SELECT t.Id, t.Nome, COUNT(a.Matricula) AS QuantidadeAlunos
+                SELECT t.Id, t.Nome, COUNT(v.AlunoMatricula) AS QuantidadeAlunos
                 FROM Turma t
-                LEFT JOIN Aluno a ON a.TurmaId = t.Id
+                LEFT JOIN VinculoTurmaAluno v ON v.TurmaId = t.Id AND v.DataEntrada = (
+                    SELECT MAX(subM.DataEntrada)
+                    FROM VinculoTurmaAluno subM
+                    WHERE subM.AlunoMatricula = v.AlunoMatricula
+                )
                 GROUP BY t.Id, t.Nome
                 ORDER BY t.Nome;";
 
@@ -152,7 +157,7 @@ namespace TCC_Assiduidade.Repositories
                                     Id = Convert.ToInt32(reader["Id"]),
                                     Nome = reader["Nome"].ToString()
                                 },
-                                Nome = reader["nome"].ToString(),
+                                Nome = reader["Nome"].ToString(),
                                 QuantidadeAlunos = Convert.ToInt32(reader["QuantidadeAlunos"])
                             });
                         }

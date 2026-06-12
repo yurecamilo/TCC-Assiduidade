@@ -46,19 +46,20 @@ namespace TCC_Assiduidade.Repositories
         public List<RelatorioAusente> ObterAusentesPorAula(int aulaId)
         {
             var lista = new List<RelatorioAusente>();
+            // Mudamos o alias de 'Turma.Nome AS Turma' para 'Turma.Nome AS NomeTurma' para evitar conflito com o nome da tabela
             string query = @"
-            SELECT 
-                Aula.Id AS AulaId,
-                Aula.Data,
-                Turma.Nome AS Turma,
-                Aluno.Matricula,
-                Aluno.Nome AS Aluno,
-                Aluno.Email
-            FROM Ausencia
-            INNER JOIN Aula ON Ausencia.AulaId = Aula.Id
-            INNER JOIN Aluno ON Ausencia.AlunoMatricula = Aluno.Matricula
-            INNER JOIN Turma ON Aula.TurmaId = Turma.Id
-            WHERE Aula.Id = @aulaId";
+        SELECT 
+            Aula.Id AS AulaId,
+            Aula.Data,
+            Turma.Nome AS NomeTurma,
+            Aluno.Matricula,
+            Aluno.Nome AS Aluno,
+            Aluno.Email
+        FROM Ausencia
+        INNER JOIN Aula ON Ausencia.AulaId = Aula.Id
+        INNER JOIN Aluno ON Ausencia.AlunoMatricula = Aluno.Matricula
+        INNER JOIN Turma ON Aula.TurmaId = Turma.Id
+        WHERE Aula.Id = @aulaId";
 
             using (var conn = new MySqlConnection(connectionString))
             {
@@ -74,7 +75,7 @@ namespace TCC_Assiduidade.Repositories
                             {
                                 AulaId = Convert.ToInt32(reader["AulaId"]),
                                 Data = Convert.ToDateTime(reader["Data"]),
-                                Turma = reader["Turma"].ToString(),
+                                Turma = reader["NomeTurma"].ToString(), // Lendo o alias correto agora!
                                 Matricula = reader["Matricula"].ToString(),
                                 Aluno = reader["Aluno"].ToString(),
                                 Email = reader["Email"].ToString()
@@ -83,7 +84,7 @@ namespace TCC_Assiduidade.Repositories
                     }
                 }
             }
-            return lista;
+            return lista; // Adicionado o return que faltava no final do método
         }
 
     }

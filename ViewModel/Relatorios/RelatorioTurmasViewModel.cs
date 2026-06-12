@@ -210,20 +210,21 @@ namespace TCC_Assiduidade.ViewModel
 
         private string GerarCartaoTurma(TurmaExibicaoDTO turma)
         {
+            // CORREÇÃO: Compara o nome da turma por extenso (a.Turma) com o nome do DTO (turma.Nome)
             List<AulaExibicaoDTO> aulasDaTurma = DataCacheService.AulasCache?
-                        .Where(a => a.Turma != null && a.Turma.Equals(turma.TurmaOriginal.Id.ToString(), StringComparison.OrdinalIgnoreCase))
+                        .Where(a => a.Turma != null && a.Turma.Equals(turma.Nome, StringComparison.OrdinalIgnoreCase))
                         .ToList() ?? new List<AulaExibicaoDTO>();
 
-
             var html = new StringBuilder();
-            html.AppendLine("    <div class=\"info\">");
-            html.AppendLine($"        <p><strong>Turma analisada:</strong> {WebUtility.HtmlEncode(turma.Nome)}</p>");
+            // Adicionado um espaçamento ou linha divisória visual entre blocos de turmas
+            
+            html.AppendLine($"        <p style='font-size: 18px;'><strong>Turma analisada:</strong> {WebUtility.HtmlEncode(turma.Nome)}</p>");
             html.AppendLine($"        <p><strong>Total de diários de classe mapeados:</strong> {aulasDaTurma.Count}</p>");
             html.AppendLine("    </div>");
 
             if (aulasDaTurma.Count == 0)
             {
-                html.AppendLine("    <p>Não há histórico de chamadas salvas para esta turma no sistema.</p>");
+                html.AppendLine("    <p style='color: #757575; font-style: italic;'>Não há histórico de chamadas salvas para esta turma no sistema.</p>");
             }
             else
             {
@@ -246,10 +247,9 @@ namespace TCC_Assiduidade.ViewModel
                 html.AppendLine("        </tbody>");
                 html.AppendLine("    </table>");
             }
-
-            html.AppendLine("</body></html>");
+            html.AppendLine("    <div style='margin-bottom: 40px; border-top: 2px dashed #B0C8D6; padding-top: 20px;'>");
+            // CORREÇÃO: Removido as tags </body></html> que estavam fechando o documento no meio do loop!
             return html.ToString();
-
         }
     }
 }

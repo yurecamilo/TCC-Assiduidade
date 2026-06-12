@@ -106,6 +106,7 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="10,5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -125,7 +126,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="Gerenciamento de Alunos" Foreground="White" FontSize="26" FontWeight="Bold" Margin="0,0,0,20"/>
@@ -154,11 +155,11 @@
 
                         <Grid>
                             <ComboBox x:Name="CbTurmas" 
-                       Height="38" 
-                       FontSize="14" 
-                       ItemsSource="{Binding Turmas}"
-                       SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
-                       DisplayMemberPath="Nome" Width="250">
+                               Height="38" 
+                               FontSize="14" 
+                               ItemsSource="{Binding Turmas}"
+                               SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                               DisplayMemberPath="Nome" Width="250">
 
                                 <ComboBox.ItemContainerStyle>
                                     <Style TargetType="ComboBoxItem">
@@ -292,6 +293,9 @@
                             <TextBlock Text="{Binding AlunoSelecionado.Nome, FallbackValue='Nenhum selecionado'}" FontSize="16" FontWeight="Bold" Foreground="#236B73" HorizontalAlignment="Center"/>
                             <TextBlock Text="{Binding AlunoSelecionado.Matricula, StringFormat='Matrícula: {0}', FallbackValue='-'}" FontSize="13" Foreground="#555" HorizontalAlignment="Center" Margin="0,4,0,2"/>
                             <TextBlock Text="{Binding AlunoSelecionado.Turma, FallbackValue='-'}" FontSize="13" Foreground="#555" HorizontalAlignment="Center"/>
+
+                            <TextBlock Text="{Binding AlunoSelecionado.DataEntrada, StringFormat='Data de Entrada: {0:dd/MM/yyyy}', FallbackValue='Data de Entrada: -'}" FontSize="13" Foreground="#555" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+
                             <TextBlock FontSize="13" Foreground="#555" HorizontalAlignment="Center" Margin="0,2,0,0">
                                 <Run FontWeight="Bold"/><Run Text="{Binding AlunoSelecionado.Email, FallbackValue='-'}" />
                             </TextBlock>
@@ -338,7 +342,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding AlunoSelecionado.TemAulas}" Value="False">
+                                        <DataTrigger Binding="{Binding TemAulas}" Value="False">
                                             <Setter Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
                                     </Style.Triggers>
