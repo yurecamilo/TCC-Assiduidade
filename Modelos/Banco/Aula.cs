@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TCC_Assiduidade.Modelos
+namespace TCC_Assiduidade.Modelos.Banco
 {
     public class Aula
     {

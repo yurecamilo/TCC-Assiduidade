@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Windows;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.Modelos.DTO;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -167,5 +168,9 @@ namespace TCC_Assiduidade.Repositories
 
             return lista;
         }
+
+        public void Atualizar (){ }
+
+        public void Excluir() { }
     }
 }

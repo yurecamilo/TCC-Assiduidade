@@ -1,8 +1,8 @@
-using System.Configuration;
+﻿using System.Configuration;
 using System.Windows;
-using TCC_Assiduidade.ViewModel;
+using TCC_Assiduidade.ViewModel.ANTIGO;
 
-namespace TCC_Assiduidade.View
+namespace TCC_Assiduidade.View.ANTIGO
 {
     public partial class TelaCadastro : Window
     {

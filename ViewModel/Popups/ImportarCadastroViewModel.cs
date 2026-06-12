@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.Resultados;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;

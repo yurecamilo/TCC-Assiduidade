@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Modelos.Relatorios;
 
 namespace TCC_Assiduidade.Repositories
@@ -202,50 +203,6 @@ namespace TCC_Assiduidade.Repositories
             }
         }
 
-        public Aluno ObterPorMatricula(string matricula)
-        {
-            Aluno aluno = null;
-            using (var conn = new MySqlConnection(connectionString))
-            {
-                conn.Open();
-
-                // Busca os dados do aluno e a sua TurmaId atual baseada na maior DataEntrada
-                string query = @"
-                SELECT a.Matricula, a.Nome, a.Email, v.TurmaId
-                FROM Aluno a
-                LEFT JOIN VinculoTurmaAluno v ON a.Matricula = v.AlunoMatricula
-                WHERE a.Matricula = @matricula
-                AND (v.DataEntrada = (
-                    SELECT MAX(subM.DataEntrada)
-                    FROM VinculoAlunoMatricula subM
-                    WHERE subM.AlunoMatricula = a.Matricula
-                ) OR v.TurmaId IS NULL)
-                LIMIT 1;";
-
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@matricula", matricula);
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        // Correção: Avança o reader para a primeira linha encontrada
-                        if (reader.Read())
-                        {
-                            aluno = new Aluno
-                            {
-                                Matricula = reader["Matricula"].ToString(),
-                                Nome = reader["Nome"].ToString(),
-                                Email = reader["Email"].ToString(),
-                                // Se o aluno nunca foi matriculado em nenhuma turma, joga 0 ou mantém nulo conforme seu modelo
-                                TurmaId = reader["TurmaId"] != DBNull.Value ? Convert.ToInt32(reader["TurmaId"]) : 0
-                            };
-                        }
-                    }
-                }
-            }
-            return aluno;
-        }
-
         public List<Aluno> ObterPorTurma(int turmaId)
         {
             var alunos = new List<Aluno>();
@@ -287,44 +244,6 @@ namespace TCC_Assiduidade.Repositories
                 }
             }
 
-            return alunos;
-        }
-
-        public List<Aluno> ObterTodos()
-        {
-            var alunos = new List<Aluno>();
-
-            using (var conn = new MySqlConnection(connectionString))
-            {
-                conn.Open();
-
-                // Traz todos os alunos mapeando suas respectivas turmas mais recentes
-                string query = @"
-                SELECT a.Matricula, a.Nome, a.Email, v.TurmaId 
-                FROM Aluno a
-                LEFT JOIN VinculoTurmaAluno v ON a.Matricula = v.AlunoMatricula
-                WHERE v.DataEntrada = (
-                    SELECT MAX(subM.DataEntrada)
-                    FROM VinculoTurmaAluno subM
-                    WHERE subM.AlunoMatricula = a.Matricula
-                ) OR v.TurmaId IS NULL
-                ORDER BY a.Nome ASC;";
-
-                using (var cmd = new MySqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        alunos.Add(new Aluno
-                        {
-                            Matricula = reader["Matricula"].ToString(),
-                            Nome = reader["Nome"].ToString(),
-                            Email = reader["Email"].ToString(),
-                            TurmaId = reader["TurmaId"] != DBNull.Value ? Convert.ToInt32(reader["TurmaId"]) : 0
-                        });
-                    }
-                }
-            }
             return alunos;
         }
 
@@ -415,5 +334,9 @@ namespace TCC_Assiduidade.Repositories
 
             return lista;
         }
+
+        public void Atualizar() { }
+
+        public void Excluir() { }
     }
 }

@@ -1,5 +1,6 @@
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using TCC_Assiduidade.View;
+using TCC_Assiduidade.View.Relatórios;
 using TCC_Assiduidade.ViewModel.Base;
 
 namespace TCC_Assiduidade.ViewModel
@@ -14,11 +15,11 @@ namespace TCC_Assiduidade.ViewModel
             set
             {
                 _conteudoAtual = value;
-                OnPropertyChanged(nameof(ConteudoAtual)); // <--- ISTO É OBRIGATÓRIO
+                OnPropertyChanged(nameof(ConteudoAtual)); // <--- ISTO Ã‰ OBRIGATÃ“RIO
             }
         }
 
-        // Exemplo de comando do botão
+        // Exemplo de comando do botÃ£o
         public ICommand AbrirRelatorioAulasCommand => new RelayCommand(() => {
             // Ao trocar a ViewModel, o DataTemplate do WPF substitui a View automaticamente
             ConteudoAtual = new RelatorioAulasView(this);

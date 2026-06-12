@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.Repositories;
 
 namespace TCC_Assiduidade.Servicos

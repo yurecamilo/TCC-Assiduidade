@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
 

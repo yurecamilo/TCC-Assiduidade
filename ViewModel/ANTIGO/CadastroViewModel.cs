@@ -1,15 +1,18 @@
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.Modelos.DTO;
+using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.Modelos.Resultados;
 using TCC_Assiduidade.Servicos;
-using TCC_Assiduidade.View;
+using TCC_Assiduidade.View.ANTIGO;
 using TCC_Assiduidade.ViewModel.Base;
 
-namespace TCC_Assiduidade.ViewModel
+namespace TCC_Assiduidade.ViewModel.ANTIGO
 {
     public class CadastroViewModel : BaseViewModel
     {

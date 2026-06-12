@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
+using TCC_Assiduidade.ViewModel.Relatorios;
 
 namespace TCC_Assiduidade.ViewModel
 {

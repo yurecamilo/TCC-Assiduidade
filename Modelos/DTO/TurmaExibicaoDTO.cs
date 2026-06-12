@@ -1,6 +1,7 @@
-﻿using TCC_Assiduidade.ViewModel.Base;
+﻿using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.ViewModel.Base;
 
-namespace TCC_Assiduidade.Modelos
+namespace TCC_Assiduidade.Modelos.DTO
 {
     public class TurmaExibicaoDTO: BaseViewModel
     {

@@ -1,7 +1,7 @@
 ﻿using System.Configuration;
 using System.Windows;
 
-namespace TCC_Assiduidade.View
+namespace TCC_Assiduidade.View.ANTIGO
 {
     public partial class TelaPresenca : Window
     {

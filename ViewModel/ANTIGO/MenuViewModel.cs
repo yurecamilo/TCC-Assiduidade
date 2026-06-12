@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Input;
-using TCC_Assiduidade.View;
+using TCC_Assiduidade.View.ANTIGO;
 using TCC_Assiduidade.ViewModel.Base;
 
-namespace TCC_Assiduidade.ViewModel
+namespace TCC_Assiduidade.ViewModel.ANTIGO
 {
     public class MenuViewModel : BaseViewModel
     {

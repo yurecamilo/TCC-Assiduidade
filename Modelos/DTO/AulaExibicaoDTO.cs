@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace TCC_Assiduidade.Modelos
+namespace TCC_Assiduidade.Modelos.DTO
 {
     public class AulaExibicaoDTO
     {

@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using TCC_Assiduidade.Modelos.Banco;
 
 namespace TCC_Assiduidade.Modelos.Resultados
 {

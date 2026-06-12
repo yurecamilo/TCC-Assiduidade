@@ -138,7 +138,6 @@
     <Compile Include="Servicos\ImportacaoService.cs" />
     <Compile Include="Servicos\TurmaService.cs" />
     <Compile Include="ViewModel\AlunosViewModel.cs" />
-    <Compile Include="ViewModel\Relatorios\AlunoExibicaoViewModel.cs" />
     <Compile Include="ViewModel\Relatorios\RelatorioAlunosViewModel.cs" />
     <Compile Include="ViewModel\Relatorios\RelatorioAulasViewModel.cs" />
     <Compile Include="ViewModel\Base\BaseViewModel.cs" />

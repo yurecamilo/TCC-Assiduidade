@@ -1,10 +1,11 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.View.Popups;
 using TCC_Assiduidade.ViewModel;
+using TCC_Assiduidade.ViewModel.Relatorios;
 
-namespace TCC_Assiduidade.View
+namespace TCC_Assiduidade.View.Relatórios
 {
     /// <summary>
     /// Interação lógica para AulasView.xam

@@ -2,7 +2,7 @@
 using System;
 using System.Configuration;
 using System.Collections.Generic;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.DTO;
 
 namespace TCC_Assiduidade.Repositories
 {

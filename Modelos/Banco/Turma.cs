@@ -1,4 +1,4 @@
-﻿namespace TCC_Assiduidade
+﻿namespace TCC_Assiduidade.Modelos.Banco
 {
     public class Turma
     {

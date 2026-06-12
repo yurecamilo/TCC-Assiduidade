@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.Modelos.Resultados;
 
 namespace TCC_Assiduidade.Servicos
@@ -30,7 +31,7 @@ namespace TCC_Assiduidade.Servicos
                 return new ResultadoImportacaoCadastro
                 {
                     Sucesso = false,
-                    Mensagem = "Nome da turma inválido."
+                    Mensagem = "Nome da turma invÃ¡lido."
                 };
             }
 
@@ -54,7 +55,7 @@ namespace TCC_Assiduidade.Servicos
                 return new ResultadoImportacaoCadastro
                 {
                     Sucesso = false,
-                    Mensagem = $"Existem {alunosExistencia} alunos com matrícula já cadastrada no sistema."
+                    Mensagem = $"Existem {alunosExistencia} alunos com matrÃ­cula jÃ¡ cadastrada no sistema."
                 };
             }
 
@@ -86,7 +87,7 @@ namespace TCC_Assiduidade.Servicos
                     Email = linha.ContainsKey("email") ? linha["email"].Trim() : "",
                     TurmaId = turma.Id,
 
-                    // REPASSA O DADO EXTERNO: Vincula a data escolhida no Passo 2 da tela de importação
+                    // REPASSA O DADO EXTERNO: Vincula a data escolhida no Passo 2 da tela de importaÃ§Ã£o
                     DataEntrada = dataEntrada
                 };
 

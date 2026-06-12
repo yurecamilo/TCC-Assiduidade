@@ -2,7 +2,7 @@
 using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.ViewModel.Base;
 
-namespace TCC_Assiduidade.Modelos
+namespace TCC_Assiduidade.Modelos.DTO
 {
     public class AlunoExibicaoDTO : BaseViewModel
     {

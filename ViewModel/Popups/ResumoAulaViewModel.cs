@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
-using TCC_Assiduidade.Modelos;
+using TCC_Assiduidade.Modelos.DTO;
+using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
 
-namespace TCC_Assiduidade.ViewModel
+namespace TCC_Assiduidade.ViewModel.Popups
 {
     public class ResumoAulaViewModel : BaseViewModel
     {

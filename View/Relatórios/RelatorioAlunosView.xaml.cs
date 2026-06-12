@@ -1,7 +1,8 @@
 ﻿using System.Windows.Controls;
 using TCC_Assiduidade.ViewModel;
+using TCC_Assiduidade.ViewModel.Relatorios;
 
-namespace TCC_Assiduidade.View
+namespace TCC_Assiduidade.View.Relatórios
 {
     /// <summary>
     /// Interação lógica para RelatorioAlunosView.xam

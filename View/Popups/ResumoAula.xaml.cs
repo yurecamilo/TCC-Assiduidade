@@ -1,6 +1,6 @@
 ﻿using System.Windows;
-using TCC_Assiduidade.Modelos;
-using TCC_Assiduidade.ViewModel;
+using TCC_Assiduidade.Modelos.DTO;
+using TCC_Assiduidade.ViewModel.Popups;
 
 namespace TCC_Assiduidade.View.Popups
 {
