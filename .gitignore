@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/docs/Relatorios.html
+/docs/Relatorio_Aula_2_Cálculo I - Vespertino.html
+/docs/Relatorio_Turmas.html
