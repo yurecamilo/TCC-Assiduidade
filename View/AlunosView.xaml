@@ -334,7 +334,7 @@
                             </Border>
                         </UniformGrid>
 
-                        <TextBlock Text="Nenhuma aula registrada para este aluno/turma." 
+                        <TextBlock Text="Nenhuma aula registrada para este aluno." 
            FontSize="14" Foreground="#777" FontStyle="Italic" 
            VerticalAlignment="Center" HorizontalAlignment="Center" 
            TextWrapping="Wrap" Margin="10">

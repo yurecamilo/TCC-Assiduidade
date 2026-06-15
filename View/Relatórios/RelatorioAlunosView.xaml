@@ -277,6 +277,8 @@
                                     <Setter Property="Padding" Value="0"/>
                                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                     <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
                                 </Style>
                             </DataGridTemplateColumn.CellStyle>
 
