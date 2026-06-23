@@ -154,7 +154,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar turmas do cache: " + ex.Message);
+                MostrarErro("Nao foi possivel carregar as turmas. Verifique a conexao com o banco e tente novamente.", ex);
             }
         }
 
@@ -191,7 +191,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro durante a filtragem combinada de alunos: " + ex.Message);
+                MostrarErro("Nao foi possivel filtrar os alunos.", ex);
             }
         }
 
@@ -202,16 +202,23 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
         private void GerarRelatorioLote()
         {
-            var selecionados = Alunos.Where(a => a.IsSelected).ToList();
-            if (!selecionados.Any()) return;
-
-            var dialog = new SaveFileDialog { Filter = "HTML|*.html", FileName = "Relatorios.html" };
-            if (dialog.ShowDialog() == true)
+            try
             {
-                var html = _relatorioService.RelatorioPorAluno(selecionados);
+                var selecionados = Alunos.Where(a => a.IsSelected).ToList();
+                if (!selecionados.Any()) return;
 
-                File.WriteAllText(dialog.FileName, html.ToString(), Encoding.UTF8);
-                Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+                var dialog = new SaveFileDialog { Filter = "HTML|*.html", FileName = "Relatorios.html" };
+                if (dialog.ShowDialog() == true)
+                {
+                    var html = _relatorioService.RelatorioPorAluno(selecionados);
+
+                    File.WriteAllText(dialog.FileName, html.ToString(), Encoding.UTF8);
+                    Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarErro("Nao foi possivel gerar o relatorio de alunos.", ex);
             }
         }
     }

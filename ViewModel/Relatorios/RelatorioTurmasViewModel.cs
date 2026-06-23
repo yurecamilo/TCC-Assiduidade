@@ -143,7 +143,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro durante a filtragem: " + ex.Message);
+                MostrarErro("Nao foi possivel filtrar as turmas.", ex);
             }
         }
 
@@ -172,16 +172,23 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
         private void GerarRelatorioTurmasLote()
         {
-            var selecionadas = Turmas.Where(t => t.IsSelected).ToList();
-            if (!selecionadas.Any()) return;
-
-            var dialog = new SaveFileDialog { Filter = "HTML|*.html", FileName = "Relatorio_Turmas.html" };
-            if (dialog.ShowDialog() == true)
+            try
             {
-                var html = _relatorioService.RelatorioPorTurma(selecionadas);
+                var selecionadas = Turmas.Where(t => t.IsSelected).ToList();
+                if (!selecionadas.Any()) return;
 
-                File.WriteAllText(dialog.FileName, html.ToString(), Encoding.UTF8);
-                Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+                var dialog = new SaveFileDialog { Filter = "HTML|*.html", FileName = "Relatorio_Turmas.html" };
+                if (dialog.ShowDialog() == true)
+                {
+                    var html = _relatorioService.RelatorioPorTurma(selecionadas);
+
+                    File.WriteAllText(dialog.FileName, html.ToString(), Encoding.UTF8);
+                    Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarErro("Nao foi possivel gerar o relatorio de turmas.", ex);
             }
         }
     }

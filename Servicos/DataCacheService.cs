@@ -23,6 +23,7 @@ namespace TCC_Assiduidade.Servicos
 
         // Flag para sabermos se o cache já foi carregado com sucesso
         public static bool IsCarregado { get; private set; } = false;
+        public static Exception ErroCarregamento { get; private set; }
 
         /// <summary>
         /// Dispara a carga de todas as tabelas em paralelo sem travar o sistema
@@ -48,16 +49,22 @@ namespace TCC_Assiduidade.Servicos
                     AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
                     TurmaModeloCache = tarefaTurmaModelo.Result ?? new List<Turma>();
 
+                    ErroCarregamento = null;
                     IsCarregado = true;
 
                     // 🌟 ADICIONADO: Avisa as telas que a carga inicial terminou
                     CacheAtualizado?.Invoke();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Trate o erro de conexão aqui se necessário, 
-                    // para evitar que o app feche na inicialização
-                    IsCarregado = false;
+                    AlunosCache = new List<AlunoExibicaoDTO>();
+                    TurmasCache = new List<TurmaExibicaoDTO>();
+                    AulasCache = new List<AulaExibicaoDTO>();
+                    TurmaModeloCache = new List<Turma>();
+
+                    ErroCarregamento = ex;
+                    IsCarregado = true;
+                    CacheAtualizado?.Invoke();
                 }
             });
         }
@@ -82,6 +89,7 @@ namespace TCC_Assiduidade.Servicos
             AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
             TurmaModeloCache = tarefaTurmaModelo.Result ?? new List<Turma>();
 
+            ErroCarregamento = null;
             IsCarregado = true;
 
             // 🌟 ADICIONADO: Avisa as telas (Alunos, Turmas, Dashboard) que os dados foram recarregados

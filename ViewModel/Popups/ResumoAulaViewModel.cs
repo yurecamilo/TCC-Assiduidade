@@ -49,7 +49,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             catch (Exception ex)
             {
                 AlunosAusentes = new List<RelatorioAusente>();
-                MessageBox.Show("Erro ao buscar ausentes: " + ex.Message);
+                MostrarErro("Nao foi possivel carregar os alunos ausentes desta aula.", ex);
             }
         }
 

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace TCC_Assiduidade.Servicos
 {
@@ -16,6 +18,16 @@ namespace TCC_Assiduidade.Servicos
         /// <returns>Lista de registros do CSV</returns>
         public static List<Dictionary<string, string>> LerCsv(string caminho, char separador = ',')
         {
+            if (string.IsNullOrWhiteSpace(caminho))
+            {
+                throw new ArgumentException("O caminho do arquivo não pode ser nulo ou vazio.", nameof(caminho));
+            }
+
+            if (!File.Exists(caminho))
+            {
+                throw new FileNotFoundException($"O arquivo '{caminho}' não foi encontrado.", caminho);
+            }
+
             var dados = new List<Dictionary<string, string>>();
 
             using (var reader = new StreamReader(caminho))
@@ -30,9 +42,21 @@ namespace TCC_Assiduidade.Servicos
 
                 string[] headers = headerLine.Split(separador);
 
+                var colunasVerificadas = new HashSet<string>();
+
                 for (int i = 0; i < headers.Length; i++)
                 {
                     headers[i] = headers[i].Trim().ToLower();
+
+                    if (string.IsNullOrWhiteSpace(headers[i]))
+                    {
+                        throw new System.IO.InvalidDataException($"O cabeçalho contém uma coluna vazia na posição {i + 1}.");
+                    }
+
+                    if (!colunasVerificadas.Add(headers[i]))
+                    {
+                        throw new System.IO.InvalidDataException($"O arquivo CSV contém colunas duplicadas no cabeçalho: '{headers[i]}'.");
+                    }
                 }
 
                 while (!reader.EndOfStream)

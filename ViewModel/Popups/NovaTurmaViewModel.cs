@@ -49,7 +49,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao salvar turma: " + ex.Message);
+                MostrarErro("Nao foi possivel salvar a turma. Verifique a conexao com o banco e tente novamente.", ex);
             }
         }
     }

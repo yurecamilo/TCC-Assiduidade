@@ -127,7 +127,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar aulas do cache: " + ex.Message);
+                MostrarErro("Nao foi possivel carregar as aulas. Verifique a conexao com o banco e tente novamente.", ex);
             }
         }
 
@@ -169,7 +169,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro durante a filtragem por nome de turma: " + ex.Message);
+                MostrarErro("Nao foi possivel filtrar as aulas.", ex);
             }
         }
 
@@ -208,7 +208,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao gerar relatorio HTML: " + ex.Message);
+                MostrarErro("Nao foi possivel gerar o relatorio HTML.", ex);
             }
         }
 

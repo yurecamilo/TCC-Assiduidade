@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Repositories;
@@ -14,16 +15,16 @@ namespace TCC_Assiduidade.Servicos
             _turmaRepository = new TurmaRepository();
         }
 
-        public int Adicionar(string turmaNome)
+        public void Adicionar(string turmaNome)
         {
             if (string.IsNullOrWhiteSpace(turmaNome))
-                return -1;
+                throw new ArgumentException("O nome da turma não pode ser nulo ou vazio.", nameof(turmaNome));
 
             var turmaExistente = _turmaRepository.ObterTurmaPorNome(turmaNome);
             if (turmaExistente != null)
-                return -1;
+                throw new InvalidOperationException("Já existe uma turma com esse nome.");
 
-            return _turmaRepository.Adicionar(turmaNome);
+            _turmaRepository.Adicionar(turmaNome);
         }
 
         public Turma ObterTurmaPorNome(string turmaNome)

@@ -88,7 +88,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar turmas do cache: " + ex.Message);
+                MostrarErro("Nao foi possivel carregar as turmas. Verifique a conexao com o banco e tente novamente.", ex);
             }
         }
 
@@ -120,7 +120,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao cadastrar aluno: " + ex.Message);
+                MostrarErro("Nao foi possivel cadastrar o aluno. Verifique os dados informados e tente novamente.", ex);
             }
         }
     }

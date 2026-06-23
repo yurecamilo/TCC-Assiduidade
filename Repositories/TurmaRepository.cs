@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Windows;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 
@@ -12,7 +11,7 @@ namespace TCC_Assiduidade.Repositories
     {
         private readonly string connectionString = ConfigurationManager.ConnectionStrings["MyDbConn"].ConnectionString;
 
-        public int Adicionar(string turmaNome)
+        public void Adicionar(string turmaNome)
         {
             try
             {
@@ -21,19 +20,18 @@ namespace TCC_Assiduidade.Repositories
                     conn.Open();
 
                     string query = @"
-                    INSERT INTO Turma (Nome) VALUES (@nome);
-                    SELECT LAST_INSERT_ID();";
+                    INSERT INTO Turma (Nome) VALUES (@nome);";
 
                     using (var cmd = new MySqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@nome", turmaNome);
-                        return Convert.ToInt32(cmd.ExecuteScalar());
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return -1;
+                throw new InvalidOperationException("Nao foi possivel adicionar a turma.", ex);
             }
         }
 
@@ -67,7 +65,7 @@ namespace TCC_Assiduidade.Repositories
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao buscar turma: " + ex.Message);
+                throw new InvalidOperationException("Erro ao acessar o banco de dados ao buscar turma.", ex);
             }
 
             return null;

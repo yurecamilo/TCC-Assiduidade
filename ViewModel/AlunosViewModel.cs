@@ -125,7 +125,7 @@ namespace TCC_Assiduidade.ViewModel
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar alunos do cache: " + ex.Message);
+                MostrarErro("Nao foi possivel carregar os alunos. Verifique a conexao com o banco e tente novamente.", ex);
             }
         }
 
@@ -145,7 +145,7 @@ namespace TCC_Assiduidade.ViewModel
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar turmas do cache: " + ex.Message);
+                MostrarErro("Nao foi possivel carregar as turmas. Verifique a conexao com o banco e tente novamente.", ex);
             }
         }
 
@@ -185,7 +185,7 @@ namespace TCC_Assiduidade.ViewModel
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro durante a filtragem combinada de alunos: " + ex.Message);
+                MostrarErro("Nao foi possivel filtrar os alunos.", ex);
             }
         }
 

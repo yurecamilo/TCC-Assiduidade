@@ -16,8 +16,8 @@ namespace TCC_Assiduidade.Servicos
 
         public int Adicionar(DateTime dataAula, int turmaId)
         {
-            if (dataAula == null || dataAula > DateTime.Now) return -1;
-            if (turmaId <= 0) return -1;
+            if (dataAula > DateTime.Now) throw new ArgumentException("A data da aula não pode ser uma data futura.", nameof(dataAula));
+            if (turmaId <= 0) throw new ArgumentException("O ID da turma é inválido.", nameof(turmaId));
             return _aulaRepository.Adicionar(dataAula, turmaId);
         }
 

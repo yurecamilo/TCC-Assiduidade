@@ -116,7 +116,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro ao carregar turmas do cache: " + ex.Message);
+                MostrarErro("Nao foi possivel carregar as turmas. Verifique a conexao com o banco e tente novamente.", ex);
             }
         }
 
@@ -166,7 +166,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erro crítico: " + ex.Message);
+                MostrarErro("Nao foi possivel importar o cadastro. Confira o arquivo CSV e tente novamente.", ex);
             }
         }
     }
