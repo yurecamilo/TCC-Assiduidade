@@ -12,12 +12,12 @@ namespace TCC_Assiduidade.View
         {
             InitializeComponent();
             ConteudoPrincipal.Content = new InicioView();
-            AlternarBotaoAtivo(BtnDashboard);
+            AlternarBotaoAtivo(BtnInicio);
         }
         private void AlternarBotaoAtivo(Button botaoClicado)
         {
             Style estiloNormal = (Style)FindResource("MenuButtonStyle");
-            BtnDashboard.Style = estiloNormal;
+            BtnInicio.Style = estiloNormal;
             BtnTurmas.Style = estiloNormal;
             BtnAlunos.Style = estiloNormal;
             BtnRelatorios.Style = estiloNormal;
@@ -26,31 +26,15 @@ namespace TCC_Assiduidade.View
             botaoClicado.Style = estiloAtivo;
         }
 
-        private void BtnDashboard_Click(object sender, RoutedEventArgs e)
+        private void TrocarConteudoPrincipal(UserControl novaView, Button botaoClicado)
         {
-            ConteudoPrincipal.Content = new InicioView();
-            AlternarBotaoAtivo(BtnDashboard);
+            ConteudoPrincipal.Content = novaView;
+            AlternarBotaoAtivo(botaoClicado);
         }
-
-
-        private void BtnTurmas_Click(object sender, RoutedEventArgs e)
-        {
-            ConteudoPrincipal.Content = new TurmasView();
-            AlternarBotaoAtivo(BtnTurmas);
-        }
-
-        private void BtnAlunos_Click(object sender, RoutedEventArgs e)
-        {
-            ConteudoPrincipal.Content = new AlunosView();
-            AlternarBotaoAtivo(BtnAlunos);
-        }
-
-
-        private void BtnRelatorios_Click(object sender, RoutedEventArgs e)
-        {
-            ConteudoPrincipal.Content = new RelatoriosView();
-            AlternarBotaoAtivo(BtnRelatorios);
-        }
+        private void BtnInicio_Click(object sender, RoutedEventArgs e) => TrocarConteudoPrincipal(new InicioView(), BtnInicio);
+        private void BtnTurmas_Click(object sender, RoutedEventArgs e) => TrocarConteudoPrincipal(new TurmasView(), BtnTurmas);
+        private void BtnAlunos_Click(object sender, RoutedEventArgs e) => TrocarConteudoPrincipal(new AlunosView(), BtnAlunos);
+        private void BtnRelatorios_Click(object sender, RoutedEventArgs e) => TrocarConteudoPrincipal(new RelatoriosView(), BtnRelatorios);
 
     }
 }

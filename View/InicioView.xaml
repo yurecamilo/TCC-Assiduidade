@@ -4,9 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TCC_Assiduidade.View"
+             xmlns:vm="clr-namespace:TCC_Assiduidade.ViewModel"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
+    <UserControl.DataContext>
+        <vm:InicioViewModel />
+    </UserControl.DataContext>
+    
     <UserControl.Resources>
         <StreamGeometry x:Key="IconeImportar">M23 18H20V15H18V18H15V20H18V23H20V20H23M6 2C4.89 2 4 2.9 4 4V20C4 21.11 4.89 22 6 22H13.81C13.45 21.38 13.2 20.7 13.08 20H6V4H13V9H18V13.08C18.33 13.03 18.67 13 19 13C19.34 13 19.67 13.03 20 13.08V8L14 2M8 12V14H16V12M8 16V18H13V16Z</StreamGeometry>
         <StreamGeometry x:Key="IconeCadastrarAluno">M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z</StreamGeometry>
@@ -51,7 +56,7 @@
                 <StackPanel>
                     <TextBlock Text="Importações" Foreground="#11181C" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,20"/>
 
-                    <Button Style="{StaticResource ActionButtonStyle}" Click="BtnImportarCadastro_Click">
+                    <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding ImportarCadastroCommand}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconeImportar}" 
                                 Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" 
@@ -63,7 +68,7 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource ActionButtonStyle}" Click="BtnImportarChamada_Click">
+                    <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding ImportarChamadaCommand}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconeImportar}" 
                                 Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" 
@@ -81,7 +86,7 @@
                 <StackPanel>
                     <TextBlock Text="Cadastro manual" Foreground="#11181C" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,20"/>
 
-                    <Button Style="{StaticResource ActionButtonStyle}" Click="BtnCadastrarAluno_Click">
+                    <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding CadastrarAlunoCommand}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconeCadastrarAluno}" 
                               Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" 
@@ -93,7 +98,7 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Style="{StaticResource ActionButtonStyle}" Tag="{StaticResource IconeCadastrarTurma}" Click="BtnCadastrarTurma_Click">
+                    <Button Style="{StaticResource ActionButtonStyle}" Command="{Binding CadastrarTurmaCommand}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconeCadastrarTurma}" 
                               Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" 

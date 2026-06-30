@@ -1,5 +1,4 @@
 ﻿using System.Windows.Input;
-using TCC_Assiduidade.View;
 using TCC_Assiduidade.View.Relatórios;
 using TCC_Assiduidade.ViewModel.Base;
 

@@ -15,6 +15,7 @@ namespace TCC_Assiduidade.ViewModel
     public class AlunosViewModel : BaseViewModel
     {
         private List<AlunoExibicaoDTO> _listaOriginalDoBanco = new List<AlunoExibicaoDTO>();
+        private readonly AlunoService _alunoService;
 
         private IEnumerable<AlunoExibicaoDTO> _alunos;
         private AlunoExibicaoDTO _alunoSelecionado;
@@ -84,6 +85,7 @@ namespace TCC_Assiduidade.ViewModel
 
         public AlunosViewModel()
         {
+            _alunoService = new AlunoService();
             Alunos = new List<AlunoExibicaoDTO>();
             Turmas = new List<Turma>();
 
@@ -209,10 +211,25 @@ namespace TCC_Assiduidade.ViewModel
 
         private void ExecutarEditar(object obj)
         {
+            if (obj is AlunoExibicaoDTO aluno)
+            {
+                WindowService.AbrirEditarAluno(aluno);
+            }
         }
 
         private void ExecutarExcluir(object obj)
         {
+            MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir este aluno? Essa ação excluirá todos os dados associados a ele", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (resultado == MessageBoxResult.Yes && obj is AlunoExibicaoDTO aluno)
+            {
+                _alunoService.Excluir(aluno.Matricula);
+                AtualizarCacheAposMudanca();
+            }
+        }
+
+        private async void AtualizarCacheAposMudanca()
+        {
+            await DataCacheService.ForçarAtualizacaoAsync();
         }
     }
 }

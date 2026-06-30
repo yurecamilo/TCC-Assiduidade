@@ -165,7 +165,11 @@
     <Compile Include="Servicos\AlunoService.cs" />
     <Compile Include="Servicos\ImportacaoService.cs" />
     <Compile Include="Servicos\TurmaService.cs" />
+    <Compile Include="Servicos\WindowService.cs" />
     <Compile Include="ViewModel\AlunosViewModel.cs" />
+    <Compile Include="ViewModel\InicioViewModel.cs" />
+    <Compile Include="ViewModel\Popups\EditarAlunoViewModel.cs" />
+    <Compile Include="ViewModel\Popups\EditarTurmaViewModel.cs" />
     <Compile Include="ViewModel\Relatorios\RelatorioAlunosViewModel.cs" />
     <Compile Include="ViewModel\Relatorios\RelatorioAulasViewModel.cs" />
     <Compile Include="ViewModel\Base\BaseViewModel.cs" />
@@ -181,6 +185,12 @@
     <Compile Include="ViewModel\TurmasViewModel.cs" />
     <Compile Include="View\AlunosView.xaml.cs">
       <DependentUpon>AlunosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Popups\EditarAluno.xaml.cs">
+      <DependentUpon>EditarAluno.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Popups\EditarTurma.xaml.cs">
+      <DependentUpon>EditarTurma.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Relatórios\RelatorioAlunosView.xaml.cs">
       <DependentUpon>RelatorioAlunosView.xaml</DependentUpon>
@@ -224,6 +234,14 @@
       <DependentUpon>TurmasView.xaml</DependentUpon>
     </Compile>
     <Page Include="View\AlunosView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\EditarAluno.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\EditarTurma.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

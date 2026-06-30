@@ -13,10 +13,5 @@ namespace TCC_Assiduidade.View.Popups
             InitializeComponent();
             this.DataContext = new NovoAlunoViewModel(this.Close);
         }
-
-        private void BtnCancelar_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
     }
 }

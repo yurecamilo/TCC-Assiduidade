@@ -80,7 +80,6 @@ namespace TCC_Assiduidade.Servicos
             }
         }
 
-
         private void ValidarAluno(Aluno aluno)
         {
             if (aluno == null)
@@ -97,7 +96,20 @@ namespace TCC_Assiduidade.Servicos
 
             if (aluno.TurmaId <= 0)
                 throw new ArgumentException("Selecione uma turma válida.");
+        }
 
+        public void Atualizar(Aluno aluno)
+        {
+            if (aluno == null) return;
+            ValidarAluno(aluno);
+            _alunoRepository.Atualizar(aluno);
+        }
+
+        public void Excluir(string matricula)
+        {
+            if (string.IsNullOrWhiteSpace(matricula))
+                throw new ArgumentException("Informe a matrícula do aluno para exclusão.");
+            _alunoRepository.Excluir(matricula);
         }
     }
 }

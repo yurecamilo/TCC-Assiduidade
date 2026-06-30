@@ -167,8 +167,53 @@ namespace TCC_Assiduidade.Repositories
             return lista;
         }
 
-        public void Atualizar (){ }
+        public void Atualizar (int turmaId, string novoNome)
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
 
-        public void Excluir() { }
+                    string query = @"
+                    UPDATE Turma SET Nome = @nome WHERE Id = @id;";
+
+                    using (var cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@nome", novoNome);
+                        cmd.Parameters.AddWithValue("@id", turmaId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Nao foi possivel atualizar a turma.", ex);
+            }
+        }
+
+        public void Excluir(int turmaId) 
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                    DELETE FROM Turma WHERE Id = @id;";
+
+                    using (var cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", turmaId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Nao foi possivel atualizar a turma.", ex);
+            }
+        }
     }
 }

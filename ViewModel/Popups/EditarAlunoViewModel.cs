@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using TCC_Assiduidade.Modelos.Banco;
+using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
 
 namespace TCC_Assiduidade.ViewModel.Popups
 {
-    public class NovoAlunoViewModel : BaseViewModel
+    public class EditarAlunoViewModel : BaseViewModel
     {
         private List<Turma> _listaOriginalDoBanco = new List<Turma>();
         private readonly AlunoService _alunoService;
@@ -42,7 +45,10 @@ namespace TCC_Assiduidade.ViewModel.Popups
         public Turma TurmaSelecionada
         {
             get => _turmaSelecionada;
-            set { _turmaSelecionada = value; OnPropertyChanged(); }
+            set { 
+                _turmaSelecionada = value; 
+                OnPropertyChanged(); 
+            }
         }
 
         public List<Turma> Turmas
@@ -51,7 +57,6 @@ namespace TCC_Assiduidade.ViewModel.Popups
             set { _turmas = value; OnPropertyChanged(); }
         }
 
-        // NOVA PROPRIEDADE PÚBLICA: Vinculada diretamente com o SelectedDate do DatePicker no XAML
         public DateTime? DataEntrada
         {
             get => _dataEntrada;
@@ -61,17 +66,18 @@ namespace TCC_Assiduidade.ViewModel.Popups
         public ICommand SalvarAlunoCommand { get; private set; }
         public ICommand FecharJanelaCommand { get; private set; }
 
-        public NovoAlunoViewModel(Action fecharJanela)
+        public EditarAlunoViewModel(Action fecharJanela, AlunoExibicaoDTO aluno)
         {
             _alunoService = new AlunoService();
-            FecharJanelaCommand = new RelayCommand(() => fecharJanela?.Invoke());
+            FecharJanelaCommand = new RelayCommand(fecharJanela);
             SalvarAlunoCommand = new RelayCommand(ExecutarSalvar);
 
-            // Define a data padrão exibida na tela como o dia de hoje ao abrir a janela
-            DataEntrada = DateTime.Now.Date;
-
-            // Carrega as turmas do cache para o ComboBox
+            Matricula = aluno.Matricula;
+            Nome = aluno.Nome;
+            Email = aluno.Email;
+            DataEntrada = aluno.DataEntrada;
             _ = CarregarTurmasDoBanco();
+            TurmaSelecionada = _listaOriginalDoBanco.FirstOrDefault(t => t.Nome == aluno.Turma);
         }
 
         async Task CarregarTurmasDoBanco()
@@ -94,12 +100,6 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
         private async void ExecutarSalvar()
         {
-            if (string.IsNullOrWhiteSpace(Matricula) || string.IsNullOrWhiteSpace(Nome) || TurmaSelecionada == null)
-            {
-                MessageBox.Show("Por favor, preencha todos os campos obrigatórios (Matrícula, Nome e Turma).");
-                return;
-            }
-
             try
             {
                 var aluno = new Aluno
@@ -108,18 +108,18 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     Nome = Nome,
                     Email = Email,
                     TurmaId = TurmaSelecionada.Id,
-                    DataEntrada = DataEntrada // Repassa a propriedade preenchida do DatePicker
+                    DataEntrada = DataEntrada 
                 };
 
-                _alunoService.Adicionar(aluno);
+                _alunoService.Atualizar(aluno);
                 await DataCacheService.ForçarAtualizacaoAsync();
 
-                MessageBox.Show("Aluno cadastrado com sucesso!");
+                MessageBox.Show("Aluno editado com sucesso!");
                 FecharJanelaCommand.Execute(null);
             }
             catch (Exception ex)
             {
-                MostrarErro("Nao foi possivel cadastrar o aluno. Verifique os dados informados e tente novamente.", ex);
+                MostrarErro("Nao foi possivel editar o aluno. Verifique os dados informados e tente novamente.", ex);
             }
         }
     }

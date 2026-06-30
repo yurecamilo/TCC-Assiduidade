@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows;
 using System.Windows.Input;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Modelos.Relatorios;

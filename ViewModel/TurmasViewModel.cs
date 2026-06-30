@@ -14,7 +14,6 @@ namespace TCC_Assiduidade.ViewModel
     {
         private readonly TurmaService _turmaService;
 
-        // Cache local fortemente tipado para a filtragem reativa (Busca)
         private List<TurmaExibicaoDTO> _listaOriginalDoBanco = new List<TurmaExibicaoDTO>();
 
         private IEnumerable<TurmaExibicaoDTO> _turmas;
@@ -48,6 +47,8 @@ namespace TCC_Assiduidade.ViewModel
         public ICommand LimparBuscaCommand { get; private set; }
         public ICommand EditarTurmaCommand { get; private set; }
         public ICommand ExcluirTurmaCommand { get; private set; }
+        public ICommand CadastrarTurmaCommand { get; private set; }
+        public ICommand VisualizarTurmaCommand { get; private set; }
 
         public TurmasViewModel()
         {
@@ -59,6 +60,7 @@ namespace TCC_Assiduidade.ViewModel
 
             EditarTurmaCommand = new RelayCommand(ExecutarEditar);
             ExcluirTurmaCommand = new RelayCommand(ExecutarExcluir);
+            VisualizarTurmaCommand = new RelayCommand(ExecutarVisualizar);
 
             DataCacheService.CacheAtualizado += OnCacheAtualizado;
 
@@ -122,14 +124,30 @@ namespace TCC_Assiduidade.ViewModel
 
         private void ExecutarEditar(object obj)
         {
-            // Sua lógica de edição...
+            if (obj is TurmaExibicaoDTO turma)
+            {
+                WindowService.AbrirEditarTurma(turma);
+            }
+            AtualizarCacheAposMudanca();
         }
 
         private void ExecutarExcluir(object obj)
         {
-            // Sua lógica de exclusão...
+            MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir esta turma? Essa ação excluirá todos os dados associados a ela (alunos e chamadas)", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (resultado == MessageBoxResult.Yes)
+            {
+                _turmaService.Excluir(TurmaSelecionada.TurmaOriginal.Id);
+                AtualizarCacheAposMudanca();
+            }
         }
 
+        private void ExecutarVisualizar(object obj)
+        {
+            if (obj is TurmaExibicaoDTO turma)
+            {
+                WindowService.AbrirVisualizarTurma(turma);
+            }
+        }
         private async void AtualizarCacheAposMudanca()
         {
             await DataCacheService.ForçarAtualizacaoAsync();

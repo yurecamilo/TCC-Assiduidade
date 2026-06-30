@@ -17,15 +17,5 @@ namespace TCC_Assiduidade.View
             _viewModel = new AlunosViewModel();
             DataContext = _viewModel;
         }
-
-        public void BtnCadastrarAluno_Click(object sender, RoutedEventArgs e)
-        {
-                NovoAluno janelaPopUp = new NovoAluno();
-    
-                janelaPopUp.Owner = Window.GetWindow(this);
-                janelaPopUp.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-    
-                janelaPopUp.ShowDialog();
-        }
     }
 }

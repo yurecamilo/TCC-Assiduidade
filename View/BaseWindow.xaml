@@ -57,7 +57,7 @@
         <Border Grid.Column="0" Background="#11181C" Padding="15,40,15,15">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top">
-                    <Button x:Name="BtnDashboard" Style="{StaticResource MenuButtonStyle}" Click="BtnDashboard_Click">
+                    <Button x:Name="BtnInicio" Style="{StaticResource MenuButtonStyle}" Click="BtnInicio_Click">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="{StaticResource IconeHome}" 
                                   Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" 

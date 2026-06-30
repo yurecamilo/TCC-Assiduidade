@@ -226,7 +226,8 @@
                                         <StackPanel Orientation="Horizontal" Width="100" VerticalAlignment="Center">
                                             <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"
                                                     FocusVisualStyle="{x:Null}"
-                                                    Click="BtnVisualizarTurma_Click">
+                                                    Command="{Binding DataContext.VisualizarTurmaCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}">
                                                 <Path Data="{StaticResource IconeVisualizar}" Fill="#236B73" Width="16" Height="16" Stretch="Uniform"/>
                                             </Button>
                                             <Button Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="0,0,12,0"

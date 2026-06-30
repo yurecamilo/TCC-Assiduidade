@@ -335,8 +335,99 @@ namespace TCC_Assiduidade.Repositories
             return lista;
         }
 
-        public void Atualizar() { }
+        public void Atualizar(Aluno aluno)
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
 
-        public void Excluir() { }
+                    // Iniciamos uma transação para garantir a consistência das duas tabelas
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Atualiza os dados cadastrais do Aluno
+                            string queryAluno = @"UPDATE Aluno 
+                                          SET Nome = @nome, 
+                                              Email = @email 
+                                          WHERE Matricula = @matricula;";
+
+                            using (var cmdAluno = new MySqlCommand(queryAluno, conn, transaction))
+                            {
+                                cmdAluno.Parameters.AddWithValue("@nome", aluno.Nome);
+                                cmdAluno.Parameters.AddWithValue("@email", aluno.Email);
+                                cmdAluno.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                                cmdAluno.ExecuteNonQuery();
+                            }
+
+                            // 2. Atualiza o vínculo com a Turma e a Data de Entrada
+                            string queryVinculo = @"UPDATE VinculoTurmaAluno 
+                                            SET TurmaId = @turmaId, 
+                                                DataEntrada = @dataEntrada 
+                                            WHERE AlunoMatricula = @matricula;";
+
+                            using (var cmdVinculo = new MySqlCommand(queryVinculo, conn, transaction))
+                            {
+                                cmdVinculo.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                                cmdVinculo.Parameters.AddWithValue("@dataEntrada", aluno.DataEntrada);
+
+                                // Trata caso o aluno fique sem turma
+                                cmdVinculo.Parameters.AddWithValue("@turmaId", (object)aluno.TurmaId ?? DBNull.Value);
+
+                                cmdVinculo.ExecuteNonQuery();
+                            }
+
+                            // Se os dois UPDATEs deram certo, grava em definitivo no banco
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            // Se algo falhar em qualquer uma das tabelas, desfaz tudo
+                            transaction.Rollback();
+                            throw; // Repassa o erro para o bloco catch externo
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Não foi possível atualizar os dados e o vínculo do aluno.", ex);
+            }
+        }
+
+        public void Excluir(string matricula) 
+        {
+            try
+            {
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string queryAluno = @"
+                    DELETE FROM Aluno WHERE Matricula = @matricula;";
+
+                    using (var cmd = new MySqlCommand(queryAluno, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@matricula", matricula);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    string queryVinculo = @"
+                    DELETE FROM VinculoTurmaAluno WHERE AlunoMatricula = @matricula;";
+
+                    using (var cmd = new MySqlCommand(queryVinculo, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@matricula", matricula);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Nao foi possivel excluir o aluno.", ex);
+            }
+        }
     }
 }

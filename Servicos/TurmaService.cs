@@ -52,5 +52,30 @@ namespace TCC_Assiduidade.Servicos
         {
             return _turmaRepository.ObterTurmasComContagem();
         }
+
+        public void Atualizar(int turmaId, string novoNome)
+        {
+            if (turmaId <= 0)
+                throw new ArgumentException("O ID da turma deve ser maior que zero.", nameof(turmaId));
+            if (string.IsNullOrWhiteSpace(novoNome))
+                throw new ArgumentException("O nome da turma não pode ser nulo ou vazio.", nameof(novoNome));
+            var turmaExistente = _turmaRepository.ObterTurmaPorId(turmaId);
+            if (turmaExistente == null)
+                throw new InvalidOperationException("A turma especificada não existe.");
+            var outraTurmaComMesmoNome = _turmaRepository.ObterTurmaPorNome(novoNome);
+            if (outraTurmaComMesmoNome != null && outraTurmaComMesmoNome.Id != turmaId)
+                throw new InvalidOperationException("Já existe outra turma com esse nome.");
+            _turmaRepository.Atualizar(turmaId, novoNome);
+        }
+
+        public void Excluir(int turmaId)
+        {
+            if (turmaId <= 0)
+                throw new ArgumentException("O ID da turma deve ser maior que zero.", nameof(turmaId));
+            var turmaExistente = _turmaRepository.ObterTurmaPorId(turmaId);
+            if (turmaExistente == null)
+                throw new InvalidOperationException("A turma especificada não existe.");
+            _turmaRepository.Excluir(turmaId);
+        }
     }
 }
