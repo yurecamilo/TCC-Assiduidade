@@ -69,6 +69,23 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="SecondaryActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4A6984"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="15,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <Style x:Key="PopUpCancelButtonStyle" TargetType="Button" BasedOn="{StaticResource PopUpActionButtonStyle}">
             <Setter Property="Background" Value="#757575"/>
@@ -145,7 +162,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Button Grid.Column="0" Style="{StaticResource PopUpActionButtonStyle}" Width="150" Height="38" Command="{Binding SelecionarArquivoCommand}">
+                                <Button Grid.Column="0" Style="{StaticResource SecondaryActionButtonStyle}" Width="150" Height="38" Command="{Binding SelecionarArquivoCommand}">
                                     <StackPanel Orientation="Horizontal">
                                         <Path Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,11L16,15H13V18H11V15H8L12,11Z" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="Escolher Arquivo" VerticalAlignment="Center"/>
