@@ -154,6 +154,11 @@
     <Compile Include="Modelos\DTO\AulaExibicaoDTO.cs" />
     <Compile Include="Modelos\Resultados\ResultadoImportacaoCadastro.cs" />
     <Compile Include="Modelos\Resultados\ResultadoImportacaoPresenca.cs" />
+    <Compile Include="Excecoes\RegistroDuplicadoException.cs" />
+    <Compile Include="Excecoes\IntegridadeReferencialException.cs" />
+    <Compile Include="Excecoes\RegistroNaoEncontradoException.cs" />
+    <Compile Include="Excecoes\ConexaoBancoDadosException.cs" />
+    <Compile Include="Repositories\MySqlExceptionTranslator.cs" />
     <Compile Include="Repositories\AlunoRepository.cs" />
     <Compile Include="Repositories\AulaRepository.cs" />
     <Compile Include="Repositories\AusenciaRepository.cs" />

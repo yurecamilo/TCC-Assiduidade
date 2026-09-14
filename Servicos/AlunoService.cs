@@ -92,7 +92,7 @@ namespace TCC_Assiduidade.Servicos
                 throw new ArgumentException("Informe o nome do aluno.");
 
             if (!ValidarEmailInstitucional(aluno.Email))
-                throw new ArgumentException("Informe um e-mail institucional válido (@univap.br).");
+                throw new ArgumentException("Informe um endereço de e-mail válido.");
 
             if (aluno.TurmaId <= 0)
                 throw new ArgumentException("Selecione uma turma válida.");

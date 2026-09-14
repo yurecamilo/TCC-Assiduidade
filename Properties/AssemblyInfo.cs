@@ -48,3 +48,8 @@ using System.Windows;
 //
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+// Permite que o projeto de testes automatizados acesse membros "internal"
+// (ex.: a classificação de erros do BaseViewModel) sem precisar torná-los
+// públicos só por causa dos testes.
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TCC_Assiduidade.Testes")]

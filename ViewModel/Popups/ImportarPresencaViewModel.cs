@@ -94,9 +94,17 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     List<Dictionary<string, string>> dadosCsv = ArquivoService.LerCsv(_caminhoArquivoCompleto);
                     ResultadoImportacaoPresenca resultado = _importacaoService.ImportarPresenca(TurmaSelecionada.Id, dadosCsv);
 
+                    // Se a importação falhou (turma sem alunos, coluna faltando, etc.),
+                    // avisa o motivo sem atualizar o cache como se tivesse dado certo.
+                    if (!resultado.Sucesso)
+                    {
+                        MessageBox.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
                     await DataCacheService.ForçarAtualizacaoAsync();
 
-                    MessageBox.Show(resultado.Mensagem);
+                    MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {

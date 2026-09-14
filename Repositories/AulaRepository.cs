@@ -2,6 +2,7 @@
 using System;
 using System.Configuration;
 using System.Collections.Generic;
+using TCC_Assiduidade.Excecoes;
 using TCC_Assiduidade.Modelos.DTO;
 
 namespace TCC_Assiduidade.Repositories
@@ -14,19 +15,36 @@ namespace TCC_Assiduidade.Repositories
             int aulaId;
             using (var conn = new MySqlConnection(connectionString))
             {
-                conn.Open();
+                try
+                {
+                    conn.Open();
+                }
+                catch (MySqlException ex)
+                {
+                    throw MySqlExceptionTranslator.Traduzir(ex, "a aula");
+                }
+
                 string query = @"
                         INSERT INTO Aula (Data, TurmaId)
                         VALUES (@data, @turmaId);
                         SELECT LAST_INSERT_ID();
                     ";
 
-                using (var cmd = new MySqlCommand(query, conn))
+                try
                 {
-                    cmd.Parameters.AddWithValue("@data", data.Date);
-                    cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                    using (var cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@data", data.Date);
+                        cmd.Parameters.AddWithValue("@turmaId", turmaId);
 
-                    aulaId = Convert.ToInt32(cmd.ExecuteScalar());
+                        aulaId = Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+                catch (MySqlException ex)
+                {
+                    // FK inválida (turma inexistente) também cai aqui, traduzida
+                    // para uma mensagem de integridade referencial.
+                    throw MySqlExceptionTranslator.Traduzir(ex, "a aula");
                 }
             }
             return aulaId > 0 ? aulaId : -1;
