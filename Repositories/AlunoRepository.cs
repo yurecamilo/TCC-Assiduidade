@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
+using TCC_Assiduidade.Excecoes;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Modelos.Relatorios;
@@ -17,7 +18,7 @@ namespace TCC_Assiduidade.Repositories
         {
             using (var conn = new MySqlConnection(connectionString))
             {
-                conn.Open();
+                AbrirConexao(conn, "o aluno");
 
                 using (var trans = conn.BeginTransaction())
                 {
@@ -49,12 +50,34 @@ namespace TCC_Assiduidade.Repositories
 
                         trans.Commit();
                     }
+                    catch (MySqlException ex)
+                    {
+                        trans.Rollback();
+                        throw MySqlExceptionTranslator.Traduzir(ex, "o aluno");
+                    }
                     catch
                     {
                         trans.Rollback();
                         throw;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Abre a conexão traduzindo qualquer falha (servidor fora do ar, sem rede,
+        /// credenciais inválidas) em <see cref="ConexaoBancoDadosException"/>, com
+        /// uma mensagem específica em vez do erro técnico bruto do driver MySQL.
+        /// </summary>
+        private static void AbrirConexao(MySqlConnection conn, string contexto)
+        {
+            try
+            {
+                conn.Open();
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, contexto);
             }
         }
 
@@ -65,7 +88,7 @@ namespace TCC_Assiduidade.Repositories
 
             using (var conn = new MySqlConnection(connectionString))
             {
-                conn.Open();
+                AbrirConexao(conn, "os alunos");
 
                 using (var trans = conn.BeginTransaction())
                 {
@@ -122,6 +145,11 @@ namespace TCC_Assiduidade.Repositories
                         }
 
                         trans.Commit();
+                    }
+                    catch (MySqlException ex)
+                    {
+                        trans.Rollback();
+                        throw MySqlExceptionTranslator.Traduzir(ex, "os alunos");
                     }
                     catch
                     {
@@ -337,96 +365,128 @@ namespace TCC_Assiduidade.Repositories
 
         public void Atualizar(Aluno aluno)
         {
-            try
+            using (var conn = new MySqlConnection(connectionString))
             {
-                using (var conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
+                AbrirConexao(conn, "o aluno");
 
-                    // Iniciamos uma transação para garantir a consistência das duas tabelas
-                    using (var transaction = conn.BeginTransaction())
+                // Iniciamos uma transação para garantir a consistência das duas tabelas
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
                     {
-                        try
-                        {
-                            // 1. Atualiza os dados cadastrais do Aluno
-                            string queryAluno = @"UPDATE Aluno 
-                                          SET Nome = @nome, 
-                                              Email = @email 
+                        // 1. Atualiza os dados cadastrais do Aluno
+                        string queryAluno = @"UPDATE Aluno
+                                          SET Nome = @nome,
+                                              Email = @email
                                           WHERE Matricula = @matricula;";
 
-                            using (var cmdAluno = new MySqlCommand(queryAluno, conn, transaction))
-                            {
-                                cmdAluno.Parameters.AddWithValue("@nome", aluno.Nome);
-                                cmdAluno.Parameters.AddWithValue("@email", aluno.Email);
-                                cmdAluno.Parameters.AddWithValue("@matricula", aluno.Matricula);
-                                cmdAluno.ExecuteNonQuery();
-                            }
+                        int linhasAluno;
+                        using (var cmdAluno = new MySqlCommand(queryAluno, conn, transaction))
+                        {
+                            cmdAluno.Parameters.AddWithValue("@nome", aluno.Nome);
+                            cmdAluno.Parameters.AddWithValue("@email", aluno.Email);
+                            cmdAluno.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                            linhasAluno = cmdAluno.ExecuteNonQuery();
+                        }
 
-                            // 2. Atualiza o vínculo com a Turma e a Data de Entrada
-                            string queryVinculo = @"UPDATE VinculoTurmaAluno 
-                                            SET TurmaId = @turmaId, 
-                                                DataEntrada = @dataEntrada 
+                        if (linhasAluno == 0)
+                            throw new RegistroNaoEncontradoException($"O aluno de matrícula {aluno.Matricula} não foi encontrado. Ele pode já ter sido excluído por outro usuário.");
+
+                        // 2. Atualiza o vínculo com a Turma e a Data de Entrada
+                        string queryVinculo = @"UPDATE VinculoTurmaAluno
+                                            SET TurmaId = @turmaId,
+                                                DataEntrada = @dataEntrada
                                             WHERE AlunoMatricula = @matricula;";
 
-                            using (var cmdVinculo = new MySqlCommand(queryVinculo, conn, transaction))
-                            {
-                                cmdVinculo.Parameters.AddWithValue("@matricula", aluno.Matricula);
-                                cmdVinculo.Parameters.AddWithValue("@dataEntrada", aluno.DataEntrada);
-
-                                // Trata caso o aluno fique sem turma
-                                cmdVinculo.Parameters.AddWithValue("@turmaId", (object)aluno.TurmaId ?? DBNull.Value);
-
-                                cmdVinculo.ExecuteNonQuery();
-                            }
-
-                            // Se os dois UPDATEs deram certo, grava em definitivo no banco
-                            transaction.Commit();
-                        }
-                        catch
+                        using (var cmdVinculo = new MySqlCommand(queryVinculo, conn, transaction))
                         {
-                            // Se algo falhar em qualquer uma das tabelas, desfaz tudo
-                            transaction.Rollback();
-                            throw; // Repassa o erro para o bloco catch externo
+                            cmdVinculo.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                            cmdVinculo.Parameters.AddWithValue("@dataEntrada", aluno.DataEntrada);
+
+                            // Trata caso o aluno fique sem turma
+                            cmdVinculo.Parameters.AddWithValue("@turmaId", (object)aluno.TurmaId ?? DBNull.Value);
+
+                            cmdVinculo.ExecuteNonQuery();
                         }
+
+                        // Se os dois UPDATEs deram certo, grava em definitivo no banco
+                        transaction.Commit();
+                    }
+                    catch (RegistroNaoEncontradoException)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                    catch (MySqlException ex)
+                    {
+                        transaction.Rollback();
+                        throw MySqlExceptionTranslator.Traduzir(ex, "o aluno");
+                    }
+                    catch
+                    {
+                        // Se algo falhar em qualquer uma das tabelas, desfaz tudo
+                        transaction.Rollback();
+                        throw; // Repassa o erro para o bloco catch externo
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Não foi possível atualizar os dados e o vínculo do aluno.", ex);
             }
         }
 
-        public void Excluir(string matricula) 
+        public void Excluir(string matricula)
         {
-            try
+            using (var conn = new MySqlConnection(connectionString))
             {
-                using (var conn = new MySqlConnection(connectionString))
+                AbrirConexao(conn, "o aluno");
+
+                using (var transaction = conn.BeginTransaction())
                 {
-                    conn.Open();
-
-                    string queryAluno = @"
-                    DELETE FROM Aluno WHERE Matricula = @matricula;";
-
-                    using (var cmd = new MySqlCommand(queryAluno, conn))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("@matricula", matricula);
-                        cmd.ExecuteNonQuery();
+                        // Remove primeiro os registros que dependem do aluno (faltas e
+                        // vínculo com turma) para não deixar registros órfãos no banco,
+                        // conforme prometido ao usuário na confirmação de exclusão.
+                        string queryAusencia = "DELETE FROM Ausencia WHERE AlunoMatricula = @matricula;";
+                        using (var cmd = new MySqlCommand(queryAusencia, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@matricula", matricula);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryVinculo = "DELETE FROM VinculoTurmaAluno WHERE AlunoMatricula = @matricula;";
+                        using (var cmd = new MySqlCommand(queryVinculo, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@matricula", matricula);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryAluno = "DELETE FROM Aluno WHERE Matricula = @matricula;";
+                        using (var cmd = new MySqlCommand(queryAluno, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@matricula", matricula);
+                            int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                            if (linhasAfetadas == 0)
+                                throw new RegistroNaoEncontradoException($"O aluno de matrícula {matricula} não foi encontrado. Ele pode já ter sido excluído por outro usuário.");
+                        }
+
+                        transaction.Commit();
                     }
-
-                    string queryVinculo = @"
-                    DELETE FROM VinculoTurmaAluno WHERE AlunoMatricula = @matricula;";
-
-                    using (var cmd = new MySqlCommand(queryVinculo, conn))
+                    catch (RegistroNaoEncontradoException)
                     {
-                        cmd.Parameters.AddWithValue("@matricula", matricula);
-                        cmd.ExecuteNonQuery();
+                        transaction.Rollback();
+                        throw;
+                    }
+                    catch (MySqlException ex)
+                    {
+                        transaction.Rollback();
+                        throw MySqlExceptionTranslator.Traduzir(ex, "o aluno");
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Nao foi possivel excluir o aluno.", ex);
             }
         }
     }

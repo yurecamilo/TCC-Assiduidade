@@ -136,8 +136,15 @@ namespace TCC_Assiduidade.ViewModel
             MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir esta turma? Essa ação excluirá todos os dados associados a ela (alunos e chamadas)", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (resultado == MessageBoxResult.Yes)
             {
-                _turmaService.Excluir(TurmaSelecionada.TurmaOriginal.Id);
-                AtualizarCacheAposMudanca();
+                try
+                {
+                    _turmaService.Excluir(TurmaSelecionada.TurmaOriginal.Id);
+                    AtualizarCacheAposMudanca();
+                }
+                catch (Exception ex)
+                {
+                    MostrarErro("Não foi possível excluir a turma. Tente novamente.", ex);
+                }
             }
         }
 

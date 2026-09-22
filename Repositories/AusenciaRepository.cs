@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
+using TCC_Assiduidade.Excecoes;
 using TCC_Assiduidade.Modelos.Relatorios;
 
 namespace TCC_Assiduidade.Repositories
@@ -12,32 +13,50 @@ namespace TCC_Assiduidade.Repositories
         private readonly string connectionString = ConfigurationManager.ConnectionStrings["MyDbConn"].ConnectionString;
         public void Adicionar(int aulaId, List<string> alunosMatricula)
         {
+            // Defesa extra: sem linhas, o INSERT montado abaixo ficaria sem valores e
+            // geraria um erro de sintaxe SQL em vez de simplesmente não fazer nada.
+            if (alunosMatricula == null || alunosMatricula.Count == 0) return;
+
             using (var conn = new MySqlConnection(connectionString))
             {
-                conn.Open();
+                try
+                {
+                    conn.Open();
+                }
+                catch (MySqlException ex)
+                {
+                    throw MySqlExceptionTranslator.Traduzir(ex, "as ausências");
+                }
 
                 StringBuilder sql = new StringBuilder("INSERT INTO Ausencia (AulaId, AlunoMatricula) VALUES ");
                 List<string> rows = new List<string>();
 
-                using (var cmd = new MySqlCommand())
+                try
                 {
-                    cmd.Connection = conn;
-
-                    for (int i = 0; i < alunosMatricula.Count; i++)
+                    using (var cmd = new MySqlCommand())
                     {
-                        string mRef = "@m" + i;
-                        string nRef = "@n" + i;
+                        cmd.Connection = conn;
 
-                        rows.Add($"({mRef}, {nRef})");
+                        for (int i = 0; i < alunosMatricula.Count; i++)
+                        {
+                            string mRef = "@m" + i;
+                            string nRef = "@n" + i;
 
-                        cmd.Parameters.AddWithValue(mRef, aulaId);
-                        cmd.Parameters.AddWithValue(nRef, alunosMatricula[i]);
+                            rows.Add($"({mRef}, {nRef})");
+
+                            cmd.Parameters.AddWithValue(mRef, aulaId);
+                            cmd.Parameters.AddWithValue(nRef, alunosMatricula[i]);
+                        }
+
+                        sql.Append(string.Join(",", rows));
+
+                        cmd.CommandText = sql.ToString();
+                        cmd.ExecuteNonQuery();
                     }
-
-                    sql.Append(string.Join(",", rows));
-
-                    cmd.CommandText = sql.ToString();
-                    cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException ex)
+                {
+                    throw MySqlExceptionTranslator.Traduzir(ex, "as ausências");
                 }
             }
         }

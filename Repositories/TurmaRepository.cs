@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using TCC_Assiduidade.Excecoes;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 
@@ -11,27 +12,44 @@ namespace TCC_Assiduidade.Repositories
     {
         private readonly string connectionString = ConfigurationManager.ConnectionStrings["MyDbConn"].ConnectionString;
 
-        public void Adicionar(string turmaNome)
+        /// <summary>
+        /// Abre a conexão traduzindo qualquer falha (servidor fora do ar, sem rede,
+        /// credenciais inválidas) em <see cref="ConexaoBancoDadosException"/>, com
+        /// uma mensagem específica em vez do erro técnico bruto do driver MySQL.
+        /// </summary>
+        private static void AbrirConexao(MySqlConnection conn, string contexto)
         {
             try
             {
-                using (var conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
+                conn.Open();
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, contexto);
+            }
+        }
 
-                    string query = @"
+        public void Adicionar(string turmaNome)
+        {
+            using (var conn = new MySqlConnection(connectionString))
+            {
+                AbrirConexao(conn, "a turma");
+
+                string query = @"
                     INSERT INTO Turma (Nome) VALUES (@nome);";
 
+                try
+                {
                     using (var cmd = new MySqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@nome", turmaNome);
                         cmd.ExecuteNonQuery();
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Nao foi possivel adicionar a turma.", ex);
+                catch (MySqlException ex)
+                {
+                    throw MySqlExceptionTranslator.Traduzir(ex, "a turma");
+                }
             }
         }
 
@@ -169,50 +187,100 @@ namespace TCC_Assiduidade.Repositories
 
         public void Atualizar (int turmaId, string novoNome)
         {
-            try
+            using (var conn = new MySqlConnection(connectionString))
             {
-                using (var conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
+                AbrirConexao(conn, "a turma");
 
-                    string query = @"
+                string query = @"
                     UPDATE Turma SET Nome = @nome WHERE Id = @id;";
 
+                try
+                {
+                    int linhasAfetadas;
                     using (var cmd = new MySqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@nome", novoNome);
                         cmd.Parameters.AddWithValue("@id", turmaId);
-                        cmd.ExecuteNonQuery();
+                        linhasAfetadas = cmd.ExecuteNonQuery();
                     }
+
+                    if (linhasAfetadas == 0)
+                        throw new RegistroNaoEncontradoException($"A turma de código {turmaId} não foi encontrada. Ela pode já ter sido excluída por outro usuário.");
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Nao foi possivel atualizar a turma.", ex);
+                catch (MySqlException ex)
+                {
+                    throw MySqlExceptionTranslator.Traduzir(ex, "a turma");
+                }
             }
         }
 
-        public void Excluir(int turmaId) 
+        public void Excluir(int turmaId)
         {
-            try
+            using (var conn = new MySqlConnection(connectionString))
             {
-                using (var conn = new MySqlConnection(connectionString))
+                AbrirConexao(conn, "a turma");
+
+                using (var transaction = conn.BeginTransaction())
                 {
-                    conn.Open();
-
-                    string query = @"
-                    DELETE FROM Turma WHERE Id = @id;";
-
-                    using (var cmd = new MySqlCommand(query, conn))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("@id", turmaId);
-                        cmd.ExecuteNonQuery();
+                        // Remove em cascata, na ordem correta, tudo o que depende da
+                        // turma: ausências das aulas -> aulas -> vínculos de alunos ->
+                        // a turma em si. Isso cumpre o que a tela de confirmação avisa
+                        // ("excluirá todos os dados associados: alunos e chamadas") e
+                        // evita registros órfãos apontando para uma turma inexistente.
+                        string queryAusencias = @"
+                            DELETE Ausencia FROM Ausencia
+                            INNER JOIN Aula ON Ausencia.AulaId = Aula.Id
+                            WHERE Aula.TurmaId = @turmaId;";
+                        using (var cmd = new MySqlCommand(queryAusencias, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryAulas = "DELETE FROM Aula WHERE TurmaId = @turmaId;";
+                        using (var cmd = new MySqlCommand(queryAulas, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryVinculos = "DELETE FROM VinculoTurmaAluno WHERE TurmaId = @turmaId;";
+                        using (var cmd = new MySqlCommand(queryVinculos, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryTurma = "DELETE FROM Turma WHERE Id = @id;";
+                        using (var cmd = new MySqlCommand(queryTurma, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@id", turmaId);
+                            int linhasAfetadas = cmd.ExecuteNonQuery();
+
+                            if (linhasAfetadas == 0)
+                                throw new RegistroNaoEncontradoException($"A turma de código {turmaId} não foi encontrada. Ela pode já ter sido excluída por outro usuário.");
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (RegistroNaoEncontradoException)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                    catch (MySqlException ex)
+                    {
+                        transaction.Rollback();
+                        throw MySqlExceptionTranslator.Traduzir(ex, "a turma");
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Nao foi possivel atualizar a turma.", ex);
             }
         }
     }

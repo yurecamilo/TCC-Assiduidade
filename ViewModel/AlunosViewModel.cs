@@ -222,8 +222,15 @@ namespace TCC_Assiduidade.ViewModel
             MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir este aluno? Essa ação excluirá todos os dados associados a ele", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (resultado == MessageBoxResult.Yes && obj is AlunoExibicaoDTO aluno)
             {
-                _alunoService.Excluir(aluno.Matricula);
-                AtualizarCacheAposMudanca();
+                try
+                {
+                    _alunoService.Excluir(aluno.Matricula);
+                    AtualizarCacheAposMudanca();
+                }
+                catch (Exception ex)
+                {
+                    MostrarErro("Não foi possível excluir o aluno. Tente novamente.", ex);
+                }
             }
         }
 

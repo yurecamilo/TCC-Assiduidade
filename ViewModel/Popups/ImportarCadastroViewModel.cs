@@ -158,10 +158,19 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 // ENVIANDO O DADO EXTERNO: Passamos a DataEntrada capturada na tela para a regra de negócio do Service
                 ResultadoImportacaoCadastro resultado = _importacaoService.Importacao(nomeDaTurma, dadosCsv, DataEntrada);
 
+                // Se a importação falhou (matrícula duplicada, coluna faltando, etc.),
+                // mostra o motivo e mantém o popup aberto — sem atualizar o cache nem
+                // fechar a janela como se tivesse dado certo.
+                if (!resultado.Sucesso)
+                {
+                    MessageBox.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 // Atualiza o cache global
                 await DataCacheService.ForçarAtualizacaoAsync();
 
-                MessageBox.Show(resultado.Mensagem);
+                MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 _fecharJanela?.Invoke();
             }
             catch (Exception ex)
