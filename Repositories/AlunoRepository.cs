@@ -172,8 +172,9 @@ namespace TCC_Assiduidade.Repositories
 
             string sql = $"SELECT COUNT(1) FROM Aluno WHERE Matricula IN ({string.Join(", ", parametros)})";
 
-            using (var conexao = new MySqlConnection(connectionString))
+            try
             {
+                using (var conexao = new MySqlConnection(connectionString))
                 using (var comando = new MySqlCommand(sql, conexao))
                 {
                     for (int i = 0; i < matriculas.Count; i++)
@@ -187,6 +188,10 @@ namespace TCC_Assiduidade.Repositories
 
                     return totalExistente;
                 }
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "os alunos");
             }
         }
 
@@ -214,8 +219,9 @@ namespace TCC_Assiduidade.Repositories
                             WHERE subM.AlunoMatricula = v.AlunoMatricula
                         )";
 
-            using (var conexao = new MySqlConnection(connectionString))
+            try
             {
+                using (var conexao = new MySqlConnection(connectionString))
                 using (var comando = new MySqlCommand(sql, conexao))
                 {
                     comando.Parameters.AddWithValue("@turmaId", turmaId);
@@ -229,18 +235,24 @@ namespace TCC_Assiduidade.Repositories
                     return Convert.ToInt32(comando.ExecuteScalar());
                 }
             }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "os alunos");
+            }
         }
 
         public List<Aluno> ObterPorTurma(int turmaId)
         {
             var alunos = new List<Aluno>();
 
-            using (var conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
 
-                // Filtra os alunos cuja maior DataEntrada na tabela Matricula seja igual à turma informada
-                string query = @"
+                    // Filtra os alunos cuja maior DataEntrada na tabela Matricula seja igual à turma informada
+                    string query = @"
                 SELECT a.Matricula, a.Nome, a.Email, v.TurmaId
                 FROM Aluno a
                 INNER JOIN VinculoTurmaAluno v ON a.Matricula = v.AlunoMatricula
@@ -252,24 +264,29 @@ namespace TCC_Assiduidade.Repositories
                 )
                 ORDER BY a.Nome ASC;";
 
-                using (var cmd = new MySqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@turmaId", turmaId);
-
-                    using (var reader = cmd.ExecuteReader())
+                    using (var cmd = new MySqlCommand(query, conn))
                     {
-                        while (reader.Read())
+                        cmd.Parameters.AddWithValue("@turmaId", turmaId);
+
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            alunos.Add(new Aluno
+                            while (reader.Read())
                             {
-                                Matricula = reader["Matricula"].ToString(),
-                                Nome = reader["Nome"].ToString(),
-                                Email = reader["Email"].ToString(),
-                                TurmaId = Convert.ToInt32(reader["TurmaId"])
-                            });
+                                alunos.Add(new Aluno
+                                {
+                                    Matricula = reader["Matricula"].ToString(),
+                                    Nome = reader["Nome"].ToString(),
+                                    Email = reader["Email"].ToString(),
+                                    TurmaId = Convert.ToInt32(reader["TurmaId"])
+                                });
+                            }
                         }
                     }
                 }
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "os alunos da turma");
             }
 
             return alunos;
@@ -315,8 +332,9 @@ namespace TCC_Assiduidade.Repositories
         LEFT JOIN Turma t ON v.TurmaId = t.Id
         ORDER BY a.Nome ASC;";
 
-            using (var conn = new MySqlConnection(connectionString))
+            try
             {
+                using (var conn = new MySqlConnection(connectionString))
                 using (var cmd = new MySqlCommand(sql, conn))
                 {
                     conn.Open();
@@ -358,6 +376,10 @@ namespace TCC_Assiduidade.Repositories
                         }
                     }
                 }
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "os dados dos alunos");
             }
 
             return lista;

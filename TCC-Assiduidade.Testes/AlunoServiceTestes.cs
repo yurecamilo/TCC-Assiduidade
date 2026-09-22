@@ -70,11 +70,10 @@ namespace TCC_Assiduidade.Testes
         }
 
         [TestMethod]
-        public void Adicionar_ComAlunoNulo_NaoLancaExcecao()
+        public void Adicionar_ComAlunoNulo_DeveLancarArgumentNullException()
         {
-            // Consistência: chamar Adicionar(null) deve ser uma operação segura
-            // (nenhum efeito), nunca um NullReferenceException.
-            _service.Adicionar((Aluno)null);
+            Assert.ThrowsException<ArgumentNullException>(() =>
+                _service.Adicionar((Aluno)null));
         }
 
         [TestMethod]
@@ -84,6 +83,13 @@ namespace TCC_Assiduidade.Testes
             aluno.Nome = "";
 
             Assert.ThrowsException<ArgumentException>(() => _service.Atualizar(aluno));
+        }
+
+        [TestMethod]
+        public void Atualizar_ComAlunoNulo_DeveLancarArgumentNullException()
+        {
+            Assert.ThrowsException<ArgumentNullException>(() =>
+                _service.Atualizar(null));
         }
 
         [TestMethod]

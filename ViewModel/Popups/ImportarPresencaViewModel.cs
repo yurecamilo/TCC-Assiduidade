@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using TCC_Assiduidade.Modelos.Banco;
-using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.Modelos.Resultados;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
@@ -21,7 +20,6 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
         private List<Turma> _turmas;
         private Turma _turmaSelecionada;
-        private List<RelatorioAusente> _ausentes;
         private string _caminhoArquivo = "Nenhum arquivo selecionado";
         private string _caminhoArquivoCompleto;
 
@@ -117,10 +115,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
         {
             try
             {
-                while (!DataCacheService.IsCarregado)
-                {
-                    await Task.Delay(100);
-                }
+                await DataCacheService.AguardarCarregamentoAsync();
 
                 _listaOriginalDoBanco = DataCacheService.TurmaModeloCache ?? new List<Turma>();
                 Turmas = _listaOriginalDoBanco;

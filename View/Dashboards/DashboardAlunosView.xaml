@@ -166,10 +166,10 @@
                                 <TextBlock Text="Turma" Foreground="#526469" FontSize="11"/>
                             </StackPanel>
                         </Grid>
-                        <TextBlock Grid.Row="1" Text="Percentual acumulado por mês"
+                        <TextBlock Grid.Row="1" Text="Percentual de presença por mês"
                                    Style="{StaticResource DashboardChartCaptionStyle}"/>
                         <controls:DashboardLineChart Grid.Row="2" Height="230"
-                                                     DataContext="{Binding Evolucao}"
+                                                     Pontos="{Binding Evolucao}"
                                                      MostrarSerieSecundaria="True"/>
                     </Grid>
                 </Border>
@@ -187,7 +187,7 @@
                         <TextBlock Grid.Row="1" Text="Presenças e ausências no período"
                                    Style="{StaticResource DashboardChartCaptionStyle}"/>
                         <controls:DashboardDonutChart Grid.Row="2" Height="230"
-                                                      DataContext="{Binding Resultado}"/>
+                                                      Resultado="{Binding Resultado}"/>
                         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
                             <Rectangle Width="10" Height="10" Fill="#2F8F73" Margin="0,0,6,0"/>
                             <TextBlock Text="Presenças" Foreground="#526469" FontSize="12" Margin="0,0,18,0"/>

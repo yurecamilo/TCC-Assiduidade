@@ -30,10 +30,18 @@ namespace TCC_Assiduidade.Servicos.Demonstracao
 
         public MjpegAviWriter(string caminho, int largura, int altura, int fps)
         {
-            if (largura <= 0 || altura <= 0 || fps <= 0)
-                throw new ArgumentOutOfRangeException("As dimensões e a taxa de quadros devem ser positivas.");
+            if (string.IsNullOrWhiteSpace(caminho))
+                throw new ArgumentException("O caminho do vídeo não pode ser vazio.", nameof(caminho));
+            if (largura <= 0)
+                throw new ArgumentOutOfRangeException(nameof(largura), "A largura deve ser positiva.");
+            if (altura <= 0)
+                throw new ArgumentOutOfRangeException(nameof(altura), "A altura deve ser positiva.");
+            if (fps <= 0)
+                throw new ArgumentOutOfRangeException(nameof(fps), "A taxa de quadros deve ser positiva.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(caminho));
+            string diretorio = Path.GetDirectoryName(caminho);
+            if (!string.IsNullOrWhiteSpace(diretorio))
+                Directory.CreateDirectory(diretorio);
             _fps = fps;
             _arquivo = new FileStream(caminho, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
             _writer = new BinaryWriter(_arquivo, Encoding.ASCII, true);

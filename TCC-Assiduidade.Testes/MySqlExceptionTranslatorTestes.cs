@@ -36,13 +36,16 @@ namespace TCC_Assiduidade.Testes
             var excecao = MySqlExceptionTranslator.TraduzirPorNumero(1452, "Cannot add or update a child row", "a aula");
 
             Assert.IsInstanceOfType(excecao, typeof(IntegridadeReferencialException));
+            StringAssert.Contains(excecao.Message, "não existe mais");
         }
 
         [DataTestMethod]
         [DataRow(1045)] // acesso negado
         [DataRow(1049)] // banco desconhecido
         [DataRow(2003)] // servidor inacessível
+        [DataRow(2006)] // servidor indisponível
         [DataRow(2013)] // conexão perdida
+        [DataRow(2055)] // conexão perdida (mensagem estendida)
         public void ErrosDeConexao_DevemVirarConexaoBancoDadosException(int numeroErro)
         {
             var excecao = MySqlExceptionTranslator.TraduzirPorNumero(numeroErro, "erro de conexão", "o aluno");
@@ -64,6 +67,13 @@ namespace TCC_Assiduidade.Testes
             var excecao = MySqlExceptionTranslator.TraduzirPorNumero(1062, "Duplicate entry", "");
 
             StringAssert.Contains(excecao.Message, "o registro");
+        }
+
+        [TestMethod]
+        public void Traduzir_ComExcecaoNula_LancaArgumentNullException()
+        {
+            Assert.ThrowsException<System.ArgumentNullException>(() =>
+                MySqlExceptionTranslator.Traduzir(null, "o registro"));
         }
     }
 }

@@ -84,10 +84,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
         {
             try
             {
-                while (!DataCacheService.IsCarregado)
-                {
-                    await Task.Delay(100);
-                }
+                await DataCacheService.AguardarCarregamentoAsync();
 
                 _listaOriginalDoBanco = DataCacheService.TurmaModeloCache ?? new List<Turma>();
                 Turmas = _listaOriginalDoBanco;

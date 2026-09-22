@@ -54,10 +54,12 @@ namespace TCC_Assiduidade.Repositories
         {
             var aulas = new List<AulaExibicaoDTO>();
 
-            using (var conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                string query = @"
+                using (var conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = @"
                     SELECT
                         Aula.Id AS AulaId,
                         Aula.Data,
@@ -70,20 +72,25 @@ namespace TCC_Assiduidade.Repositories
                     ORDER BY Aula.Data DESC, Aula.Id DESC;
                 ";
 
-                using (var cmd = new MySqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
+                    using (var cmd = new MySqlCommand(query, conn))
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        aulas.Add(new AulaExibicaoDTO
+                        while (reader.Read())
                         {
-                            AulaId = Convert.ToInt32(reader["AulaId"]),
-                            Data = Convert.ToDateTime(reader["Data"]),
-                            Turma = reader["Turma"].ToString(),
-                            NumeroAusentes = Convert.ToInt32(reader["NumeroAusentes"])
-                        });
+                            aulas.Add(new AulaExibicaoDTO
+                            {
+                                AulaId = Convert.ToInt32(reader["AulaId"]),
+                                Data = Convert.ToDateTime(reader["Data"]),
+                                Turma = reader["Turma"].ToString(),
+                                NumeroAusentes = Convert.ToInt32(reader["NumeroAusentes"])
+                            });
+                        }
                     }
                 }
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "os dados das aulas");
             }
 
             return aulas;

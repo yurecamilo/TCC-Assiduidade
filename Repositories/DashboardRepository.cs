@@ -41,26 +41,33 @@ namespace TCC_Assiduidade.Repositories
                    AND aus.AlunoMatricula = al.Matricula
                 ORDER BY au.Data, au.Id, al.Nome;";
 
-            using (var conexao = new MySqlConnection(connectionString))
-            using (var comando = new MySqlCommand(sql, conexao))
+            try
             {
-                conexao.Open();
-                using (var leitor = comando.ExecuteReader())
+                using (var conexao = new MySqlConnection(connectionString))
+                using (var comando = new MySqlCommand(sql, conexao))
                 {
-                    while (leitor.Read())
+                    conexao.Open();
+                    using (var leitor = comando.ExecuteReader())
                     {
-                        registros.Add(new RegistroFrequenciaDashboard
+                        while (leitor.Read())
                         {
-                            AulaId = Convert.ToInt32(leitor["AulaId"]),
-                            Data = Convert.ToDateTime(leitor["Data"]),
-                            TurmaId = Convert.ToInt32(leitor["TurmaId"]),
-                            Turma = leitor["NomeTurma"].ToString(),
-                            Matricula = leitor["Matricula"].ToString(),
-                            Aluno = leitor["NomeAluno"].ToString(),
-                            Presente = Convert.ToInt32(leitor["Presente"]) == 1
-                        });
+                            registros.Add(new RegistroFrequenciaDashboard
+                            {
+                                AulaId = Convert.ToInt32(leitor["AulaId"]),
+                                Data = Convert.ToDateTime(leitor["Data"]),
+                                TurmaId = Convert.ToInt32(leitor["TurmaId"]),
+                                Turma = leitor["NomeTurma"].ToString(),
+                                Matricula = leitor["Matricula"].ToString(),
+                                Aluno = leitor["NomeAluno"].ToString(),
+                                Presente = Convert.ToInt32(leitor["Presente"]) == 1
+                            });
+                        }
                     }
                 }
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "os dados do dashboard");
             }
 
             return registros;

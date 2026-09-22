@@ -44,7 +44,7 @@ namespace TCC_Assiduidade.View.Controls
             return caneta;
         }
 
-        public static void Reta(
+        public static void DesenharLinha(
             DrawingContext desenho,
             Pen caneta,
             double xInicial,
@@ -58,7 +58,7 @@ namespace TCC_Assiduidade.View.Controls
                 new Point(xFinal, yFinal));
         }
 
-        public static void Circulo(
+        public static void DesenharCirculo(
             DrawingContext desenho,
             Brush preenchimento,
             Pen contorno,
@@ -68,7 +68,7 @@ namespace TCC_Assiduidade.View.Controls
             desenho.DrawEllipse(preenchimento, contorno, centro, raio, raio);
         }
 
-        public static void RetanguloArredondado(
+        public static void DesenharRetanguloArredondado(
             DrawingContext desenho,
             Brush preenchimento,
             Pen contorno,
@@ -108,7 +108,7 @@ namespace TCC_Assiduidade.View.Controls
             desenho.DrawText(texto, posicao);
         }
 
-        public static void Polilinha(
+        public static void DesenharPolilinha(
             DrawingContext desenho,
             Pen caneta,
             IList<Point> pontos)
@@ -120,7 +120,7 @@ namespace TCC_Assiduidade.View.Controls
                 desenho.DrawLine(caneta, pontos[i - 1], pontos[i]);
         }
 
-        public static void Arco(
+        public static void DesenharArco(
             DrawingContext desenho,
             Pen caneta,
             Point centro,

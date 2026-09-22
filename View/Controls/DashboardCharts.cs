@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using TCC_Assiduidade.Modelos.Dashboard;
@@ -22,18 +23,35 @@ namespace TCC_Assiduidade.View.Controls
 
     public class DashboardLineChart : FrameworkElement
     {
-        public bool MostrarSerieSecundaria { get; set; }
+        public static readonly DependencyProperty PontosProperty = DependencyProperty.Register(
+            nameof(Pontos),
+            typeof(IEnumerable<PontoGraficoDashboard>),
+            typeof(DashboardLineChart),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
-        public DashboardLineChart()
+        public static readonly DependencyProperty MostrarSerieSecundariaProperty = DependencyProperty.Register(
+            nameof(MostrarSerieSecundaria),
+            typeof(bool),
+            typeof(DashboardLineChart),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public IEnumerable<PontoGraficoDashboard> Pontos
         {
-            DataContextChanged += AtualizarGrafico;
+            get => (IEnumerable<PontoGraficoDashboard>)GetValue(PontosProperty);
+            set => SetValue(PontosProperty, value);
+        }
+
+        public bool MostrarSerieSecundaria
+        {
+            get => (bool)GetValue(MostrarSerieSecundariaProperty);
+            set => SetValue(MostrarSerieSecundariaProperty, value);
         }
 
         protected override void OnRender(DrawingContext desenho)
         {
             base.OnRender(desenho);
 
-            List<PontoGraficoDashboard> pontos = DataContext as List<PontoGraficoDashboard>;
+            List<PontoGraficoDashboard> pontos = Pontos?.ToList();
             if (pontos == null || pontos.Count == 0 || ActualWidth < 160 || ActualHeight < 100)
             {
                 DesenharSemDados(desenho, ActualWidth, ActualHeight);
@@ -51,7 +69,7 @@ namespace TCC_Assiduidade.View.Controls
             foreach (int percentual in percentuais)
             {
                 double y = CalcularY(percentual, margemTopo, altura);
-                PrimitivasGraficas.Reta(
+                PrimitivasGraficas.DesenharLinha(
                     desenho,
                     PrimitivasGraficas.Caneta(CoresDashboard.Grade),
                     margemEsquerda,
@@ -89,10 +107,10 @@ namespace TCC_Assiduidade.View.Controls
             for (int i = 0; i < pontos.Count; i++)
             {
                 Point ponto = linhaPrincipal[i];
-                PrimitivasGraficas.Circulo(desenho, CoresDashboard.Azul, null, ponto, 4);
+                PrimitivasGraficas.DesenharCirculo(desenho, CoresDashboard.Azul, null, ponto, 4);
 
                 if (MostrarSerieSecundaria && linhaSecundaria.Count == pontos.Count)
-                    PrimitivasGraficas.Circulo(desenho, CoresDashboard.Verde, null, linhaSecundaria[i], 3);
+                    PrimitivasGraficas.DesenharCirculo(desenho, CoresDashboard.Verde, null, linhaSecundaria[i], 3);
 
                 if (i % intervaloRotulo == 0 || i == pontos.Count - 1)
                 {
@@ -109,11 +127,6 @@ namespace TCC_Assiduidade.View.Controls
             }
         }
 
-        private void AtualizarGrafico(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateVisual();
-        }
-
         private static double CalcularY(double percentual, double margemTopo, double altura)
         {
             double valor = Math.Max(0, Math.Min(100, percentual));
@@ -122,7 +135,7 @@ namespace TCC_Assiduidade.View.Controls
 
         private static void DesenharLinha(DrawingContext desenho, List<Point> pontos, Brush cor)
         {
-            PrimitivasGraficas.Polilinha(
+            PrimitivasGraficas.DesenharPolilinha(
                 desenho,
                 PrimitivasGraficas.Caneta(cor, 3),
                 pontos);
@@ -148,16 +161,23 @@ namespace TCC_Assiduidade.View.Controls
     {
         private static readonly CultureInfo Cultura = new CultureInfo("pt-BR");
 
-        public DashboardBarChart()
+        public static readonly DependencyProperty PontosProperty = DependencyProperty.Register(
+            nameof(Pontos),
+            typeof(IEnumerable<PontoGraficoDashboard>),
+            typeof(DashboardBarChart),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public IEnumerable<PontoGraficoDashboard> Pontos
         {
-            DataContextChanged += AtualizarGrafico;
+            get => (IEnumerable<PontoGraficoDashboard>)GetValue(PontosProperty);
+            set => SetValue(PontosProperty, value);
         }
 
         protected override void OnRender(DrawingContext desenho)
         {
             base.OnRender(desenho);
 
-            List<PontoGraficoDashboard> origem = DataContext as List<PontoGraficoDashboard>;
+            List<PontoGraficoDashboard> origem = Pontos?.ToList();
             var pontos = new List<PontoGraficoDashboard>();
             if (origem != null)
             {
@@ -192,7 +212,7 @@ namespace TCC_Assiduidade.View.Controls
                     new Point(0, centroY - textoRotulo.Height / 2));
 
                 var fundo = new Rect(inicioBarra, centroY - alturaBarra / 2, larguraBarra, alturaBarra);
-                PrimitivasGraficas.RetanguloArredondado(
+                PrimitivasGraficas.DesenharRetanguloArredondado(
                     desenho,
                     CoresDashboard.Fundo,
                     null,
@@ -205,7 +225,7 @@ namespace TCC_Assiduidade.View.Controls
                     larguraBarra * valor / 100.0,
                     alturaBarra);
 
-                PrimitivasGraficas.RetanguloArredondado(
+                PrimitivasGraficas.DesenharRetanguloArredondado(
                     desenho,
                     ObterCor(valor),
                     null,
@@ -219,11 +239,6 @@ namespace TCC_Assiduidade.View.Controls
                     textoValor,
                     new Point(ActualWidth - textoValor.Width, centroY - textoValor.Height / 2));
             }
-        }
-
-        private void AtualizarGrafico(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateVisual();
         }
 
         private static Brush ObterCor(double valor)
@@ -253,16 +268,23 @@ namespace TCC_Assiduidade.View.Controls
     {
         private static readonly CultureInfo Cultura = new CultureInfo("pt-BR");
 
-        public DashboardDonutChart()
+        public static readonly DependencyProperty ResultadoProperty = DependencyProperty.Register(
+            nameof(Resultado),
+            typeof(ResultadoDashboardBase),
+            typeof(DashboardDonutChart),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public ResultadoDashboardBase Resultado
         {
-            DataContextChanged += AtualizarGrafico;
+            get => (ResultadoDashboardBase)GetValue(ResultadoProperty);
+            set => SetValue(ResultadoProperty, value);
         }
 
         protected override void OnRender(DrawingContext desenho)
         {
             base.OnRender(desenho);
 
-            ResultadoDashboardBase resultado = DataContext as ResultadoDashboardBase;
+            ResultadoDashboardBase resultado = Resultado;
             int presentes = resultado == null ? 0 : resultado.Presentes;
             int ausentes = resultado == null ? 0 : resultado.Ausentes;
             int total = Math.Max(0, presentes) + Math.Max(0, ausentes);
@@ -274,17 +296,17 @@ namespace TCC_Assiduidade.View.Controls
             var centro = new Point(ActualWidth / 2, ActualHeight / 2);
 
             Pen canetaFundo = PrimitivasGraficas.Caneta(CoresDashboard.Fundo, espessura);
-            PrimitivasGraficas.Circulo(desenho, null, canetaFundo, centro, raio);
+            PrimitivasGraficas.DesenharCirculo(desenho, null, canetaFundo, centro, raio);
 
             if (percentual >= 99.999)
             {
                 Pen canetaCompleta = PrimitivasGraficas.Caneta(CoresDashboard.Verde, espessura);
-                PrimitivasGraficas.Circulo(desenho, null, canetaCompleta, centro, raio);
+                PrimitivasGraficas.DesenharCirculo(desenho, null, canetaCompleta, centro, raio);
             }
             else if (percentual > 0)
             {
                 Pen caneta = PrimitivasGraficas.CanetaArredondada(CoresDashboard.Verde, espessura);
-                PrimitivasGraficas.Arco(desenho, caneta, centro, raio, -90, percentual * 3.6);
+                PrimitivasGraficas.DesenharArco(desenho, caneta, centro, raio, -90, percentual * 3.6);
             }
 
             FormattedText valor = PrimitivasGraficas.Texto(
@@ -303,9 +325,5 @@ namespace TCC_Assiduidade.View.Controls
                 new Point(centro.X - legenda.Width / 2, centro.Y + 5));
         }
 
-        private void AtualizarGrafico(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateVisual();
-        }
     }
 }

@@ -115,10 +115,7 @@ namespace TCC_Assiduidade.ViewModel
         {
             try
             {
-                while (!DataCacheService.IsCarregado)
-                {
-                    await Task.Delay(100);
-                }
+                await DataCacheService.AguardarCarregamentoAsync();
 
                 _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
                 Alunos = _listaOriginalDoBanco;

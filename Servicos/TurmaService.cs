@@ -4,6 +4,8 @@ using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Repositories;
 
+using TCC_Assiduidade.Excecoes;
+
 namespace TCC_Assiduidade.Servicos
 {
     public class TurmaService
@@ -22,7 +24,7 @@ namespace TCC_Assiduidade.Servicos
 
             var turmaExistente = _turmaRepository.ObterTurmaPorNome(turmaNome);
             if (turmaExistente != null)
-                throw new InvalidOperationException("Já existe uma turma com esse nome.");
+                throw new RegistroDuplicadoException("Já existe uma turma com esse nome.");
 
             _turmaRepository.Adicionar(turmaNome);
         }
@@ -61,10 +63,10 @@ namespace TCC_Assiduidade.Servicos
                 throw new ArgumentException("O nome da turma não pode ser nulo ou vazio.", nameof(novoNome));
             var turmaExistente = _turmaRepository.ObterTurmaPorId(turmaId);
             if (turmaExistente == null)
-                throw new InvalidOperationException("A turma especificada não existe.");
+                throw new RegistroNaoEncontradoException("A turma especificada não existe.");
             var outraTurmaComMesmoNome = _turmaRepository.ObterTurmaPorNome(novoNome);
             if (outraTurmaComMesmoNome != null && outraTurmaComMesmoNome.Id != turmaId)
-                throw new InvalidOperationException("Já existe outra turma com esse nome.");
+                throw new RegistroDuplicadoException("Já existe outra turma com esse nome.");
             _turmaRepository.Atualizar(turmaId, novoNome);
         }
 
@@ -74,7 +76,7 @@ namespace TCC_Assiduidade.Servicos
                 throw new ArgumentException("O ID da turma deve ser maior que zero.", nameof(turmaId));
             var turmaExistente = _turmaRepository.ObterTurmaPorId(turmaId);
             if (turmaExistente == null)
-                throw new InvalidOperationException("A turma especificada não existe.");
+                throw new RegistroNaoEncontradoException("A turma especificada não existe.");
             _turmaRepository.Excluir(turmaId);
         }
     }

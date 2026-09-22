@@ -151,20 +151,24 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
         private async Task CarregarDadosAsync()
         {
-            while (!DataCacheService.IsCarregado)
+            try
             {
-                await Task.Delay(100);
+                await DataCacheService.AguardarCarregamentoAsync();
+
+                _listaOriginalDoBanco = DataCacheService.TurmasCache ?? new List<TurmaExibicaoDTO>();
+
+                Turmas = _listaOriginalDoBanco.Select(t => new TurmaRelatorioItem
+                {
+                    TurmaOriginal = t.TurmaOriginal,
+                    Nome = t.Nome,
+                    QuantidadeAlunos = t.QuantidadeAlunos,
+                    IsSelected = false
+                }).ToList() ?? new List<TurmaRelatorioItem>();
             }
-
-            _listaOriginalDoBanco = DataCacheService.TurmasCache ?? new List<TurmaExibicaoDTO>();
-
-            Turmas = _listaOriginalDoBanco.Select(t => new TurmaRelatorioItem
+            catch (Exception ex)
             {
-                TurmaOriginal = t.TurmaOriginal,
-                Nome = t.Nome,
-                QuantidadeAlunos = t.QuantidadeAlunos,
-                IsSelected = false
-            }).ToList() ?? new List<TurmaRelatorioItem>();
+                MostrarErro("Nao foi possivel carregar as turmas. Verifique a conexao com o banco e tente novamente.", ex);
+            }
         }
 
         private void GerarRelatorioTurmasLote()

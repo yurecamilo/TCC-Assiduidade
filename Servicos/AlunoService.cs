@@ -17,7 +17,9 @@ namespace TCC_Assiduidade.Servicos
 
         public void Adicionar(Aluno aluno)
         {
-            if (aluno == null) return;
+            if (aluno == null)
+                throw new ArgumentNullException(nameof(aluno), "Aluno inválido.");
+
             ValidarAluno(aluno);
 
             _alunoRepository.Adicionar(aluno);
@@ -100,7 +102,9 @@ namespace TCC_Assiduidade.Servicos
 
         public void Atualizar(Aluno aluno)
         {
-            if (aluno == null) return;
+            if (aluno == null)
+                throw new ArgumentNullException(nameof(aluno), "Aluno inválido.");
+
             ValidarAluno(aluno);
             _alunoRepository.Atualizar(aluno);
         }

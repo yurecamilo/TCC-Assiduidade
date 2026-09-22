@@ -18,7 +18,7 @@ cada tipo de problema.
 ## As quatro exceções de domínio
 
 Criadas em `Excecoes/`, cada uma representa uma categoria de problema
-possível ao gravar dados:
+possível ao acessar dados:
 
 | Exceção | Quando acontece | Exemplo real |
 |---|---|---|
@@ -51,7 +51,7 @@ flowchart LR
     E["MySqlException.Number"] --> D{Qual código?}
     D -- "1062 (entrada duplicada)" --> A[RegistroDuplicadoException]
     D -- "1451 / 1452 (violação de chave estrangeira)" --> B[IntegridadeReferencialException]
-    D -- "1045, 1049, 1040, 2002, 2003, 2005, 2013<br/>(acesso negado / sem conexão)" --> C[ConexaoBancoDadosException]
+    D -- "1045, 1049, 1040, 2002, 2003, 2005,<br/>2006, 2013, 2055 (acesso negado / sem conexão)" --> C[ConexaoBancoDadosException]
     D -- "qualquer outro código" --> F["InvalidOperationException<br/>(mensagem genérica + detalhe técnico)"]
 ```
 
@@ -66,9 +66,12 @@ public static Exception TraduzirPorNumero(int numeroErro, string mensagemOrigina
                 $"Já existe {contexto} cadastrado com esses dados. ...", excecaoInterna);
 
         case ErroLinhaReferenciadaPai:
-        case ErroLinhaReferenciadaFilho:
             return new IntegridadeReferencialException(
                 $"Não é possível concluir esta operação em {contexto} porque existem outros registros vinculados a ele(a)...", excecaoInterna);
+
+        case ErroLinhaReferenciadaFilho:
+            return new IntegridadeReferencialException(
+                $"Não é possível concluir esta operação em {contexto} porque um dos registros relacionados não existe mais...", excecaoInterna);
         // ...
     }
 }
@@ -81,8 +84,9 @@ automatizados conseguem verificar cada cenário sem precisar de uma conexão
 real com o banco (nem de um jeito de "forçar" o MySQL a falhar de propósito).
 
 Todos os repositórios (`AlunoRepository`, `TurmaRepository`,
-`AulaRepository`, `AusenciaRepository`) usam o tradutor tanto ao abrir a
-conexão quanto ao executar comandos:
+`AulaRepository`, `AusenciaRepository` e `DashboardRepository`) usam o
+tradutor tanto ao abrir a conexão quanto ao executar comandos, inclusive nas
+consultas somente de leitura:
 
 ```csharp
 // Repositories/AlunoRepository.cs
@@ -174,7 +178,7 @@ Vale documentar estes pontos porque eles ilustram, na prática, o que
 ## O projeto de testes automatizados
 
 `TCC-Assiduidade.Testes/` é um projeto separado (MSTest) dentro da mesma
-solução (`TCC Assiduidade.slnx`), com **47 testes** organizados por
+solução (`TCC Assiduidade.slnx`), com **72 testes** organizados por
 responsabilidade:
 
 | Arquivo | O que cobre |
@@ -185,6 +189,12 @@ responsabilidade:
 | `MySqlExceptionTranslatorTestes.cs` | Cada código de erro do MySQL vira a exceção de domínio certa. |
 | `ArquivoServiceTestes.cs` | Integridade de arquivos CSV: cabeçalho duplicado/vazio, arquivo inexistente, separador `,`/`;`, linha incompleta. |
 | `ClassificacaoDeErrosTestes.cs` | Cada tipo de exceção gera o título e a mensagem corretos. |
+| `AusenciaServiceTestes.cs` | Aula inválida, lista nula e o caso válido em que nenhum aluno faltou. |
+| `DashboardServiceTestes.cs` | Filtros inclusivos, transferência entre turmas, ranking, risco e limite das 12 aulas recentes. |
+| `DashboardHtmlServiceTestes.cs` | Bloqueio da exportação sem dados e codificação segura de conteúdo dinâmico. |
+| `DemonstracaoServiceTestes.cs` | Massa inexistente, completa, parcial e contagens impossíveis. |
+| `MjpegAviWriterTestes.cs` | Validação dos parâmetros e estrutura mínima RIFF/AVI gerada. |
+| `PrimitivasGraficasTestes.cs` | Cores, congelamento de recursos WPF e propriedades de dependência dos controles. |
 
 ### Por que os testes não precisam de um banco de dados real
 
@@ -199,7 +209,8 @@ chamada ao Repositório:
 // Servicos/AlunoService.cs
 public void Adicionar(Aluno aluno)
 {
-    if (aluno == null) return;
+    if (aluno == null)
+        throw new ArgumentNullException(nameof(aluno), "Aluno inválido.");
     ValidarAluno(aluno);            // <- lança aqui se algo estiver errado
     _alunoRepository.Adicionar(aluno);  // <- só chega aqui se passou na validação
 }
@@ -234,6 +245,11 @@ public void EntradaDuplicada_1062_DeveVirarRegistroDuplicadoException()
 }
 ```
 
+Os cálculos de dashboard recebem, nos testes, uma coleção sintética de
+`RegistroFrequenciaDashboard`; não é necessário preparar tabelas. Os testes do
+escritor AVI usam um arquivo temporário, e os testes gráficos executam em uma
+thread STA, exigência do WPF, sem abrir uma janela.
+
 E para poder testar `BaseViewModel.ClassificarErro` — que é `internal`, ou
 seja, só visível dentro do próprio assembly do sistema — o projeto principal
 declara explicitamente que confia no projeto de testes:
@@ -255,8 +271,8 @@ vstest.console.exe "TCC-Assiduidade.Testes\bin\Debug\TCC_Assiduidade.Testes.dll"
 Resultado esperado (situação no momento desta documentação):
 
 ```
-Total de testes: 47
-     Aprovados: 47
+Total de testes: 72
+     Aprovados: 72
 ```
 
 ## Resumo do ciclo completo

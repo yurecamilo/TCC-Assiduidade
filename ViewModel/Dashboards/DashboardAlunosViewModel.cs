@@ -154,6 +154,7 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
 
             Resultado = _dashboardService.ObterDashboardAluno(
                 AlunoSelecionado?.Matricula,
+                AlunoSelecionado?.TurmaId ?? TurmaSelecionada?.Id ?? 0,
                 DataInicio,
                 DataFim);
 

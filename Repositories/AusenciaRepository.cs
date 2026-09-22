@@ -80,29 +80,37 @@ namespace TCC_Assiduidade.Repositories
         INNER JOIN Turma ON Aula.TurmaId = Turma.Id
         WHERE Aula.Id = @aulaId";
 
-            using (var conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                using (var cmd = new MySqlCommand(query, conn))
+                using (var conn = new MySqlConnection(connectionString))
                 {
-                    cmd.Parameters.AddWithValue("@aulaId", aulaId);
-                    using (var reader = cmd.ExecuteReader())
+                    conn.Open();
+                    using (var cmd = new MySqlCommand(query, conn))
                     {
-                        while (reader.Read())
+                        cmd.Parameters.AddWithValue("@aulaId", aulaId);
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            lista.Add(new RelatorioAusente
+                            while (reader.Read())
                             {
-                                AulaId = Convert.ToInt32(reader["AulaId"]),
-                                Data = Convert.ToDateTime(reader["Data"]),
-                                Turma = reader["NomeTurma"].ToString(), // Lendo o alias correto agora!
-                                Matricula = reader["Matricula"].ToString(),
-                                Aluno = reader["Aluno"].ToString(),
-                                Email = reader["Email"].ToString()
-                            });
+                                lista.Add(new RelatorioAusente
+                                {
+                                    AulaId = Convert.ToInt32(reader["AulaId"]),
+                                    Data = Convert.ToDateTime(reader["Data"]),
+                                    Turma = reader["NomeTurma"].ToString(), // Lendo o alias correto agora!
+                                    Matricula = reader["Matricula"].ToString(),
+                                    Aluno = reader["Aluno"].ToString(),
+                                    Email = reader["Email"].ToString()
+                                });
+                            }
                         }
                     }
                 }
             }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "as ausências da aula");
+            }
+
             return lista; // Adicionado o return que faltava no final do método
         }
 

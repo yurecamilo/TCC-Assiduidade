@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
+using TCC_Assiduidade.Repositories;
 
 namespace TCC_Assiduidade.Servicos
 {
@@ -62,11 +63,26 @@ namespace TCC_Assiduidade.Servicos
                     AulasCache = new List<AulaExibicaoDTO>();
                     TurmaModeloCache = new List<Turma>();
 
-                    ErroCarregamento = ex;
+                    ErroCarregamento = MySqlExceptionTranslator.TraduzirSeNecessario(
+                        ex,
+                        "os dados iniciais do sistema");
                     IsCarregado = true;
                     CacheAtualizado?.Invoke();
                 }
             });
+        }
+
+        public static async Task AguardarCarregamentoAsync()
+        {
+            DateTime limite = DateTime.UtcNow.AddSeconds(40);
+            while (!IsCarregado && DateTime.UtcNow < limite)
+                await Task.Delay(100);
+
+            if (!IsCarregado)
+                throw new TimeoutException("O carregamento inicial do banco excedeu 40 segundos.");
+
+            if (ErroCarregamento != null)
+                throw ErroCarregamento;
         }
 
         /// <summary>
@@ -74,26 +90,36 @@ namespace TCC_Assiduidade.Servicos
         /// </summary>
         public static async Task ForçarAtualizacaoAsync()
         {
-            // 🌟 CORRIGIDO: Adicionado a busca de Aulas e TurmaModelo para o refresh não ficar incompleto
-            var tarefaAlunos = Task.Run(() => _alunoService.ObterPerfilAluno());
-            var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem());
-            var tarefaAulas = Task.Run(() => _aulaService.ObterResumoAulas());
-            var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTodasTurmas());
+            try
+            {
+                // 🌟 CORRIGIDO: Adicionado a busca de Aulas e TurmaModelo para o refresh não ficar incompleto
+                var tarefaAlunos = Task.Run(() => _alunoService.ObterPerfilAluno());
+                var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem());
+                var tarefaAulas = Task.Run(() => _aulaService.ObterResumoAulas());
+                var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTodasTurmas());
 
-            // Aguarda todas terminarem
-            await Task.WhenAll(tarefaAlunos, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
+                // Aguarda todas terminarem
+                await Task.WhenAll(tarefaAlunos, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
 
-            // Atualiza os dados
-            AlunosCache = tarefaAlunos.Result ?? new List<AlunoExibicaoDTO>();
-            TurmasCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
-            AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
-            TurmaModeloCache = tarefaTurmaModelo.Result ?? new List<Turma>();
+                // Atualiza os dados
+                AlunosCache = tarefaAlunos.Result ?? new List<AlunoExibicaoDTO>();
+                TurmasCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
+                AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
+                TurmaModeloCache = tarefaTurmaModelo.Result ?? new List<Turma>();
 
-            ErroCarregamento = null;
-            IsCarregado = true;
+                ErroCarregamento = null;
+                IsCarregado = true;
 
-            // 🌟 ADICIONADO: Avisa as telas (Alunos, Turmas, Dashboard) que os dados foram recarregados
-            CacheAtualizado?.Invoke();
+                // 🌟 ADICIONADO: Avisa as telas (Alunos, Turmas, Dashboard) que os dados foram recarregados
+                CacheAtualizado?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                ErroCarregamento = MySqlExceptionTranslator.TraduzirSeNecessario(
+                    ex,
+                    "os dados do sistema");
+                throw ErroCarregamento;
+            }
         }
     }
 }

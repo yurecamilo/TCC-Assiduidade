@@ -134,7 +134,7 @@
                         <TextBlock Grid.Row="1" Text="Composição de presenças e ausências no período"
                                    Style="{StaticResource DashboardChartCaptionStyle}"/>
                         <controls:DashboardDonutChart Grid.Row="2" Height="245"
-                                                      DataContext="{Binding Resultado}"/>
+                                                      Resultado="{Binding Resultado}"/>
                         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
                             <Rectangle Width="10" Height="10" Fill="#2F8F73" Margin="0,0,6,0"/>
                             <TextBlock Text="Presenças" Foreground="#526469" FontSize="12" Margin="0,0,18,0"/>
@@ -156,7 +156,7 @@
                         <TextBlock Grid.Row="1" Text="Ranking no período selecionado"
                                    Style="{StaticResource DashboardChartCaptionStyle}"/>
                         <controls:DashboardBarChart Grid.Row="2" Height="275"
-                                                    DataContext="{Binding Ranking}"/>
+                                                    Pontos="{Binding Ranking}"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -171,7 +171,7 @@
                     <TextBlock Text="Evolução geral" Style="{StaticResource DashboardChartTitleStyle}"/>
                     <TextBlock Grid.Row="1" Text="Percentual de presença por mês"
                                Style="{StaticResource DashboardChartCaptionStyle}"/>
-                    <controls:DashboardLineChart Grid.Row="2" Height="245" DataContext="{Binding Evolucao}"/>
+                    <controls:DashboardLineChart Grid.Row="2" Height="245" Pontos="{Binding Evolucao}"/>
                 </Grid>
             </Border>
         </Grid>

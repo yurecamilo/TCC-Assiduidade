@@ -39,14 +39,20 @@ Classes puras de dados (sem lógica), divididas em três propósitos diferentes:
   sinalizador `Sucesso` e uma `Mensagem`, em vez de lançar uma exceção — ver
   a seção "Dois estilos de erro" em
   [04-fluxo-de-dados-e-regras-de-negocio.md](04-fluxo-de-dados-e-regras-de-negocio.md)).
+- **`Modelos/Dashboard/`** — registros normalizados de presença, opções dos
+  filtros, pontos de gráfico e resultados calculados para os dashboards de
+  alunos, aulas e turmas (ver
+  [06-dashboards-e-geracao-de-graficos.md](06-dashboards-e-geracao-de-graficos.md)).
 
 ### `Repositories/`
-A **única** camada que sabe falar SQL. Cada repositório (`AlunoRepository`,
-`TurmaRepository`, `AulaRepository`, `AusenciaRepository`) abre uma
-`MySqlConnection`, monta comandos parametrizados (`MySqlCommand` com
-`@parametros`, nunca concatenação de string — o que evita *SQL Injection*) e
-devolve objetos de `Modelos/Banco/`. Nenhuma outra camada do sistema contém uma
-única linha de SQL.
+A **única** camada que sabe falar SQL. Os repositórios de cadastro
+(`AlunoRepository`, `TurmaRepository`, `AulaRepository` e
+`AusenciaRepository`) abrem uma `MySqlConnection`, montam comandos
+parametrizados (`MySqlCommand` com `@parametros`, nunca concatenação de string
+— o que evita *SQL Injection*) e devolvem objetos de `Modelos/Banco/`.
+`DashboardRepository` segue a mesma fronteira arquitetural, mas executa uma
+consulta analítica sem entradas do usuário e devolve objetos de
+`Modelos/Dashboard/`. Nenhuma outra camada do sistema contém uma linha de SQL.
 
 Operações que alteram mais de uma tabela ao mesmo tempo (por exemplo, excluir
 um aluno e suas faltas) usam uma **transação** (`conn.BeginTransaction()`), para
@@ -54,9 +60,9 @@ garantir que, se algo falhar no meio do caminho, nada fica gravado pela metade
 — voltamos a este ponto em detalhe em
 [03-banco-de-dados-e-relacionamentos.md](03-banco-de-dados-e-relacionamentos.md).
 
-Desde a revisão de integridade de dados, os repositórios também traduzem
+Desde a revisão de integridade de dados, todos os repositórios traduzem
 qualquer `MySqlException` para uma exceção de domínio específica através do
-`MySqlExceptionTranslator` (ver
+`MySqlExceptionTranslator`, tanto em gravações quanto em consultas (ver
 [05-tratamento-de-erros-e-testes.md](05-tratamento-de-erros-e-testes.md)).
 
 ### `Servicos/`
@@ -77,6 +83,9 @@ Serviços de destaque:
   alunos ou turmas, só sabe transformar um `.csv` em uma lista de dicionários
   texto→texto).
 - **`RelatorioService`** — monta o HTML dos relatórios exportáveis.
+- **`DashboardService`** — transforma os registros de frequência em métricas,
+  rankings e séries temporais; `DashboardHtmlService` recria essas
+  visualizações em HTML, CSS e SVG para exportação.
 - **`DataCacheService`** — um **cache estático em memória** (ver seção
   própria abaixo).
 - **`WindowService`** — abre as janelas de popup (cadastro, edição) de forma
@@ -125,6 +134,8 @@ public partial class TurmasView : UserControl
 - **`View/Popups/`** — janelas modais de cadastro/edição (`NovoAluno`,
   `EditarTurma`, `ImportarCadastro`...).
 - **`View/Relatórios/`** — as três sub-telas da Central de Relatórios.
+- **`View/Dashboards/`** — a central e as três telas analíticas; os gráficos
+  usados por elas são controles próprios em `View/Controls/`.
 - **`View/Converters/`** — conversores de valor usados no *binding* (ver
   [02-data-binding-e-mvvm.md](02-data-binding-e-mvvm.md)).
 - **`View/ANTIGO/`** — telas de uma versão anterior do sistema, mantidas no
@@ -148,8 +159,8 @@ Também documentado em
 
 A janela principal é `View/BaseWindow.xaml` (menu lateral + área de conteúdo).
 Diferente das outras trocas de tela do sistema (que usam *data binding*, ver o
-próximo documento), a navegação **entre as quatro seções principais** (Início,
-Turmas, Alunos, Relatórios) é feita diretamente no *code-behind* de
+próximo documento), a navegação **entre as cinco seções principais** (Início,
+Turmas, Alunos, Relatórios e Dashboards) é feita diretamente no *code-behind* de
 `BaseWindow`, trocando o `Content` de um `ContentControl`:
 
 ```csharp
@@ -168,6 +179,11 @@ Já **dentro** da tela de Relatórios, a navegação entre as três sub-telas
 `ConteudoAtual` do `RelatoriosViewModel` — uma mistura pragmática das duas
 abordagens que convive no mesmo sistema. Essa diferença é comentada com mais
 detalhe em [02-data-binding-e-mvvm.md](02-data-binding-e-mvvm.md).
+
+A Central de Dashboards repete esse segundo padrão: `DashboardsViewModel`
+mantém uma propriedade `ConteudoAtual` e a troca, por comando, entre os
+dashboards de alunos, aulas e turmas. Os detalhes desse fluxo estão em
+[06-dashboards-e-geracao-de-graficos.md](06-dashboards-e-geracao-de-graficos.md).
 
 ## O cache em memória (`DataCacheService`)
 

@@ -125,14 +125,18 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
         private async Task CarregarDadosAsync()
         {
-            while (!DataCacheService.IsCarregado)
+            try
             {
-                await Task.Delay(100);
-            }
+                await DataCacheService.AguardarCarregamentoAsync();
 
-            _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
-            InicializarComboBoxTurmas();
-            ExecutarBusca();
+                _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+                InicializarComboBoxTurmas();
+                ExecutarBusca();
+            }
+            catch (Exception ex)
+            {
+                MostrarErro("Nao foi possivel carregar os alunos. Verifique a conexao com o banco e tente novamente.", ex);
+            }
         }
 
         private void InicializarComboBoxTurmas()

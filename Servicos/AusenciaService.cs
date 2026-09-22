@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.Repositories;
 
@@ -15,8 +16,13 @@ namespace TCC_Assiduidade.Servicos
 
         public void Adicionar(int aulaId, List<string> alunosMatricula)
         {
-            if (aulaId <= 0 || alunosMatricula == null || alunosMatricula.Count == 0)
+            if (aulaId <= 0)
+                throw new ArgumentException("O ID da aula deve ser maior que zero.", nameof(aulaId));
+            if (alunosMatricula == null)
+                throw new ArgumentNullException(nameof(alunosMatricula));
+            if (alunosMatricula.Count == 0)
                 return;
+
             _ausenciaRepository.Adicionar(aulaId, alunosMatricula);
         }
 

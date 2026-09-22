@@ -20,6 +20,12 @@ namespace TCC_Assiduidade.Servicos
             _dashboardRepository = new DashboardRepository();
         }
 
+        internal DashboardService(IEnumerable<RegistroFrequenciaDashboard> registros)
+        {
+            _registros = registros?.ToList() ?? new List<RegistroFrequenciaDashboard>();
+            _dadosCarregados = true;
+        }
+
         public async Task CarregarDadosAsync()
         {
             if (_dadosCarregados)
@@ -49,12 +55,13 @@ namespace TCC_Assiduidade.Servicos
         {
             return _registros
                 .Where(r => turmaId <= 0 || r.TurmaId == turmaId)
-                .GroupBy(r => new { r.Matricula, r.Aluno, r.TurmaId })
+                .GroupBy(r => new { r.Matricula, r.Aluno, r.TurmaId, r.Turma })
                 .Select(g => new OpcaoAlunoDashboard
                 {
                     Matricula = g.Key.Matricula,
                     Nome = g.Key.Aluno,
-                    TurmaId = g.Key.TurmaId
+                    TurmaId = g.Key.TurmaId,
+                    Turma = g.Key.Turma
                 })
                 .OrderBy(a => a.Nome)
                 .ToList();
@@ -72,11 +79,13 @@ namespace TCC_Assiduidade.Servicos
 
         public ResultadoDashboardAluno ObterDashboardAluno(
             string matricula,
+            int turmaId,
             DateTime? dataInicio,
             DateTime? dataFim)
         {
             var registrosAluno = FiltrarPeriodo(_registros, dataInicio, dataFim)
-                .Where(r => r.Matricula == matricula)
+                .Where(r => r.Matricula == matricula &&
+                            (turmaId <= 0 || r.TurmaId == turmaId))
                 .OrderBy(r => r.Data)
                 .ToList();
 
@@ -93,8 +102,9 @@ namespace TCC_Assiduidade.Servicos
             int total = registrosAluno.Count;
             double assiduidade = CalcularPercentual(presentes, total);
 
+            int turmaAnalisada = turmaId > 0 ? turmaId : primeiro.TurmaId;
             var registrosTurma = FiltrarPeriodo(_registros, dataInicio, dataFim)
-                .Where(r => r.TurmaId == primeiro.TurmaId)
+                .Where(r => r.TurmaId == turmaAnalisada)
                 .ToList();
 
             double mediaTurma = CalcularPercentual(

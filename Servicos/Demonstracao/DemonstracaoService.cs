@@ -164,6 +164,7 @@ namespace TCC_Assiduidade.Servicos.Demonstracao
         {
             var alunoService = new AlunoService();
             int existentes = alunoService.ObterQuantidadeMatriculasExistentes(Matriculas);
+            ValidarQuantidadeMassa(existentes, Matriculas.Count);
 
             if (existentes == 0)
             {
@@ -207,6 +208,20 @@ namespace TCC_Assiduidade.Servicos.Demonstracao
             else
             {
                 _registro.AppendLine("Presença: aula de demonstração já existente; reutilizada.");
+            }
+        }
+
+        internal static void ValidarQuantidadeMassa(int existentes, int totalEsperado)
+        {
+            if (totalEsperado <= 0)
+                throw new ArgumentOutOfRangeException(nameof(totalEsperado));
+            if (existentes < 0 || existentes > totalEsperado)
+                throw new ArgumentOutOfRangeException(nameof(existentes));
+            if (existentes > 0 && existentes < totalEsperado)
+            {
+                throw new InvalidOperationException(
+                    "A massa de demonstração está incompleta: foram encontrados " + existentes +
+                    " de " + totalEsperado + " alunos. Remova a massa parcial ou complete-a antes de gerar a demonstração.");
             }
         }
 
@@ -343,14 +358,7 @@ namespace TCC_Assiduidade.Servicos.Demonstracao
 
         private static async Task AguardarCacheAsync()
         {
-            DateTime limite = DateTime.Now.AddSeconds(40);
-            while (!DataCacheService.IsCarregado && DateTime.Now < limite)
-                await Task.Delay(150);
-
-            if (!DataCacheService.IsCarregado)
-                throw new TimeoutException("O carregamento inicial do banco excedeu 40 segundos.");
-            if (DataCacheService.ErroCarregamento != null)
-                throw new InvalidOperationException("Não foi possível carregar os dados do banco.", DataCacheService.ErroCarregamento);
+            await DataCacheService.AguardarCarregamentoAsync();
         }
     }
 }

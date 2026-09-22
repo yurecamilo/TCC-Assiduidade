@@ -11,9 +11,20 @@ namespace TCC_Assiduidade.Modelos.Dashboard
         public string Matricula { get; set; }
         public string Nome { get; set; }
         public int TurmaId { get; set; }
+        public string Turma { get; set; }
 
-        public string Descricao => string.IsNullOrWhiteSpace(Matricula)
-            ? Nome
-            : Nome + " — " + Matricula;
+        public string Descricao
+        {
+            get
+            {
+                string aluno = string.IsNullOrWhiteSpace(Matricula)
+                    ? Nome
+                    : Nome + " — " + Matricula;
+
+                return string.IsNullOrWhiteSpace(Turma)
+                    ? aluno
+                    : aluno + " — " + Turma;
+            }
+        }
     }
 }

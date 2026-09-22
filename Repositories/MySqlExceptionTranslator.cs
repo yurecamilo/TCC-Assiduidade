@@ -25,13 +25,26 @@ namespace TCC_Assiduidade.Repositories
         private const int ErroMuitasConexoes = 1040;                // ER_CON_COUNT_ERROR
         private const int ErroConexaoSocket = 2002;                 // CR_CONNECTION_ERROR
         private const int ErroConexaoServidor = 2003;                // CR_CONN_HOST_ERROR
+        private const int ErroServidorIndisponivel = 2006;           // CR_SERVER_GONE_ERROR
         private const int ErroConexaoPerdida = 2013;                 // CR_SERVER_LOST
         private const int ErroHostDesconhecido = 2005;               // CR_UNKNOWN_HOST
+        private const int ErroConexaoPerdidaEstendida = 2055;        // CR_SERVER_LOST_EXTENDED
 
         public static Exception Traduzir(MySqlException excecao, string contexto)
         {
-            if (excecao == null) return null;
+            if (excecao == null)
+                throw new ArgumentNullException(nameof(excecao));
+
             return TraduzirPorNumero(excecao.Number, excecao.Message, contexto, excecao);
+        }
+
+        public static Exception TraduzirSeNecessario(Exception excecao, string contexto)
+        {
+            if (excecao == null)
+                throw new ArgumentNullException(nameof(excecao));
+
+            var erroMySql = excecao as MySqlException;
+            return erroMySql == null ? excecao : Traduzir(erroMySql, contexto);
         }
 
         /// <summary>
@@ -52,9 +65,13 @@ namespace TCC_Assiduidade.Repositories
                         excecaoInterna);
 
                 case ErroLinhaReferenciadaPai:
-                case ErroLinhaReferenciadaFilho:
                     return new IntegridadeReferencialException(
                         $"Não é possível concluir esta operação em {alvo} porque existem outros registros vinculados a ele(a) no sistema.",
+                        excecaoInterna);
+
+                case ErroLinhaReferenciadaFilho:
+                    return new IntegridadeReferencialException(
+                        $"Não é possível concluir esta operação em {alvo} porque um dos registros relacionados não existe mais no sistema.",
                         excecaoInterna);
 
                 case ErroAcessoNegado:
@@ -62,8 +79,10 @@ namespace TCC_Assiduidade.Repositories
                 case ErroMuitasConexoes:
                 case ErroConexaoSocket:
                 case ErroConexaoServidor:
+                case ErroServidorIndisponivel:
                 case ErroConexaoPerdida:
                 case ErroHostDesconhecido:
+                case ErroConexaoPerdidaEstendida:
                     return new ConexaoBancoDadosException(
                         "Não foi possível conectar ao banco de dados. Verifique sua conexão com a internet e tente novamente em instantes.",
                         excecaoInterna);

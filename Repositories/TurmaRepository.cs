@@ -81,9 +81,9 @@ namespace TCC_Assiduidade.Repositories
                     }
                 }
             }
-            catch (Exception ex)
+            catch (MySqlException ex)
             {
-                throw new InvalidOperationException("Erro ao acessar o banco de dados ao buscar turma.", ex);
+                throw MySqlExceptionTranslator.Traduzir(ex, "a turma");
             }
 
             return null;
@@ -91,28 +91,36 @@ namespace TCC_Assiduidade.Repositories
 
         public Turma ObterTurmaPorId(int turmaId)
         {
-            using (var conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-                string query = "SELECT Id, Nome FROM Turma WHERE Id = @id";
-
-                using (var cmd = new MySqlCommand(query, conn))
+                using (var conn = new MySqlConnection(connectionString))
                 {
-                    cmd.Parameters.AddWithValue("@id", turmaId);
+                    conn.Open();
+                    string query = "SELECT Id, Nome FROM Turma WHERE Id = @id";
 
-                    using (var reader = cmd.ExecuteReader())
+                    using (var cmd = new MySqlCommand(query, conn))
                     {
-                        if (reader.Read())
+                        cmd.Parameters.AddWithValue("@id", turmaId);
+
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            return new Turma
+                            if (reader.Read())
                             {
-                                Id = Convert.ToInt32(reader["Id"]),
-                                Nome = reader["Nome"].ToString()
-                            };
+                                return new Turma
+                                {
+                                    Id = Convert.ToInt32(reader["Id"]),
+                                    Nome = reader["Nome"].ToString()
+                                };
+                            }
                         }
                     }
                 }
             }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "a turma");
+            }
+
             return null;
         }
 
@@ -120,25 +128,33 @@ namespace TCC_Assiduidade.Repositories
         {
             var turmas = new List<Turma>();
 
-            using (var conn = new MySqlConnection(connectionString))
+            try
             {
-                conn.Open();
-
-                string query = "SELECT Id, Nome FROM Turma ORDER BY Nome";
-
-                using (var cmd = new MySqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
+                using (var conn = new MySqlConnection(connectionString))
                 {
-                    while (reader.Read())
+                    conn.Open();
+
+                    string query = "SELECT Id, Nome FROM Turma ORDER BY Nome";
+
+                    using (var cmd = new MySqlCommand(query, conn))
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        turmas.Add(new Turma
+                        while (reader.Read())
                         {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Nome = reader["Nome"].ToString()
-                        });
+                            turmas.Add(new Turma
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                Nome = reader["Nome"].ToString()
+                            });
+                        }
                     }
                 }
             }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "as turmas");
+            }
+
             return turmas;
         }
 
@@ -158,8 +174,9 @@ namespace TCC_Assiduidade.Repositories
                 GROUP BY t.Id, t.Nome
                 ORDER BY t.Nome;";
 
-            using (var conn = new MySqlConnection(connectionString))
+            try
             {
+                using (var conn = new MySqlConnection(connectionString))
                 using (var cmd = new MySqlCommand(sql, conn))
                 {
                     conn.Open();
@@ -180,6 +197,10 @@ namespace TCC_Assiduidade.Repositories
                         }
                     }
                 }
+            }
+            catch (MySqlException ex)
+            {
+                throw MySqlExceptionTranslator.Traduzir(ex, "os dados das turmas");
             }
 
             return lista;
