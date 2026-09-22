@@ -157,7 +157,7 @@ namespace TCC_Assiduidade.Servicos
             return html.ToString();
         }
 
-        public string RelatorioBase(string Titulo)
+        public static string RelatorioBase(string Titulo, string estilosAdicionais = null)
         {
             var html = new StringBuilder();
             html.AppendLine("<!DOCTYPE html>");
@@ -172,6 +172,8 @@ namespace TCC_Assiduidade.Servicos
             html.AppendLine("        table { width: 100%; border-collapse: collapse; margin-top: 15px; }");
             html.AppendLine("        th, td { border: 1px solid #cbd2d9; padding: 10px; text-align: left; }");
             html.AppendLine("        th { background: #f0f4f8; }");
+            if (!string.IsNullOrWhiteSpace(estilosAdicionais))
+                html.AppendLine(estilosAdicionais);
             html.AppendLine("    </style>");
             html.AppendLine("</head>");
             html.AppendLine("<body>");

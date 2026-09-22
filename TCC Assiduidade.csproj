@@ -144,6 +144,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Modelos\Dashboard\OpcaoFiltroDashboard.cs" />
+    <Compile Include="Modelos\Dashboard\PontoGraficoDashboard.cs" />
+    <Compile Include="Modelos\Dashboard\RegistroFrequenciaDashboard.cs" />
+    <Compile Include="Modelos\Dashboard\ResultadoDashboard.cs" />
     <Compile Include="Modelos\Banco\Aula.cs" />
     <Compile Include="Modelos\Banco\Ausencia.cs" />
     <Compile Include="Modelos\DTO\AlunoExibicaoDTO.cs" />
@@ -157,9 +161,15 @@
     <Compile Include="Repositories\AlunoRepository.cs" />
     <Compile Include="Repositories\AulaRepository.cs" />
     <Compile Include="Repositories\AusenciaRepository.cs" />
+    <Compile Include="Repositories\DashboardRepository.cs" />
     <Compile Include="Servicos\AulaService.cs" />
     <Compile Include="Servicos\AusenciaService.cs" />
+    <Compile Include="Servicos\DashboardHtmlService.cs" />
+    <Compile Include="Servicos\DashboardService.cs" />
     <Compile Include="Servicos\DataCacheService.cs" />
+    <Compile Include="Servicos\Demonstracao\DemonstracaoService.cs" />
+    <Compile Include="Servicos\Demonstracao\GravadorJanelaService.cs" />
+    <Compile Include="Servicos\Demonstracao\MjpegAviWriter.cs" />
     <Compile Include="Servicos\RelatorioService.cs" />
     <Compile Include="Repositories\TurmaRepository.cs" />
     <Compile Include="Servicos\AlunoService.cs" />
@@ -167,6 +177,11 @@
     <Compile Include="Servicos\TurmaService.cs" />
     <Compile Include="Servicos\WindowService.cs" />
     <Compile Include="ViewModel\AlunosViewModel.cs" />
+    <Compile Include="ViewModel\DashboardsViewModel.cs" />
+    <Compile Include="ViewModel\Dashboards\DashboardAlunosViewModel.cs" />
+    <Compile Include="ViewModel\Dashboards\DashboardAulasViewModel.cs" />
+    <Compile Include="ViewModel\Dashboards\DashboardBaseViewModel.cs" />
+    <Compile Include="ViewModel\Dashboards\DashboardTurmasViewModel.cs" />
     <Compile Include="ViewModel\InicioViewModel.cs" />
     <Compile Include="ViewModel\Popups\EditarAlunoViewModel.cs" />
     <Compile Include="ViewModel\Popups\EditarTurmaViewModel.cs" />
@@ -185,6 +200,20 @@
     <Compile Include="ViewModel\TurmasViewModel.cs" />
     <Compile Include="View\AlunosView.xaml.cs">
       <DependentUpon>AlunosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Controls\DashboardCharts.cs" />
+    <Compile Include="View\Controls\PrimitivasGraficas.cs" />
+    <Compile Include="View\Dashboards\DashboardAlunosView.xaml.cs">
+      <DependentUpon>DashboardAlunosView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Dashboards\DashboardAulasView.xaml.cs">
+      <DependentUpon>DashboardAulasView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Dashboards\DashboardsView.xaml.cs">
+      <DependentUpon>DashboardsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Dashboards\DashboardTurmasView.xaml.cs">
+      <DependentUpon>DashboardTurmasView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Popups\EditarAluno.xaml.cs">
       <DependentUpon>EditarAluno.xaml</DependentUpon>
@@ -234,6 +263,26 @@
       <DependentUpon>TurmasView.xaml</DependentUpon>
     </Compile>
     <Page Include="View\AlunosView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Dashboards\DashboardStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Dashboards\DashboardAlunosView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Dashboards\DashboardAulasView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Dashboards\DashboardsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Dashboards\DashboardTurmasView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

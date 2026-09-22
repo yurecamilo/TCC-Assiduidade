@@ -1,11 +1,34 @@
-﻿using System;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace TCC_Assiduidade.Servicos
 {
     public static class ArquivoService
     {
+        public static string SalvarHtmlEAbrir(string html, string nomeArquivoPadrao)
+        {
+            if (string.IsNullOrWhiteSpace(html))
+                throw new ArgumentException("O conteúdo HTML não pode ser vazio.", nameof(html));
+
+            var dialog = new SaveFileDialog
+            {
+                Title = "Salvar relatório HTML",
+                Filter = "Arquivos HTML (*.html)|*.html|Todos os arquivos (*.*)|*.*",
+                FileName = SanitizarNomeArquivo(nomeArquivoPadrao)
+            };
+
+            if (dialog.ShowDialog() != true)
+                return null;
+
+            File.WriteAllText(dialog.FileName, html, Encoding.UTF8);
+            Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+            return dialog.FileName;
+        }
+
         /// <summary>
         /// Lê um arquivo CSV de forma genérica e retorna os dados como uma lista de dicionários.
         /// Cada linha do CSV vira um Dictionary onde:
@@ -18,14 +41,10 @@ namespace TCC_Assiduidade.Servicos
         public static List<Dictionary<string, string>> LerCsv(string caminho, char separador = ',')
         {
             if (string.IsNullOrWhiteSpace(caminho))
-            {
                 throw new ArgumentException("O caminho do arquivo não pode ser nulo ou vazio.", nameof(caminho));
-            }
 
             if (!File.Exists(caminho))
-            {
                 throw new FileNotFoundException($"O arquivo '{caminho}' não foi encontrado.", caminho);
-            }
 
             var dados = new List<Dictionary<string, string>>();
 
@@ -40,7 +59,6 @@ namespace TCC_Assiduidade.Servicos
                     separador = ';';
 
                 string[] headers = headerLine.Split(separador);
-
                 var colunasVerificadas = new HashSet<string>();
 
                 for (int i = 0; i < headers.Length; i++)
@@ -48,39 +66,40 @@ namespace TCC_Assiduidade.Servicos
                     headers[i] = headers[i].Trim().ToLower();
 
                     if (string.IsNullOrWhiteSpace(headers[i]))
-                    {
-                        throw new System.IO.InvalidDataException($"O cabeçalho contém uma coluna vazia na posição {i + 1}.");
-                    }
+                        throw new InvalidDataException($"O cabeçalho contém uma coluna vazia na posição {i + 1}.");
 
                     if (!colunasVerificadas.Add(headers[i]))
-                    {
-                        throw new System.IO.InvalidDataException($"O arquivo CSV contém colunas duplicadas no cabeçalho: '{headers[i]}'.");
-                    }
+                        throw new InvalidDataException($"O arquivo CSV contém colunas duplicadas no cabeçalho: '{headers[i]}'.");
                 }
 
                 while (!reader.EndOfStream)
                 {
                     string linha = reader.ReadLine();
-
                     if (string.IsNullOrWhiteSpace(linha))
                         continue;
 
                     string[] valores = linha.Split(separador);
-
                     var registro = new Dictionary<string, string>();
 
                     for (int i = 0; i < headers.Length; i++)
-                    {
-                        string valor = i < valores.Length ? valores[i].Trim() : "";
-
-                        registro[headers[i]] = valor;
-                    }
+                        registro[headers[i]] = i < valores.Length ? valores[i].Trim() : string.Empty;
 
                     dados.Add(registro);
                 }
             }
 
             return dados;
+        }
+
+        private static string SanitizarNomeArquivo(string nomeArquivo)
+        {
+            string nome = string.IsNullOrWhiteSpace(nomeArquivo) ? "Relatorio.html" : nomeArquivo;
+            foreach (char caractere in Path.GetInvalidFileNameChars())
+                nome = nome.Replace(caractere, '_');
+
+            return nome.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
+                ? nome
+                : nome + ".html";
         }
     }
 }

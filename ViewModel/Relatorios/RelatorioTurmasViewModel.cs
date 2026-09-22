@@ -1,10 +1,7 @@
 ﻿using Microsoft.Win32; // Padrão do WPF
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -177,14 +174,8 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
                 var selecionadas = Turmas.Where(t => t.IsSelected).ToList();
                 if (!selecionadas.Any()) return;
 
-                var dialog = new SaveFileDialog { Filter = "HTML|*.html", FileName = "Relatorio_Turmas.html" };
-                if (dialog.ShowDialog() == true)
-                {
-                    var html = _relatorioService.RelatorioPorTurma(selecionadas);
-
-                    File.WriteAllText(dialog.FileName, html.ToString(), Encoding.UTF8);
-                    Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
-                }
+                string html = _relatorioService.RelatorioPorTurma(selecionadas);
+                ArquivoService.SalvarHtmlEAbrir(html, "Relatorio_Turmas.html");
             }
             catch (Exception ex)
             {

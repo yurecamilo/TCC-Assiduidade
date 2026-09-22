@@ -1,10 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -183,28 +180,17 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         {
             try
             {
-                var dialog = new SaveFileDialog
-                {
-                    Title = "Salvar relatorio HTML",
-                    Filter = "Arquivos HTML (*.html)|*.html|Todos os arquivos (*.*)|*.*",
-                    FileName = SanitizarNomeArquivo("Relatorio_Aula_" + AulaSelecionada.AulaId + "_" + AulaSelecionada.Turma + ".html")
-                };
-
-                if (dialog.ShowDialog() != true) return;
-
                 var dados = _relatorioService.ObterDadosRelatorio(AulaSelecionada.AulaId);
 
                 AlunosAusentes = dados ?? new List<RelatorioAusente>();
                 string html = _relatorioService.RelatorioPorAula(AulaSelecionada, AlunosAusentes);
 
-                File.WriteAllText(dialog.FileName, html, Encoding.UTF8);
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = dialog.FileName,
-                    UseShellExecute = true
-                });
+                string caminho = ArquivoService.SalvarHtmlEAbrir(
+                    html,
+                    "Relatorio_Aula_" + AulaSelecionada.AulaId + "_" + AulaSelecionada.Turma + ".html");
 
-                MessageBox.Show("Relatorio HTML gerado com sucesso.");
+                if (caminho != null)
+                    MessageBox.Show("Relatorio HTML gerado com sucesso.");
             }
             catch (Exception ex)
             {
@@ -212,13 +198,5 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
         }
 
-        private string SanitizarNomeArquivo(string nome)
-        {
-            foreach (char caractere in Path.GetInvalidFileNameChars())
-            {
-                nome = nome.Replace(caractere, '_');
-            }
-            return nome;
-        }
     }
 }

@@ -21,13 +21,34 @@ namespace TCC_Assiduidade.View
             BtnTurmas.Style = estiloNormal;
             BtnAlunos.Style = estiloNormal;
             BtnRelatorios.Style = estiloNormal;
+            BtnDashboards.Style = estiloNormal;
 
             Style estiloAtivo = (Style)FindResource("ActiveMenuButtonStyle");
             botaoClicado.Style = estiloAtivo;
         }
 
-        private void TrocarConteudoPrincipal(UserControl novaView, Button botaoClicado)
+        private void TrocarConteudoPrincipal(
+            UserControl novaView,
+            Button botaoClicado,
+            bool usarAlturaDisponivel = false)
         {
+            Grid.SetRowSpan(ConteudoPrincipal, usarAlturaDisponivel ? 2 : 1);
+
+            if (usarAlturaDisponivel)
+            {
+                ConteudoPrincipalHost.Margin = new Thickness(0);
+                ConteudoPrincipal.Margin = new Thickness(0);
+                ConteudoPrincipal.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+                ConteudoPrincipal.VerticalContentAlignment = VerticalAlignment.Stretch;
+            }
+            else
+            {
+                ConteudoPrincipalHost.Margin = new Thickness(30);
+                ConteudoPrincipal.Margin = new Thickness(0, 0, 0, 20);
+                ConteudoPrincipal.ClearValue(Control.HorizontalContentAlignmentProperty);
+                ConteudoPrincipal.ClearValue(Control.VerticalContentAlignmentProperty);
+            }
+
             ConteudoPrincipal.Content = novaView;
             AlternarBotaoAtivo(botaoClicado);
         }
@@ -35,6 +56,8 @@ namespace TCC_Assiduidade.View
         private void BtnTurmas_Click(object sender, RoutedEventArgs e) => TrocarConteudoPrincipal(new TurmasView(), BtnTurmas);
         private void BtnAlunos_Click(object sender, RoutedEventArgs e) => TrocarConteudoPrincipal(new AlunosView(), BtnAlunos);
         private void BtnRelatorios_Click(object sender, RoutedEventArgs e) => TrocarConteudoPrincipal(new RelatoriosView(), BtnRelatorios);
+        private void BtnDashboards_Click(object sender, RoutedEventArgs e) =>
+            TrocarConteudoPrincipal(new Dashboards.DashboardsView(), BtnDashboards, true);
 
     }
 }

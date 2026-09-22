@@ -1,0 +1,179 @@
+<UserControl x:Class="TCC_Assiduidade.View.Dashboards.DashboardTurmasView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:TCC_Assiduidade.View.Controls"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="960">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DashboardStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <ScrollViewer Style="{StaticResource DashboardScrollViewerStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Button Grid.Row="0" Background="Transparent" HorizontalAlignment="Left" Margin="0,0,0,5"
+                    Style="{StaticResource DashboardBackButtonStyle}"
+                    Command="{Binding VoltarCommand}">
+                <TextBlock Text="← Voltar para o Dashboard" FontWeight="Regular"/>
+            </Button>
+
+            <Grid Grid.Row="1" Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Dashboard de Turmas" Foreground="White" FontSize="26" FontWeight="Bold"/>
+                    <TextBlock Text="Comparação de assiduidade e identificação de alunos em risco."
+                               Foreground="#A0AAB0" FontSize="16"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Gerar HTML"
+                        Style="{StaticResource DashboardPrimaryButtonStyle}"
+                        Command="{Binding GerarHtmlCommand}"
+                        VerticalAlignment="Center"/>
+            </Grid>
+
+            <Border Grid.Row="2" Style="{StaticResource DashboardFilterPanelStyle}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Text="Filtragem e Busca" Foreground="#11181C" FontSize="18"
+                               FontWeight="Bold" Margin="0,0,0,12"/>
+                    <WrapPanel>
+                        <StackPanel Width="260" Margin="0,0,12,0">
+                            <TextBlock Text="Turma" Style="{StaticResource DashboardInputLabelStyle}"/>
+                            <ComboBox ItemsSource="{Binding Turmas}"
+                                      SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
+                                      DisplayMemberPath="Nome"
+                                      Style="{StaticResource DashboardComboStyle}"/>
+                        </StackPanel>
+                        <StackPanel Width="180" Margin="0,0,12,0">
+                            <TextBlock Text="Data inicial" Style="{StaticResource DashboardInputLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding DataInicio, Mode=TwoWay}"
+                                        Style="{StaticResource DashboardDateStyle}"/>
+                        </StackPanel>
+                        <StackPanel Width="180">
+                            <TextBlock Text="Data final" Style="{StaticResource DashboardInputLabelStyle}"/>
+                            <DatePicker SelectedDate="{Binding DataFim, Mode=TwoWay}"
+                                        Style="{StaticResource DashboardDateStyle}"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Row="3" Text="{Binding MensagemEstado}" Foreground="#F0C674"
+                       FontSize="13" Margin="3,0,0,10">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <UniformGrid Grid.Row="4" Columns="4" Margin="0,0,0,14">
+                <Border Style="{StaticResource DashboardMetricStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Assiduidade geral" Style="{StaticResource DashboardMetricLabelStyle}"/>
+                        <TextBlock Text="{Binding AssiduidadeTexto}" Style="{StaticResource DashboardMetricValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardMetricStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Turmas analisadas" Style="{StaticResource DashboardMetricLabelStyle}"/>
+                        <TextBlock Text="{Binding TotalTurmasTexto}" Style="{StaticResource DashboardMetricValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardMetricStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Alunos analisados" Style="{StaticResource DashboardMetricLabelStyle}"/>
+                        <TextBlock Text="{Binding TotalAlunosTexto}" Style="{StaticResource DashboardMetricValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardMetricStyle}" Margin="0">
+                    <StackPanel>
+                        <TextBlock Text="Alunos abaixo de 75%" Style="{StaticResource DashboardMetricLabelStyle}"/>
+                        <TextBlock Text="{Binding AlunosRiscoTexto}" Style="{StaticResource DashboardMetricValueStyle}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Grid Grid.Row="5" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.3*"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource DashboardPanelStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Frequência geral"
+                                   Style="{StaticResource DashboardChartTitleStyle}"/>
+                        <TextBlock Grid.Row="1" Text="Composição de presenças e ausências no período"
+                                   Style="{StaticResource DashboardChartCaptionStyle}"/>
+                        <controls:DashboardDonutChart Grid.Row="2" Height="245"
+                                                      DataContext="{Binding Resultado}"/>
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Rectangle Width="10" Height="10" Fill="#2F8F73" Margin="0,0,6,0"/>
+                            <TextBlock Text="Presenças" Foreground="#526469" FontSize="12" Margin="0,0,18,0"/>
+                            <Rectangle Width="10" Height="10" Fill="#D7E7E4" Margin="0,0,6,0"/>
+                            <TextBlock Text="Ausências" Foreground="#526469" FontSize="12"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource DashboardPanelStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Assiduidade por turma"
+                                   Style="{StaticResource DashboardChartTitleStyle}"/>
+                        <TextBlock Grid.Row="1" Text="Ranking no período selecionado"
+                                   Style="{StaticResource DashboardChartCaptionStyle}"/>
+                        <controls:DashboardBarChart Grid.Row="2" Height="275"
+                                                    DataContext="{Binding Ranking}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="6" Style="{StaticResource DashboardPanelStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Evolução geral" Style="{StaticResource DashboardChartTitleStyle}"/>
+                    <TextBlock Grid.Row="1" Text="Percentual de presença por mês"
+                               Style="{StaticResource DashboardChartCaptionStyle}"/>
+                    <controls:DashboardLineChart Grid.Row="2" Height="245" DataContext="{Binding Evolucao}"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

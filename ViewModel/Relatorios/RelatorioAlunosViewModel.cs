@@ -1,10 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -207,14 +204,8 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
                 var selecionados = Alunos.Where(a => a.IsSelected).ToList();
                 if (!selecionados.Any()) return;
 
-                var dialog = new SaveFileDialog { Filter = "HTML|*.html", FileName = "Relatorios.html" };
-                if (dialog.ShowDialog() == true)
-                {
-                    var html = _relatorioService.RelatorioPorAluno(selecionados);
-
-                    File.WriteAllText(dialog.FileName, html.ToString(), Encoding.UTF8);
-                    Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
-                }
+                string html = _relatorioService.RelatorioPorAluno(selecionados);
+                ArquivoService.SalvarHtmlEAbrir(html, "Relatorios.html");
             }
             catch (Exception ex)
             {
