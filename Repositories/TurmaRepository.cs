@@ -248,8 +248,17 @@ namespace TCC_Assiduidade.Repositories
                         // Guarda os alunos vinculados antes de remover os vínculos. A
                         // tabela temporária permite escolher entre manter os cadastros
                         // sem turma ou excluí-los por completo.
+                        string queryCriarTabelaTemporaria = @"
+                            CREATE TEMPORARY TABLE AlunosDaTurmaExcluida (
+                                AlunoMatricula VARCHAR(50) NOT NULL PRIMARY KEY
+                            );";
+                        using (var cmd = new MySqlCommand(queryCriarTabelaTemporaria, conn, transaction))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+
                         string queryAlunosDaTurma = @"
-                            CREATE TEMPORARY TABLE AlunosDaTurmaExcluida
+                            INSERT INTO AlunosDaTurmaExcluida (AlunoMatricula)
                             SELECT DISTINCT AlunoMatricula
                             FROM VinculoTurmaAluno
                             WHERE TurmaId = @turmaId;";
