@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Servicos;
@@ -96,6 +97,19 @@ namespace TCC_Assiduidade.Testes
         public void Excluir_ComMatriculaVazia_DeveLancarArgumentException()
         {
             Assert.ThrowsException<ArgumentException>(() => _service.Excluir(""));
+        }
+
+        [TestMethod]
+        public void ExcluirEmLote_ComListaVazia_DeveLancarArgumentException()
+        {
+            Assert.ThrowsException<ArgumentException>(() => _service.Excluir(new List<string>()));
+        }
+
+        [TestMethod]
+        public void ExcluirEmLote_ComMatriculaRepetida_DeveLancarArgumentException()
+        {
+            Assert.ThrowsException<ArgumentException>(() =>
+                _service.Excluir(new List<string> { "2026001", "2026001" }));
         }
 
         [DataTestMethod]

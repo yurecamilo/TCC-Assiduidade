@@ -1,6 +1,7 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Configuration;
 using System.Text;
 using TCC_Assiduidade.Excecoes;
@@ -417,7 +418,17 @@ namespace TCC_Assiduidade.Repositories
                         }
 
                         if (linhasAluno == 0)
-                            throw new RegistroNaoEncontradoException($"O aluno de matrícula {aluno.Matricula} não foi encontrado. Ele pode já ter sido excluído por outro usuário.");
+                        {
+                            string queryAlunoExiste = "SELECT COUNT(*) FROM Aluno WHERE Matricula = @matricula;";
+                            using (var cmdAlunoExiste = new MySqlCommand(queryAlunoExiste, conn, transaction))
+                            {
+                                cmdAlunoExiste.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                                bool alunoExiste = Convert.ToInt32(cmdAlunoExiste.ExecuteScalar()) > 0;
+
+                                if (!alunoExiste)
+                                    throw new RegistroNaoEncontradoException($"O aluno de matrícula {aluno.Matricula} não foi encontrado. Ele pode já ter sido excluído por outro usuário.");
+                            }
+                        }
 
                         // O vínculo anterior permanece no histórico quando a turma muda.
                         int? turmaAnterior = null;
@@ -485,39 +496,53 @@ namespace TCC_Assiduidade.Repositories
 
         public void Excluir(string matricula)
         {
+            Excluir(new List<string> { matricula });
+        }
+
+        public void Excluir(List<string> matriculas)
+        {
             using (var conn = new MySqlConnection(connectionString))
             {
-                AbrirConexao(conn, "o aluno");
+                AbrirConexao(conn, "os alunos");
 
                 using (var transaction = conn.BeginTransaction())
                 {
                     try
                     {
-                        // Remove primeiro os registros que dependem do aluno (faltas e
-                        // vínculo com turma) para não deixar registros órfãos no banco,
-                        // conforme prometido ao usuário na confirmação de exclusão.
-                        string queryAusencia = "DELETE FROM Ausencia WHERE AlunoMatricula = @matricula;";
+                        var parametros = matriculas
+                            .Select((matricula, indice) => new
+                            {
+                                Nome = "@matricula" + indice,
+                                Valor = matricula
+                            })
+                            .ToList();
+                        string listaParametros = string.Join(", ", parametros.Select(p => p.Nome));
+
+                        string queryAusencia = $"DELETE FROM Ausencia WHERE AlunoMatricula IN ({listaParametros});";
                         using (var cmd = new MySqlCommand(queryAusencia, conn, transaction))
                         {
-                            cmd.Parameters.AddWithValue("@matricula", matricula);
+                            foreach (var parametro in parametros)
+                                cmd.Parameters.AddWithValue(parametro.Nome, parametro.Valor);
                             cmd.ExecuteNonQuery();
                         }
 
-                        string queryVinculo = "DELETE FROM VinculoTurmaAluno WHERE AlunoMatricula = @matricula;";
+                        string queryVinculo = $"DELETE FROM VinculoTurmaAluno WHERE AlunoMatricula IN ({listaParametros});";
                         using (var cmd = new MySqlCommand(queryVinculo, conn, transaction))
                         {
-                            cmd.Parameters.AddWithValue("@matricula", matricula);
+                            foreach (var parametro in parametros)
+                                cmd.Parameters.AddWithValue(parametro.Nome, parametro.Valor);
                             cmd.ExecuteNonQuery();
                         }
 
-                        string queryAluno = "DELETE FROM Aluno WHERE Matricula = @matricula;";
+                        string queryAluno = $"DELETE FROM Aluno WHERE Matricula IN ({listaParametros});";
                         using (var cmd = new MySqlCommand(queryAluno, conn, transaction))
                         {
-                            cmd.Parameters.AddWithValue("@matricula", matricula);
+                            foreach (var parametro in parametros)
+                                cmd.Parameters.AddWithValue(parametro.Nome, parametro.Valor);
                             int linhasAfetadas = cmd.ExecuteNonQuery();
 
-                            if (linhasAfetadas == 0)
-                                throw new RegistroNaoEncontradoException($"O aluno de matrícula {matricula} não foi encontrado. Ele pode já ter sido excluído por outro usuário.");
+                            if (linhasAfetadas != matriculas.Count)
+                                throw new RegistroNaoEncontradoException("Um ou mais alunos selecionados não foram encontrados. Eles podem já ter sido excluídos por outro usuário.");
                         }
 
                         transaction.Commit();
@@ -530,7 +555,7 @@ namespace TCC_Assiduidade.Repositories
                     catch (MySqlException ex)
                     {
                         transaction.Rollback();
-                        throw MySqlExceptionTranslator.Traduzir(ex, "o aluno");
+                        throw MySqlExceptionTranslator.Traduzir(ex, "os alunos");
                     }
                     catch
                     {

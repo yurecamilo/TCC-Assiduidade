@@ -130,12 +130,24 @@ namespace TCC_Assiduidade.ViewModel
 
         private void ExecutarExcluir(object obj)
         {
-            MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir esta turma? Ela deixará de estar disponível para cadastros e novas chamadas. Os alunos, as aulas e as ausências serão preservados nos relatórios.", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (resultado == MessageBoxResult.Yes)
+            if (!(obj is TurmaExibicaoDTO turma))
+                return;
+
+            MessageBoxResult resultado = MessageBox.Show(
+                "Deseja excluir também todos os alunos desta turma?\n\n" +
+                "Sim: exclui a turma, as chamadas e os alunos.\n" +
+                "Não: arquiva a turma e preserva alunos, chamadas e histórico.\n" +
+                "Cancelar: não exclui nada.",
+                "Excluir turma",
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Warning);
+
+            if (resultado != MessageBoxResult.Cancel)
             {
                 try
                 {
-                    _turmaService.Excluir(TurmaSelecionada.TurmaOriginal.Id);
+                    bool excluirAlunos = resultado == MessageBoxResult.Yes;
+                    _turmaService.Excluir(turma.TurmaOriginal.Id, excluirAlunos);
                     AtualizarCacheAposMudanca();
                 }
                 catch (Exception ex)

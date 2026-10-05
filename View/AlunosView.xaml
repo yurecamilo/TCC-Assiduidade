@@ -118,6 +118,43 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="DeleteSelectedButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#B23A3A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTip" Value="Excluir os alunos marcados na lista"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#982F2F"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#7F2727"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#C9A7A7"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="25">
@@ -213,7 +250,22 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="Relação Geral de Alunos" FontSize="18" FontWeight="SemiBold" Foreground="#11181C" Margin="0,0,0,15"/>
+                    <Grid Grid.Row="0" Margin="0,0,0,15">
+                        <TextBlock Text="Relação Geral de Alunos" FontSize="18" FontWeight="SemiBold" Foreground="#11181C" VerticalAlignment="Center"/>
+                        <Button HorizontalAlignment="Right"
+                                Style="{StaticResource DeleteSelectedButtonStyle}"
+                                Command="{Binding ExcluirAlunosSelecionadosCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconeExcluir}"
+                                      Fill="White"
+                                      Width="17"
+                                      Height="17"
+                                      Margin="0,0,8,0"
+                                      Stretch="Uniform"/>
+                                <TextBlock Text="Excluir selecionados" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
 
                     <DataGrid Grid.Row="1" AutoGenerateColumns="False" ItemsSource="{Binding Alunos}" Background="Transparent" BorderThickness="0" RowBackground="Transparent" AlternatingRowBackground="#DDEEEB" GridLinesVisibility="None" HeadersVisibility="Column" IsReadOnly="True" FontSize="16" Foreground="#11181C" ColumnWidth="*" RowHeight="42">
                         <DataGrid.Resources>
@@ -257,6 +309,14 @@
                             </Style>
                         </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="45">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Hand"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="MATRÍCULA" Binding="{Binding Matricula}" Width="120" ElementStyle="{StaticResource AlinhamentoTextoStyle}"/>
                             <DataGridTextColumn Header="NOME" Binding="{Binding Nome}" Width="1.7*" ElementStyle="{StaticResource AlinhamentoTextoStyle}"/>
                             <DataGridTextColumn Header="TURMA" Binding="{Binding Turma}" Width="1*" ElementStyle="{StaticResource AlinhamentoTextoStyle}"/>

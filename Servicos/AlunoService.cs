@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Repositories;
@@ -130,6 +131,22 @@ namespace TCC_Assiduidade.Servicos
             if (string.IsNullOrWhiteSpace(matricula))
                 throw new ArgumentException("Informe a matrícula do aluno para exclusão.");
             _alunoRepository.Excluir(matricula);
+        }
+
+        public void Excluir(List<string> matriculas)
+        {
+            if (matriculas == null || matriculas.Count == 0)
+                throw new ArgumentException("Selecione pelo menos um aluno para exclusão.", nameof(matriculas));
+
+            var matriculasValidas = matriculas
+                .Where(matricula => !string.IsNullOrWhiteSpace(matricula))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (matriculasValidas.Count != matriculas.Count)
+                throw new ArgumentException("A seleção contém matrículas inválidas ou repetidas.", nameof(matriculas));
+
+            _alunoRepository.Excluir(matriculasValidas);
         }
     }
 }

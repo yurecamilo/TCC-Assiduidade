@@ -82,6 +82,7 @@ namespace TCC_Assiduidade.ViewModel
         public ICommand EditarTurmaCommand { get; private set; }
         public ICommand ExcluirTurmaCommand { get; private set; }
         public ICommand VisualizarDadosCommand { get; private set; }
+        public ICommand ExcluirAlunosSelecionadosCommand { get; private set; }
 
         public AlunosViewModel()
         {
@@ -95,6 +96,7 @@ namespace TCC_Assiduidade.ViewModel
             ExcluirTurmaCommand = new RelayCommand(ExecutarExcluir);
             FecharPerfilCommand = new RelayCommand(ExecutarFecharPerfil);
             VisualizarDadosCommand = new RelayCommand(ExecutarVisualizar);
+            ExcluirAlunosSelecionadosCommand = new RelayCommand(ExecutarExcluirSelecionados);
 
             DataCacheService.CacheAtualizado += OnCacheAtualizado;
 
@@ -118,9 +120,8 @@ namespace TCC_Assiduidade.ViewModel
                 await DataCacheService.AguardarCarregamentoAsync();
 
                 _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
-                Alunos = _listaOriginalDoBanco;
-
                 InicializarComboBoxTurmas();
+                ExecutarBusca();
             }
             catch (Exception ex)
             {
@@ -228,6 +229,40 @@ namespace TCC_Assiduidade.ViewModel
                 {
                     MostrarErro("Não foi possível excluir o aluno. Tente novamente.", ex);
                 }
+            }
+        }
+
+        private void ExecutarExcluirSelecionados(object obj)
+        {
+            var selecionados = (Alunos ?? Enumerable.Empty<AlunoExibicaoDTO>())
+                .OfType<AlunoRelatorioItem>()
+                .Where(a => a.IsSelected)
+                .ToList();
+
+            if (selecionados.Count == 0)
+            {
+                MessageBox.Show("Selecione pelo menos um aluno para excluir.", "Nenhum aluno selecionado", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            MessageBoxResult resultado = MessageBox.Show(
+                $"Tem certeza que deseja excluir {selecionados.Count} aluno(s) selecionado(s)? " +
+                "Todos os dados associados a eles também serão excluídos.",
+                "Confirmar exclusão em lote",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (resultado != MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                _alunoService.Excluir(selecionados.Select(aluno => aluno.Matricula).ToList());
+                AtualizarCacheAposMudanca();
+            }
+            catch (Exception ex)
+            {
+                MostrarErro("Não foi possível excluir todos os alunos selecionados. Atualize a lista e tente novamente.", ex);
             }
         }
 

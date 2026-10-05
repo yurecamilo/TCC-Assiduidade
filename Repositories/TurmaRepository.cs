@@ -271,7 +271,7 @@ namespace TCC_Assiduidade.Repositories
             }
         }
 
-        public void Excluir(int turmaId)
+        public void Excluir(int turmaId, bool excluirAlunos)
         {
             using (var conn = new MySqlConnection(connectionString))
             {
@@ -280,9 +280,97 @@ namespace TCC_Assiduidade.Repositories
                 {
                     try
                     {
-                        ValidarEsquemaExclusao(PossuiDataExclusao(conn, transaction));
-                        const string sql = "UPDATE Turma SET DataExclusao = UTC_TIMESTAMP() WHERE Id = @id AND DataExclusao IS NULL";
-                        using (var cmd = new MySqlCommand(sql, conn, transaction))
+                        if (!excluirAlunos)
+                        {
+                            ValidarEsquemaExclusao(PossuiDataExclusao(conn, transaction));
+                            const string queryArquivar = @"
+                                UPDATE Turma
+                                SET DataExclusao = UTC_TIMESTAMP()
+                                WHERE Id = @id AND DataExclusao IS NULL;";
+                            using (var cmd = new MySqlCommand(queryArquivar, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@id", turmaId);
+                                if (cmd.ExecuteNonQuery() == 0)
+                                    throw new RegistroNaoEncontradoException("A turma não existe ou já foi excluída.");
+                            }
+
+                            transaction.Commit();
+                            return;
+                        }
+
+                        string queryCriarTabelaTemporaria = @"
+                            CREATE TEMPORARY TABLE AlunosDaTurmaExcluida (
+                                AlunoMatricula VARCHAR(50) NOT NULL PRIMARY KEY
+                            );";
+                        using (var cmd = new MySqlCommand(queryCriarTabelaTemporaria, conn, transaction))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryAlunosDaTurma = @"
+                            INSERT INTO AlunosDaTurmaExcluida (AlunoMatricula)
+                            SELECT DISTINCT AlunoMatricula
+                            FROM VinculoTurmaAluno
+                            WHERE TurmaId = @turmaId;";
+                        using (var cmd = new MySqlCommand(queryAlunosDaTurma, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryAusencias = @"
+                            DELETE Ausencia FROM Ausencia
+                            INNER JOIN Aula ON Ausencia.AulaId = Aula.Id
+                            WHERE Aula.TurmaId = @turmaId;";
+                        using (var cmd = new MySqlCommand(queryAusencias, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryAulas = "DELETE FROM Aula WHERE TurmaId = @turmaId;";
+                        using (var cmd = new MySqlCommand(queryAulas, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryOutrasAusencias = @"
+                            DELETE FROM Ausencia
+                            WHERE AlunoMatricula IN
+                                (SELECT AlunoMatricula FROM AlunosDaTurmaExcluida);";
+                        using (var cmd = new MySqlCommand(queryOutrasAusencias, conn, transaction))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryTodosVinculos = @"
+                            DELETE FROM VinculoTurmaAluno
+                            WHERE AlunoMatricula IN
+                                (SELECT AlunoMatricula FROM AlunosDaTurmaExcluida);";
+                        using (var cmd = new MySqlCommand(queryTodosVinculos, conn, transaction))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryAlunos = @"
+                            DELETE FROM Aluno
+                            WHERE Matricula IN
+                                (SELECT AlunoMatricula FROM AlunosDaTurmaExcluida);";
+                        using (var cmd = new MySqlCommand(queryAlunos, conn, transaction))
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryVinculos = "DELETE FROM VinculoTurmaAluno WHERE TurmaId = @turmaId;";
+                        using (var cmd = new MySqlCommand(queryVinculos, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryTurma = "DELETE FROM Turma WHERE Id = @id;";
+                        using (var cmd = new MySqlCommand(queryTurma, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@id", turmaId);
                             if (cmd.ExecuteNonQuery() == 0)
