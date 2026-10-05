@@ -72,12 +72,17 @@ namespace TCC_Assiduidade.Servicos
 
         public void Excluir(int turmaId)
         {
+            Excluir(turmaId, true);
+        }
+
+        public void Excluir(int turmaId, bool excluirAlunos)
+        {
             if (turmaId <= 0)
                 throw new ArgumentException("O ID da turma deve ser maior que zero.", nameof(turmaId));
             var turmaExistente = _turmaRepository.ObterTurmaPorId(turmaId);
             if (turmaExistente == null)
                 throw new RegistroNaoEncontradoException("A turma especificada não existe.");
-            _turmaRepository.Excluir(turmaId);
+            _turmaRepository.Excluir(turmaId, excluirAlunos);
         }
     }
 }
