@@ -120,9 +120,8 @@ namespace TCC_Assiduidade.ViewModel
                 await DataCacheService.AguardarCarregamentoAsync();
 
                 _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
-                Alunos = _listaOriginalDoBanco;
-
                 InicializarComboBoxTurmas();
+                ExecutarBusca();
             }
             catch (Exception ex)
             {
