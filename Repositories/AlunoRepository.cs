@@ -449,7 +449,7 @@ namespace TCC_Assiduidade.Repositories
                         using (var cmdVinculo = new MySqlCommand(queryVinculo, conn, transaction))
                         {
                             cmdVinculo.Parameters.AddWithValue("@matricula", aluno.Matricula);
-                            cmdVinculo.Parameters.AddWithValue("@dataEntrada", aluno.DataEntrada);
+                            cmdVinculo.Parameters.AddWithValue("@dataEntrada", aluno.DataEntrada ?? DateTime.Today);
 
                             cmdVinculo.Parameters.AddWithValue("@turmaId", aluno.TurmaId);
 
