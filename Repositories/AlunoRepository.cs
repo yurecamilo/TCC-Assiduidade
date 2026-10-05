@@ -413,21 +413,45 @@ namespace TCC_Assiduidade.Repositories
                         }
 
                         if (linhasAluno == 0)
-                            throw new RegistroNaoEncontradoException($"O aluno de matrícula {aluno.Matricula} não foi encontrado. Ele pode já ter sido excluído por outro usuário.");
+                        {
+                            string queryAlunoExiste = "SELECT COUNT(*) FROM Aluno WHERE Matricula = @matricula;";
+                            using (var cmdAlunoExiste = new MySqlCommand(queryAlunoExiste, conn, transaction))
+                            {
+                                cmdAlunoExiste.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                                bool alunoExiste = Convert.ToInt32(cmdAlunoExiste.ExecuteScalar()) > 0;
 
-                        // 2. Atualiza o vínculo com a Turma e a Data de Entrada
-                        string queryVinculo = @"UPDATE VinculoTurmaAluno
-                                            SET TurmaId = @turmaId,
-                                                DataEntrada = @dataEntrada
-                                            WHERE AlunoMatricula = @matricula;";
+                                if (!alunoExiste)
+                                    throw new RegistroNaoEncontradoException($"O aluno de matrícula {aluno.Matricula} não foi encontrado. Ele pode já ter sido excluído por outro usuário.");
+                            }
+                        }
+
+                        string queryQuantidadeVinculos = @"
+                            SELECT COUNT(*)
+                            FROM VinculoTurmaAluno
+                            WHERE AlunoMatricula = @matricula;";
+                        int quantidadeVinculos;
+                        using (var cmdQuantidade = new MySqlCommand(queryQuantidadeVinculos, conn, transaction))
+                        {
+                            cmdQuantidade.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                            quantidadeVinculos = Convert.ToInt32(cmdQuantidade.ExecuteScalar());
+                        }
+
+                        string queryVinculo = quantidadeVinculos == 0
+                            ? @"INSERT INTO VinculoTurmaAluno (AlunoMatricula, TurmaId, DataEntrada)
+                                VALUES (@matricula, @turmaId, @dataEntrada);"
+                            : @"UPDATE VinculoTurmaAluno
+                                SET TurmaId = @turmaId,
+                                    DataEntrada = @dataEntrada
+                                WHERE AlunoMatricula = @matricula
+                                ORDER BY DataEntrada DESC
+                                LIMIT 1;";
 
                         using (var cmdVinculo = new MySqlCommand(queryVinculo, conn, transaction))
                         {
                             cmdVinculo.Parameters.AddWithValue("@matricula", aluno.Matricula);
                             cmdVinculo.Parameters.AddWithValue("@dataEntrada", aluno.DataEntrada);
 
-                            // Trata caso o aluno fique sem turma
-                            cmdVinculo.Parameters.AddWithValue("@turmaId", (object)aluno.TurmaId ?? DBNull.Value);
+                            cmdVinculo.Parameters.AddWithValue("@turmaId", aluno.TurmaId);
 
                             cmdVinculo.ExecuteNonQuery();
                         }

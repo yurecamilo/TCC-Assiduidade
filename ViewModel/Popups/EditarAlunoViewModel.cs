@@ -76,11 +76,10 @@ namespace TCC_Assiduidade.ViewModel.Popups
             Nome = aluno.Nome;
             Email = aluno.Email;
             DataEntrada = aluno.DataEntrada;
-            _ = CarregarTurmasDoBanco();
-            TurmaSelecionada = _listaOriginalDoBanco.FirstOrDefault(t => t.Nome == aluno.Turma);
+            _ = CarregarTurmasDoBanco(aluno.Turma);
         }
 
-        async Task CarregarTurmasDoBanco()
+        async Task CarregarTurmasDoBanco(string turmaAtual)
         {
             try
             {
@@ -88,6 +87,8 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
                 _listaOriginalDoBanco = DataCacheService.TurmaModeloCache ?? new List<Turma>();
                 Turmas = _listaOriginalDoBanco;
+                TurmaSelecionada = Turmas.FirstOrDefault(t =>
+                    string.Equals(t.Nome, turmaAtual, StringComparison.OrdinalIgnoreCase));
             }
             catch (Exception ex)
             {
@@ -99,6 +100,9 @@ namespace TCC_Assiduidade.ViewModel.Popups
         {
             try
             {
+                if (TurmaSelecionada == null)
+                    throw new ArgumentException("Selecione uma turma válida.");
+
                 var aluno = new Aluno
                 {
                     Matricula = Matricula,
