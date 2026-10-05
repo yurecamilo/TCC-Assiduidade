@@ -95,6 +95,7 @@ namespace TCC_Assiduidade.Servicos
                     _turmaService.Adicionar(turmaNome);
                     turma = _turmaService.ObterTurmaPorNome(turmaNome);
                 }
+                TurmaService.ValidarTurmaAtiva(turma);
 
                 List<Aluno> alunosParaSalvar = new List<Aluno>();
                 linhaId = 1;
@@ -154,31 +155,16 @@ namespace TCC_Assiduidade.Servicos
                     return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Nenhum dado de presença foi fornecido." };
                 }
 
-                // 1. Busca a data na primeira linha preenchida de verdade
-                DateTime dataAula = DateTime.MinValue;
-                bool dataEncontrada = false;
+                // Uma importação representa uma única aula. Valida todas as linhas
+                // antes de consultar ou gravar dados, sem ignorar datas inválidas.
+                DateTime dataAula = ObterDataPresenca(dadosPresenca);
 
-                foreach (var linha in dadosPresenca)
-                {
-                    if (linha.ContainsKey("data_presenca") && !string.IsNullOrWhiteSpace(linha["data_presenca"]))
-                    {
-                        if (DateTime.TryParse(linha["data_presenca"].Trim(), out dataAula))
-                        {
-                            dataEncontrada = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!dataEncontrada)
-                {
-                    return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Não foi possível identificar nenhuma data válida na coluna 'data_presenca'." };
-                }
-
-                if (_turmaService.ObterTurmaPorId(turmaId) == null)
+                var turmaPresenca = _turmaService.ObterTurmaPorId(turmaId);
+                if (turmaPresenca == null)
                 {
                     return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Turma nao encontrada." };
                 }
+                TurmaService.ValidarTurmaAtiva(turmaPresenca);
 
                 string[] colunasObrigatorias = { "matricula_aluno", "email_aluno", "nome_aluno", "data_presenca" };
                 var primeiraLinha = dadosPresenca.First();
@@ -202,7 +188,8 @@ namespace TCC_Assiduidade.Servicos
                 foreach (var linha in dadosPresenca)
                 {
                     linhaId++;
-                    string matricula = linha.ContainsKey("matricula_aluno") ? linha["matricula_aluno"].Trim() : "";
+                    string chaveMatricula = linha.Keys.FirstOrDefault(k => k.Equals("matricula_aluno", StringComparison.OrdinalIgnoreCase));
+                    string matricula = chaveMatricula != null ? WebUtilityTrim(linha[chaveMatricula]) : "";
 
                     if (string.IsNullOrWhiteSpace(matricula))
                     {
@@ -231,14 +218,7 @@ namespace TCC_Assiduidade.Servicos
                     return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Nenhum aluno encontrado na turma." };
                 }
 
-                List<string> ausentes = new List<string>();
-                foreach (var aluno in alunosDaTurma)
-                {
-                    if (!matriculasPresentes.Contains(aluno.Matricula))
-                    {
-                        ausentes.Add(aluno.Matricula);
-                    }
-                }
+                List<string> ausentes = ValidarEObterAusentes(dataAula, matriculasPresentes, alunosDaTurma);
 
                 int aulaId = _aulaService.Adicionar(dataAula, turmaId);
                 _ausenciaService.Adicionar(aulaId, ausentes);
@@ -250,16 +230,64 @@ namespace TCC_Assiduidade.Servicos
                     Mensagem = "Presenca importada e ausencias registradas com sucesso!\n\n" +
                                $"Aula criada: {aulaId}\n" +
                                $"Data: {dataAula:dd/MM/yyyy}\n" +
-                               $"Total de alunos da turma: {alunosDaTurma.Count}\n" +
+                               $"Total de alunos vinculados na data da aula: {matriculasPresentes.Count + ausentes.Count}\n" +
                                $"Total de presentes no CSV: {matriculasPresentes.Count}\n" +
                                $"Total de ausentes salvos: {ausentes.Count}",
                     Ausentes = relatorioAusentes
                 };
             }
+            catch (ArgumentException ex)
+            {
+                return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = ex.Message };
+            }
             catch (Exception ex)
             {
                 return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = $"Erro inesperado: {ex.Message}" };
             }
+        }
+
+        internal static DateTime ObterDataPresenca(List<Dictionary<string, string>> dadosPresenca)
+        {
+            DateTime? dataAula = null;
+            int linhaId = 1;
+            foreach (var linha in dadosPresenca)
+            {
+                linhaId++;
+                string chaveData = linha.Keys.FirstOrDefault(k => k.Equals("data_presenca", StringComparison.OrdinalIgnoreCase));
+                DateTime dataLinha;
+                if (chaveData == null || !DateTime.TryParse(linha[chaveData]?.Trim(), out dataLinha))
+                    throw new ArgumentException($"Erro na linha {linhaId}: Informe uma data válida na coluna 'data_presenca'.");
+
+                if (dataAula.HasValue && dataLinha.Date != dataAula.Value)
+                    throw new ArgumentException($"Erro na linha {linhaId}: Todas as datas de presença devem corresponder à mesma aula.");
+
+                dataAula = dataLinha.Date;
+            }
+            return dataAula.Value;
+        }
+
+        internal static List<string> ValidarEObterAusentes(DateTime dataAula, HashSet<string> matriculasPresentes, List<Aluno> alunosDaTurma)
+        {
+            var alunosPorMatricula = alunosDaTurma.ToDictionary(a => a.Matricula);
+            foreach (string matricula in matriculasPresentes)
+            {
+                Aluno aluno;
+                if (!alunosPorMatricula.TryGetValue(matricula, out aluno))
+                    throw new ArgumentException($"O aluno de matrícula {matricula} não está vinculado à turma selecionada.");
+
+                if (!aluno.DataEntrada.HasValue)
+                    throw new ArgumentException($"O aluno de matrícula {matricula} não possui data de entrada na turma. Atualize o cadastro antes de importar a presença.");
+
+                if (dataAula.Date < aluno.DataEntrada.Value.Date)
+                    throw new ArgumentException($"A data de presença ({dataAula:dd/MM/yyyy}) é anterior à entrada na turma do aluno de matrícula {matricula} ({aluno.DataEntrada:dd/MM/yyyy}).");
+            }
+
+            // O dia da entrada já pertence ao vínculo, como nas consultas de frequência.
+            return alunosDaTurma
+                .Where(a => a.DataEntrada.HasValue && a.DataEntrada.Value.Date <= dataAula.Date
+                    && !matriculasPresentes.Contains(a.Matricula))
+                .Select(a => a.Matricula)
+                .ToList();
         }
 
         private string WebUtilityTrim(string valor)

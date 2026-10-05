@@ -18,6 +18,7 @@ namespace TCC_Assiduidade.Servicos
         {
             if (dataAula > DateTime.Now) throw new ArgumentException("A data da aula não pode ser uma data futura.", nameof(dataAula));
             if (turmaId <= 0) throw new ArgumentException("O ID da turma é inválido.", nameof(turmaId));
+            new TurmaService().GarantirTurmaAtiva(turmaId);
             return _aulaRepository.Adicionar(dataAula, turmaId);
         }
 

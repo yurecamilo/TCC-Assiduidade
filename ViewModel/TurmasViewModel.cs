@@ -130,7 +130,7 @@ namespace TCC_Assiduidade.ViewModel
 
         private void ExecutarExcluir(object obj)
         {
-            MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir esta turma? Essa ação excluirá todos os dados associados a ela (alunos e chamadas)", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir esta turma? Ela deixará de estar disponível para cadastros e novas chamadas. Os alunos, as aulas e as ausências serão preservados nos relatórios.", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (resultado == MessageBoxResult.Yes)
             {
                 try

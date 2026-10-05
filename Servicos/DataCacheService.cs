@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
@@ -13,16 +14,14 @@ namespace TCC_Assiduidade.Servicos
         private static readonly TurmaService _turmaService = new TurmaService();
         private static readonly AulaService _aulaService = new AulaService();
 
-        // 🌟 ADICIONADO: Evento para notificar os ViewModels (Telas) de que os dados mudaram
         public static event Action CacheAtualizado;
 
-        // Propriedades globais que vão guardar os dados na memória RAM
         public static List<Turma> TurmaModeloCache { get; private set; } = new List<Turma>();
         public static List<AlunoExibicaoDTO> AlunosCache { get; private set; } = new List<AlunoExibicaoDTO>();
         public static List<TurmaExibicaoDTO> TurmasCache { get; private set; } = new List<TurmaExibicaoDTO>();
+        public static List<TurmaExibicaoDTO> TurmasHistoricoCache { get; private set; } = new List<TurmaExibicaoDTO>();
         public static List<AulaExibicaoDTO> AulasCache { get; private set; } = new List<AulaExibicaoDTO>();
 
-        // Flag para sabermos se o cache já foi carregado com sucesso
         public static bool IsCarregado { get; private set; } = false;
         public static Exception ErroCarregamento { get; private set; }
 
@@ -35,31 +34,29 @@ namespace TCC_Assiduidade.Servicos
             {
                 try
                 {
-                    // Roda a busca de alunos e turmas em paralelo no banco de dados
                     var tarefaAlunos = Task.Run(() => _alunoService.ObterPerfilAluno());
-                    var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem());
+                    var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirExcluidas: true));
                     var tarefaAulas = Task.Run(() => _aulaService.ObterResumoAulas());
                     var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTodasTurmas());
 
-                    // Aguarda ambas terminarem
                     await Task.WhenAll(tarefaAlunos, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
 
-                    // Salva o resultado na memória global
                     AlunosCache = tarefaAlunos.Result ?? new List<AlunoExibicaoDTO>();
-                    TurmasCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
+                    TurmasHistoricoCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
+                    TurmasCache = FiltrarTurmasAtivas(TurmasHistoricoCache);
                     AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
                     TurmaModeloCache = tarefaTurmaModelo.Result ?? new List<Turma>();
 
                     ErroCarregamento = null;
                     IsCarregado = true;
 
-                    // 🌟 ADICIONADO: Avisa as telas que a carga inicial terminou
                     CacheAtualizado?.Invoke();
                 }
                 catch (Exception ex)
                 {
                     AlunosCache = new List<AlunoExibicaoDTO>();
                     TurmasCache = new List<TurmaExibicaoDTO>();
+                    TurmasHistoricoCache = new List<TurmaExibicaoDTO>();
                     AulasCache = new List<AulaExibicaoDTO>();
                     TurmaModeloCache = new List<Turma>();
 
@@ -92,25 +89,22 @@ namespace TCC_Assiduidade.Servicos
         {
             try
             {
-                // 🌟 CORRIGIDO: Adicionado a busca de Aulas e TurmaModelo para o refresh não ficar incompleto
                 var tarefaAlunos = Task.Run(() => _alunoService.ObterPerfilAluno());
-                var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem());
+                var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirExcluidas: true));
                 var tarefaAulas = Task.Run(() => _aulaService.ObterResumoAulas());
                 var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTodasTurmas());
 
-                // Aguarda todas terminarem
                 await Task.WhenAll(tarefaAlunos, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
 
-                // Atualiza os dados
                 AlunosCache = tarefaAlunos.Result ?? new List<AlunoExibicaoDTO>();
-                TurmasCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
+                TurmasHistoricoCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
+                TurmasCache = FiltrarTurmasAtivas(TurmasHistoricoCache);
                 AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
                 TurmaModeloCache = tarefaTurmaModelo.Result ?? new List<Turma>();
 
                 ErroCarregamento = null;
                 IsCarregado = true;
 
-                // 🌟 ADICIONADO: Avisa as telas (Alunos, Turmas, Dashboard) que os dados foram recarregados
                 CacheAtualizado?.Invoke();
             }
             catch (Exception ex)
@@ -120,6 +114,11 @@ namespace TCC_Assiduidade.Servicos
                     "os dados do sistema");
                 throw ErroCarregamento;
             }
+        }
+
+        internal static List<TurmaExibicaoDTO> FiltrarTurmasAtivas(IEnumerable<TurmaExibicaoDTO> turmas)
+        {
+            return turmas.Where(t => t.TurmaOriginal != null && !t.TurmaOriginal.DataExclusao.HasValue).ToList();
         }
     }
 }

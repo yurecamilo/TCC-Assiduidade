@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Collections.Generic;
 using TCC_Assiduidade.Excecoes;
 using TCC_Assiduidade.Modelos.DTO;
+using TCC_Assiduidade.Modelos.Banco;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -32,12 +33,16 @@ namespace TCC_Assiduidade.Repositories
 
                 try
                 {
-                    using (var cmd = new MySqlCommand(query, conn))
+                    using (var trans = conn.BeginTransaction())
                     {
-                        cmd.Parameters.AddWithValue("@data", data.Date);
-                        cmd.Parameters.AddWithValue("@turmaId", turmaId);
-
-                        aulaId = Convert.ToInt32(cmd.ExecuteScalar());
+                        TurmaRepository.VerificarTurmaAtiva(conn, trans, turmaId);
+                        using (var cmd = new MySqlCommand(query, conn, trans))
+                        {
+                            cmd.Parameters.AddWithValue("@data", data.Date);
+                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
+                            aulaId = Convert.ToInt32(cmd.ExecuteScalar());
+                        }
+                        trans.Commit();
                     }
                 }
                 catch (MySqlException ex)
@@ -59,16 +64,30 @@ namespace TCC_Assiduidade.Repositories
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-                    string query = @"
+                    string colunaExclusao = TurmaRepository.ObterColunaDataExclusao(conn, "Turma");
+                    string query = $@"
                     SELECT
                         Aula.Id AS AulaId,
                         Aula.Data,
+                        Aula.TurmaId,
                         Turma.Nome AS Turma,
+                        {colunaExclusao} AS DataExclusaoTurma,
                         COUNT(Ausencia.AlunoMatricula) AS NumeroAusentes
                     FROM Aula
                     INNER JOIN Turma ON Turma.Id = Aula.TurmaId
                     LEFT JOIN Ausencia ON Ausencia.AulaId = Aula.Id
-                    GROUP BY Aula.Id, Aula.Data, Turma.Nome
+                        AND EXISTS (
+                            SELECT 1 FROM VinculoTurmaAluno v
+                            WHERE v.AlunoMatricula = Ausencia.AlunoMatricula
+                              AND v.TurmaId = Aula.TurmaId
+                              AND v.DataEntrada <= Aula.Data
+                              AND v.DataEntrada = (
+                                  SELECT MAX(v2.DataEntrada) FROM VinculoTurmaAluno v2
+                                  WHERE v2.AlunoMatricula = v.AlunoMatricula
+                                    AND v2.DataEntrada <= Aula.Data
+                              )
+                        )
+                    GROUP BY Aula.Id, Aula.Data, Aula.TurmaId, Turma.Nome, DataExclusaoTurma
                     ORDER BY Aula.Data DESC, Aula.Id DESC;
                 ";
 
@@ -80,8 +99,10 @@ namespace TCC_Assiduidade.Repositories
                             aulas.Add(new AulaExibicaoDTO
                             {
                                 AulaId = Convert.ToInt32(reader["AulaId"]),
+                                TurmaId = Convert.ToInt32(reader["TurmaId"]),
                                 Data = Convert.ToDateTime(reader["Data"]),
-                                Turma = reader["Turma"].ToString(),
+                                Turma = Turma.FormatarNome(reader["Turma"].ToString(),
+                                    reader["DataExclusaoTurma"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusaoTurma"]) : null),
                                 NumeroAusentes = Convert.ToInt32(reader["NumeroAusentes"])
                             });
                         }

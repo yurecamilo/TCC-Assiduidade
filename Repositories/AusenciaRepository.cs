@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Text;
 using TCC_Assiduidade.Excecoes;
 using TCC_Assiduidade.Modelos.Relatorios;
+using TCC_Assiduidade.Modelos.Banco;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -66,11 +67,12 @@ namespace TCC_Assiduidade.Repositories
         {
             var lista = new List<RelatorioAusente>();
             // Mudamos o alias de 'Turma.Nome AS Turma' para 'Turma.Nome AS NomeTurma' para evitar conflito com o nome da tabela
-            string query = @"
+            const string consulta = @"
         SELECT 
             Aula.Id AS AulaId,
             Aula.Data,
             Turma.Nome AS NomeTurma,
+            {0} AS DataExclusaoTurma,
             Aluno.Matricula,
             Aluno.Nome AS Aluno,
             Aluno.Email
@@ -78,13 +80,25 @@ namespace TCC_Assiduidade.Repositories
         INNER JOIN Aula ON Ausencia.AulaId = Aula.Id
         INNER JOIN Aluno ON Ausencia.AlunoMatricula = Aluno.Matricula
         INNER JOIN Turma ON Aula.TurmaId = Turma.Id
-        WHERE Aula.Id = @aulaId";
+        WHERE Aula.Id = @aulaId
+          AND EXISTS (
+              SELECT 1 FROM VinculoTurmaAluno v
+              WHERE v.AlunoMatricula = Aluno.Matricula
+                AND v.TurmaId = Aula.TurmaId
+                AND v.DataEntrada <= Aula.Data
+                AND v.DataEntrada = (
+                    SELECT MAX(v2.DataEntrada) FROM VinculoTurmaAluno v2
+                    WHERE v2.AlunoMatricula = v.AlunoMatricula
+                      AND v2.DataEntrada <= Aula.Data
+                )
+          )";
 
             try
             {
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
+                    string query = string.Format(consulta, TurmaRepository.ObterColunaDataExclusao(conn, "Turma"));
                     using (var cmd = new MySqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@aulaId", aulaId);
@@ -96,7 +110,8 @@ namespace TCC_Assiduidade.Repositories
                                 {
                                     AulaId = Convert.ToInt32(reader["AulaId"]),
                                     Data = Convert.ToDateTime(reader["Data"]),
-                                    Turma = reader["NomeTurma"].ToString(), // Lendo o alias correto agora!
+                                    Turma = Turma.FormatarNome(reader["NomeTurma"].ToString(),
+                                        reader["DataExclusaoTurma"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusaoTurma"]) : null),
                                     Matricula = reader["Matricula"].ToString(),
                                     Aluno = reader["Aluno"].ToString(),
                                     Email = reader["Email"].ToString()

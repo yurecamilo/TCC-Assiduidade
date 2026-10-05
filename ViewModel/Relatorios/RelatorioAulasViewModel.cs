@@ -100,7 +100,20 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             LimparDatasCommand = new RelayCommand(ExecutarLimparDatas);
 
             InicializarComboBoxTurmas();
+            DataCacheService.CacheAtualizado += OnCacheAtualizado;
             _ = CarregarDadosIniciaisAsync();
+        }
+
+        private void OnCacheAtualizado()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                int? aulaId = AulaSelecionada?.AulaId;
+                _listaOriginalDoBanco = DataCacheService.AulasCache ?? new List<AulaExibicaoDTO>();
+                InicializarComboBoxTurmas();
+                ExecutarBusca();
+                AulaSelecionada = _listaOriginalDoBanco.FirstOrDefault(a => a.AulaId == aulaId);
+            });
         }
 
         private void Voltar()
@@ -127,6 +140,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
         private void InicializarComboBoxTurmas()
         {
+            int turmaIdSelecionada = TurmaSelecionada?.TurmaOriginal?.Id ?? 0;
             var listaCombo = new List<TurmaExibicaoDTO>();
             listaCombo.Add(new TurmaExibicaoDTO
             {
@@ -134,25 +148,24 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
                 TurmaOriginal = new Turma { Nome = "Todas as turmas" }
             });
 
-            if (DataCacheService.TurmasCache != null)
+            if (DataCacheService.TurmasHistoricoCache != null)
             {
-                listaCombo.AddRange(DataCacheService.TurmasCache);
+                listaCombo.AddRange(DataCacheService.TurmasHistoricoCache);
             }
 
             Turmas = listaCombo;
-            TurmaSelecionada = listaCombo[0];
+            TurmaSelecionada = listaCombo.FirstOrDefault(t => t.TurmaOriginal?.Id == turmaIdSelecionada) ?? listaCombo[0];
         }
 
         private void ExecutarBusca()
         {
             try
             {
-                string turmaFiltro = TurmaSelecionada?.Nome ?? "Todas as turmas";
+                int turmaId = TurmaSelecionada?.TurmaOriginal?.Id ?? 0;
 
                 Aulas = _listaOriginalDoBanco.Where(a =>
                 {
-                    bool bateTurma = (turmaFiltro == "Todas as turmas") ||
-                                     (a.Turma != null && a.Turma.Equals(turmaFiltro, StringComparison.OrdinalIgnoreCase));
+                    bool bateTurma = turmaId == 0 || a.TurmaId == turmaId;
 
                     bool bateDataInicio = !DataInicio.HasValue || a.Data.Date >= DataInicio.Value.Date;
 

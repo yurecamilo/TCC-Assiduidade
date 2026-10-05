@@ -12,6 +12,33 @@ namespace TCC_Assiduidade.Repositories
     {
         private readonly string connectionString = ConfigurationManager.ConnectionStrings["MyDbConn"].ConnectionString;
 
+        // Leituras permanecem compatíveis até a migração; a exclusão fica bloqueada.
+        internal static bool PossuiDataExclusao(MySqlConnection conn, MySqlTransaction trans = null)
+        {
+            const string sql = @"SELECT COUNT(*) FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Turma'
+                  AND COLUMN_NAME = 'DataExclusao'";
+            using (var cmd = new MySqlCommand(sql, conn, trans))
+                return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+        }
+
+        internal static string ObterColunaDataExclusao(MySqlConnection conn, string alias, MySqlTransaction trans = null)
+        {
+            return PossuiDataExclusao(conn, trans) ? alias + ".DataExclusao" : "NULL";
+        }
+
+        internal static void VerificarTurmaAtiva(MySqlConnection conn, MySqlTransaction trans, int turmaId)
+        {
+            string coluna = ObterColunaDataExclusao(conn, "t", trans);
+            string sql = $"SELECT t.Id FROM Turma t WHERE t.Id = @id AND {coluna} IS NULL FOR UPDATE";
+            using (var cmd = new MySqlCommand(sql, conn, trans))
+            {
+                cmd.Parameters.AddWithValue("@id", turmaId);
+                if (cmd.ExecuteScalar() == null)
+                    throw new RegistroNaoEncontradoException("A turma não existe ou foi excluída. Selecione uma turma ativa.");
+            }
+        }
+
         /// <summary>
         /// Abre a conexão traduzindo qualquer falha (servidor fora do ar, sem rede,
         /// credenciais inválidas) em <see cref="ConexaoBancoDadosException"/>, com
@@ -61,7 +88,8 @@ namespace TCC_Assiduidade.Repositories
                 {
                     conn.Open();
 
-                    string query = "SELECT Id, Nome FROM Turma WHERE Nome = @nome LIMIT 1";
+                    string coluna = ObterColunaDataExclusao(conn, "t");
+                    string query = $"SELECT t.Id, t.Nome, {coluna} AS DataExclusao FROM Turma t WHERE t.Nome = @nome LIMIT 1";
 
                     using (var cmd = new MySqlCommand(query, conn))
                     {
@@ -74,7 +102,8 @@ namespace TCC_Assiduidade.Repositories
                                 return new Turma
                                 {
                                     Id = Convert.ToInt32(reader["Id"]),
-                                    Nome = reader["Nome"].ToString()
+                                    Nome = reader["Nome"].ToString(),
+                                    DataExclusao = reader["DataExclusao"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusao"]) : null
                                 };
                             }
                         }
@@ -96,7 +125,8 @@ namespace TCC_Assiduidade.Repositories
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-                    string query = "SELECT Id, Nome FROM Turma WHERE Id = @id";
+                    string coluna = ObterColunaDataExclusao(conn, "t");
+                    string query = $"SELECT t.Id, t.Nome, {coluna} AS DataExclusao FROM Turma t WHERE t.Id = @id";
 
                     using (var cmd = new MySqlCommand(query, conn))
                     {
@@ -109,7 +139,8 @@ namespace TCC_Assiduidade.Repositories
                                 return new Turma
                                 {
                                     Id = Convert.ToInt32(reader["Id"]),
-                                    Nome = reader["Nome"].ToString()
+                                    Nome = reader["Nome"].ToString(),
+                                    DataExclusao = reader["DataExclusao"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusao"]) : null
                                 };
                             }
                         }
@@ -134,7 +165,8 @@ namespace TCC_Assiduidade.Repositories
                 {
                     conn.Open();
 
-                    string query = "SELECT Id, Nome FROM Turma ORDER BY Nome";
+                    string coluna = ObterColunaDataExclusao(conn, "t");
+                    string query = $"SELECT t.Id, t.Nome FROM Turma t WHERE {coluna} IS NULL ORDER BY t.Nome";
 
                     using (var cmd = new MySqlCommand(query, conn))
                     using (var reader = cmd.ExecuteReader())
@@ -158,28 +190,31 @@ namespace TCC_Assiduidade.Repositories
             return turmas;
         }
 
-        public List<TurmaExibicaoDTO> ObterTurmasComContagem()
+        public List<TurmaExibicaoDTO> ObterTurmasComContagem(bool incluirExcluidas = false)
         {
             var lista = new List<TurmaExibicaoDTO>();
 
             // QUERY CORRIGIDA: Agora vincula com a tabela Matricula filtrando pela turma ativa (MAX DataEntrada)
-            string sql = @"
-                SELECT t.Id, t.Nome, COUNT(v.AlunoMatricula) AS QuantidadeAlunos
+            const string consulta = @"
+                SELECT t.Id, t.Nome, {0} AS DataExclusao, COUNT(v.AlunoMatricula) AS QuantidadeAlunos
                 FROM Turma t
                 LEFT JOIN VinculoTurmaAluno v ON v.TurmaId = t.Id AND v.DataEntrada = (
                     SELECT MAX(subM.DataEntrada)
                     FROM VinculoTurmaAluno subM
                     WHERE subM.AlunoMatricula = v.AlunoMatricula
                 )
-                GROUP BY t.Id, t.Nome
+                WHERE {1}
+                GROUP BY t.Id, t.Nome, DataExclusao
                 ORDER BY t.Nome;";
 
             try
             {
                 using (var conn = new MySqlConnection(connectionString))
-                using (var cmd = new MySqlCommand(sql, conn))
                 {
                     conn.Open();
+                    string coluna = ObterColunaDataExclusao(conn, "t");
+                    string sql = string.Format(consulta, coluna, incluirExcluidas ? "1 = 1" : coluna + " IS NULL");
+                    using (var cmd = new MySqlCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -189,9 +224,10 @@ namespace TCC_Assiduidade.Repositories
                                 TurmaOriginal = new Turma
                                 {
                                     Id = Convert.ToInt32(reader["Id"]),
-                                    Nome = reader["Nome"].ToString()
+                                    Nome = reader["Nome"].ToString(),
+                                    DataExclusao = reader["DataExclusao"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusao"]) : null
                                 },
-                                Nome = reader["Nome"].ToString(),
+                                Nome = Turma.FormatarNome(reader["Nome"].ToString(), reader["DataExclusao"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusao"]) : null),
                                 QuantidadeAlunos = Convert.ToInt32(reader["QuantidadeAlunos"])
                             });
                         }
@@ -212,8 +248,8 @@ namespace TCC_Assiduidade.Repositories
             {
                 AbrirConexao(conn, "a turma");
 
-                string query = @"
-                    UPDATE Turma SET Nome = @nome WHERE Id = @id;";
+                string coluna = ObterColunaDataExclusao(conn, "Turma");
+                string query = $"UPDATE Turma SET Nome = @nome WHERE Id = @id AND {coluna} IS NULL";
 
                 try
                 {
@@ -240,56 +276,19 @@ namespace TCC_Assiduidade.Repositories
             using (var conn = new MySqlConnection(connectionString))
             {
                 AbrirConexao(conn, "a turma");
-
                 using (var transaction = conn.BeginTransaction())
                 {
                     try
                     {
-                        // Remove em cascata, na ordem correta, tudo o que depende da
-                        // turma: ausências das aulas -> aulas -> vínculos de alunos ->
-                        // a turma em si. Isso cumpre o que a tela de confirmação avisa
-                        // ("excluirá todos os dados associados: alunos e chamadas") e
-                        // evita registros órfãos apontando para uma turma inexistente.
-                        string queryAusencias = @"
-                            DELETE Ausencia FROM Ausencia
-                            INNER JOIN Aula ON Ausencia.AulaId = Aula.Id
-                            WHERE Aula.TurmaId = @turmaId;";
-                        using (var cmd = new MySqlCommand(queryAusencias, conn, transaction))
-                        {
-                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        string queryAulas = "DELETE FROM Aula WHERE TurmaId = @turmaId;";
-                        using (var cmd = new MySqlCommand(queryAulas, conn, transaction))
-                        {
-                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        string queryVinculos = "DELETE FROM VinculoTurmaAluno WHERE TurmaId = @turmaId;";
-                        using (var cmd = new MySqlCommand(queryVinculos, conn, transaction))
-                        {
-                            cmd.Parameters.AddWithValue("@turmaId", turmaId);
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        string queryTurma = "DELETE FROM Turma WHERE Id = @id;";
-                        using (var cmd = new MySqlCommand(queryTurma, conn, transaction))
+                        ValidarEsquemaExclusao(PossuiDataExclusao(conn, transaction));
+                        const string sql = "UPDATE Turma SET DataExclusao = UTC_TIMESTAMP() WHERE Id = @id AND DataExclusao IS NULL";
+                        using (var cmd = new MySqlCommand(sql, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@id", turmaId);
-                            int linhasAfetadas = cmd.ExecuteNonQuery();
-
-                            if (linhasAfetadas == 0)
-                                throw new RegistroNaoEncontradoException($"A turma de código {turmaId} não foi encontrada. Ela pode já ter sido excluída por outro usuário.");
+                            if (cmd.ExecuteNonQuery() == 0)
+                                throw new RegistroNaoEncontradoException("A turma não existe ou já foi excluída.");
                         }
-
                         transaction.Commit();
-                    }
-                    catch (RegistroNaoEncontradoException)
-                    {
-                        transaction.Rollback();
-                        throw;
                     }
                     catch (MySqlException ex)
                     {
@@ -303,6 +302,12 @@ namespace TCC_Assiduidade.Repositories
                     }
                 }
             }
+        }
+
+        internal static void ValidarEsquemaExclusao(bool possuiDataExclusao)
+        {
+            if (!possuiDataExclusao)
+                throw new ArgumentException("A exclusão segura de turmas requer a migração 001_exclusao_logica_turma.sql. Solicite sua aplicação ao responsável pelo banco. Nenhum dado foi excluído.");
         }
     }
 }

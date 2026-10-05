@@ -143,7 +143,8 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         {
             try
             {
-                var listaDoCache = DataCacheService.TurmaModeloCache ?? new List<Turma>();
+                var listaDoCache = (DataCacheService.TurmasHistoricoCache ?? new List<TurmaExibicaoDTO>())
+                    .Select(t => new Turma { Id = t.TurmaOriginal.Id, Nome = t.Nome }).ToList();
 
                 var _listaCombo = new List<Turma>
                 {
