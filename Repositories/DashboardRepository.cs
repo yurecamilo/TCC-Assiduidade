@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using TCC_Assiduidade.Modelos.Dashboard;
+using TCC_Assiduidade.Modelos.Banco;
 
 namespace TCC_Assiduidade.Repositories
 {
@@ -15,12 +16,13 @@ namespace TCC_Assiduidade.Repositories
         {
             var registros = new List<RegistroFrequenciaDashboard>();
 
-            const string sql = @"
+            const string consulta = @"
                 SELECT DISTINCT
                     au.Id AS AulaId,
                     au.Data,
                     t.Id AS TurmaId,
                     t.Nome AS NomeTurma,
+                    {0} AS DataExclusaoTurma,
                     al.Matricula,
                     al.Nome AS NomeAluno,
                     CASE WHEN aus.AlunoMatricula IS NULL THEN 1 ELSE 0 END AS Presente
@@ -44,9 +46,10 @@ namespace TCC_Assiduidade.Repositories
             try
             {
                 using (var conexao = new MySqlConnection(connectionString))
-                using (var comando = new MySqlCommand(sql, conexao))
                 {
                     conexao.Open();
+                    string sql = string.Format(consulta, TurmaRepository.ObterColunaDataExclusao(conexao, "t"));
+                    using (var comando = new MySqlCommand(sql, conexao))
                     using (var leitor = comando.ExecuteReader())
                     {
                         while (leitor.Read())
@@ -56,7 +59,8 @@ namespace TCC_Assiduidade.Repositories
                                 AulaId = Convert.ToInt32(leitor["AulaId"]),
                                 Data = Convert.ToDateTime(leitor["Data"]),
                                 TurmaId = Convert.ToInt32(leitor["TurmaId"]),
-                                Turma = leitor["NomeTurma"].ToString(),
+                                Turma = Turma.FormatarNome(leitor["NomeTurma"].ToString(),
+                                    leitor["DataExclusaoTurma"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(leitor["DataExclusaoTurma"]) : null),
                                 Matricula = leitor["Matricula"].ToString(),
                                 Aluno = leitor["NomeAluno"].ToString(),
                                 Presente = Convert.ToInt32(leitor["Presente"]) == 1

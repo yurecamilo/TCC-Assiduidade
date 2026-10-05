@@ -25,6 +25,7 @@ namespace TCC_Assiduidade.Repositories
                 {
                     try
                     {
+                        TurmaRepository.VerificarTurmaAtiva(conn, trans, aluno.TurmaId);
                         string queryAluno = "INSERT INTO Aluno (Matricula, Nome, Email) VALUES (@matricula, @nome, @email)";
                         using (var cmd = new MySqlCommand(queryAluno, conn, trans))
                         {
@@ -95,6 +96,8 @@ namespace TCC_Assiduidade.Repositories
                 {
                     try
                     {
+                        foreach (int turmaId in new HashSet<int>(alunos.ConvertAll(a => a.TurmaId)))
+                            TurmaRepository.VerificarTurmaAtiva(conn, trans, turmaId);
                         StringBuilder sqlAlunos = new StringBuilder("INSERT INTO Aluno (Matricula, Nome, Email) VALUES ");
                         List<string> rowsAlunos = new List<string>();
 
@@ -253,11 +256,14 @@ namespace TCC_Assiduidade.Repositories
                     conn.Open();
 
                     // Filtra os alunos cuja maior DataEntrada na tabela Matricula seja igual à turma informada
-                    string query = @"
-                SELECT a.Matricula, a.Nome, a.Email, v.TurmaId
+                    string colunaExclusao = TurmaRepository.ObterColunaDataExclusao(conn, "t");
+                    string query = $@"
+                SELECT a.Matricula, a.Nome, a.Email, v.TurmaId, v.DataEntrada
                 FROM Aluno a
                 INNER JOIN VinculoTurmaAluno v ON a.Matricula = v.AlunoMatricula
+                INNER JOIN Turma t ON t.Id = v.TurmaId
                 WHERE v.TurmaId = @turmaId
+                AND {colunaExclusao} IS NULL
                 AND v.DataEntrada = (
                     SELECT MAX(subM.DataEntrada)
                     FROM VinculoTurmaAluno subM
@@ -278,7 +284,10 @@ namespace TCC_Assiduidade.Repositories
                                     Matricula = reader["Matricula"].ToString(),
                                     Nome = reader["Nome"].ToString(),
                                     Email = reader["Email"].ToString(),
-                                    TurmaId = Convert.ToInt32(reader["TurmaId"])
+                                    TurmaId = Convert.ToInt32(reader["TurmaId"]),
+                                    DataEntrada = reader["DataEntrada"] != DBNull.Value
+                                        ? Convert.ToDateTime(reader["DataEntrada"])
+                                        : (DateTime?)null
                                 });
                             }
                         }
@@ -298,12 +307,13 @@ namespace TCC_Assiduidade.Repositories
             var lista = new List<AlunoExibicaoDTO>();
 
             // Query ajustada para filtrar aulas e faltas a partir da DataEntrada do aluno
-            string sql = @"
+            const string consulta = @"
         SELECT 
             a.Matricula, 
             a.Nome, 
             a.Email, 
             v.DataEntrada,
+            {0} AS DataExclusaoTurma,
             COALESCE(t.Nome, 'Sem turma') AS NomeTurma,
             
             -- Conta faltas apenas na turma atual e a partir da data de entrada
@@ -336,22 +346,16 @@ namespace TCC_Assiduidade.Repositories
             try
             {
                 using (var conn = new MySqlConnection(connectionString))
-                using (var cmd = new MySqlCommand(sql, conn))
                 {
                     conn.Open();
+                    string sql = string.Format(consulta, TurmaRepository.ObterColunaDataExclusao(conn, "t"));
+                    using (var cmd = new MySqlCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             int faltas = Convert.ToInt32(reader["TotalFaltas"]);
                             int totalAulas = Convert.ToInt32(reader["TotalAulas"]);
-
-                            double percentualAssiduidade = 100.0;
-                            if (totalAulas > 0)
-                            {
-                                percentualAssiduidade = ((double)(totalAulas - faltas) / totalAulas) * 100;
-                                percentualAssiduidade = Math.Round(percentualAssiduidade, 1);
-                            }
 
                             DateTime? dataEntradaValida = reader["DataEntrada"] != DBNull.Value
                                 ? Convert.ToDateTime(reader["DataEntrada"])
@@ -362,14 +366,14 @@ namespace TCC_Assiduidade.Repositories
                                 Matricula = reader["Matricula"].ToString(),
                                 Nome = reader["Nome"].ToString(),
                                 Email = reader["Email"].ToString(),
-                                Turma = reader["NomeTurma"].ToString(),
+                                Turma = Turma.FormatarNome(reader["NomeTurma"].ToString(),
+                                    reader["DataExclusaoTurma"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusaoTurma"]) : null),
                                 DataEntrada = dataEntradaValida,
 
                                 DadosFrequencia = new RelatorioFrequencia
                                 {
                                     TotalFaltas = faltas,
-                                    TotalAulas = totalAulas,
-                                    Assiduidade = percentualAssiduidade
+                                    TotalAulas = totalAulas
                                 }
                             };
 
@@ -397,6 +401,7 @@ namespace TCC_Assiduidade.Repositories
                 {
                     try
                     {
+                        TurmaRepository.VerificarTurmaAtiva(conn, transaction, aluno.TurmaId);
                         // 1. Atualiza os dados cadastrais do Aluno
                         string queryAluno = @"UPDATE Aluno
                                           SET Nome = @nome,
@@ -425,33 +430,43 @@ namespace TCC_Assiduidade.Repositories
                             }
                         }
 
-                        string queryQuantidadeVinculos = @"
-                            SELECT COUNT(*)
-                            FROM VinculoTurmaAluno
-                            WHERE AlunoMatricula = @matricula;";
-                        int quantidadeVinculos;
-                        using (var cmdQuantidade = new MySqlCommand(queryQuantidadeVinculos, conn, transaction))
+                        // O vínculo anterior permanece no histórico quando a turma muda.
+                        int? turmaAnterior = null;
+                        DateTime? entradaAnterior = null;
+                        const string consultaVinculo = @"SELECT TurmaId, DataEntrada FROM VinculoTurmaAluno
+                            WHERE AlunoMatricula = @matricula ORDER BY DataEntrada DESC LIMIT 1 FOR UPDATE";
+                        using (var cmd = new MySqlCommand(consultaVinculo, conn, transaction))
                         {
-                            cmdQuantidade.Parameters.AddWithValue("@matricula", aluno.Matricula);
-                            quantidadeVinculos = Convert.ToInt32(cmdQuantidade.ExecuteScalar());
+                            cmd.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    turmaAnterior = Convert.ToInt32(reader["TurmaId"]);
+                                    entradaAnterior = reader["DataEntrada"] != DBNull.Value
+                                        ? (DateTime?)Convert.ToDateTime(reader["DataEntrada"]) : null;
+                                }
+                            }
                         }
 
-                        string queryVinculo = quantidadeVinculos == 0
-                            ? @"INSERT INTO VinculoTurmaAluno (AlunoMatricula, TurmaId, DataEntrada)
-                                VALUES (@matricula, @turmaId, @dataEntrada);"
-                            : @"UPDATE VinculoTurmaAluno
-                                SET TurmaId = @turmaId,
-                                    DataEntrada = @dataEntrada
-                                WHERE AlunoMatricula = @matricula
-                                ORDER BY DataEntrada DESC
-                                LIMIT 1;";
+                        DateTime novaEntrada = (aluno.DataEntrada ?? DateTime.Today).Date;
+                        bool novoVinculo = turmaAnterior != aluno.TurmaId;
+                        if (novoVinculo && entradaAnterior.HasValue && novaEntrada <= entradaAnterior.Value.Date)
+                            throw new ArgumentException("Ao mudar de turma, informe uma data de entrada posterior à do vínculo anterior para preservar o histórico.");
+
+                        string queryVinculo = novoVinculo
+                            ? "INSERT INTO VinculoTurmaAluno (AlunoMatricula, TurmaId, DataEntrada) VALUES (@matricula, @turmaId, @dataEntrada)"
+                            : @"UPDATE VinculoTurmaAluno SET DataEntrada = @dataEntrada
+                                WHERE AlunoMatricula = @matricula AND TurmaId = @turmaId
+                                  AND DataEntrada <=> @entradaAnterior";
 
                         using (var cmdVinculo = new MySqlCommand(queryVinculo, conn, transaction))
                         {
                             cmdVinculo.Parameters.AddWithValue("@matricula", aluno.Matricula);
-                            cmdVinculo.Parameters.AddWithValue("@dataEntrada", aluno.DataEntrada ?? DateTime.Today);
-
+                            cmdVinculo.Parameters.AddWithValue("@dataEntrada", novaEntrada);
                             cmdVinculo.Parameters.AddWithValue("@turmaId", aluno.TurmaId);
+                            if (!novoVinculo)
+                                cmdVinculo.Parameters.AddWithValue("@entradaAnterior", (object)entradaAnterior ?? DBNull.Value);
 
                             cmdVinculo.ExecuteNonQuery();
                         }

@@ -50,7 +50,10 @@ namespace TCC_Assiduidade.Servicos
                 html.AppendLine($"        <p><strong>Vínculo de Turma:</strong> {WebUtility.HtmlEncode(aluno.Turma)}</p>");
                 html.AppendLine($"        <p><strong>E-mail Institucional:</strong> {WebUtility.HtmlEncode(aluno.Email)}</p>");
                 html.AppendLine("        <hr style='border: 0; border-top: 1px solid #B0C8D6; margin: 15px 0;'>");
-                html.AppendLine($"        <p class='destaque'>Assiduidade Geral do Aluno: {aluno.DadosFrequencia?.Assiduidade}%</p>");
+                string assiduidade = aluno.DadosFrequencia?.TotalAulas > 0 && aluno.DadosFrequencia.Assiduidade.HasValue
+                    ? $"{aluno.DadosFrequencia.Assiduidade.Value}%"
+                    : "Sem aulas desde a entrada na turma";
+                html.AppendLine($"        <p class='destaque'>Assiduidade Geral do Aluno: {assiduidade}</p>");
                 html.AppendLine($"        <p>Total de Aulas Computadas: {aluno.DadosFrequencia?.TotalAulas} aulas</p>");
                 html.AppendLine($"        <p class='falta'>Total de Ausências Registradas: {aluno.DadosFrequencia?.TotalFaltas} faltas</p>");
                 html.AppendLine("    </div>");
@@ -111,9 +114,8 @@ namespace TCC_Assiduidade.Servicos
 
             foreach (var turma in selecionadas)
             {
-                List<AulaExibicaoDTO> aulasDaTurma = DataCacheService.AulasCache?
-                        .Where(a => a.Turma != null && a.Turma.Equals(turma.Nome, StringComparison.OrdinalIgnoreCase))
-                        .ToList() ?? new List<AulaExibicaoDTO>();
+                List<AulaExibicaoDTO> aulasDaTurma = ObterAulasDaTurma(turma,
+                    DataCacheService.AulasCache ?? new List<AulaExibicaoDTO>());
 
                 html.AppendLine("    <div class=\"quadro-turma\" style=\"border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin-bottom: 25px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">");
 
@@ -155,6 +157,11 @@ namespace TCC_Assiduidade.Servicos
 
             html.AppendLine("</body></html>");
             return html.ToString();
+        }
+
+        internal static List<AulaExibicaoDTO> ObterAulasDaTurma(TurmaRelatorioItem turma, IEnumerable<AulaExibicaoDTO> aulas)
+        {
+            return aulas.Where(a => a.TurmaId == turma.TurmaOriginal.Id).ToList();
         }
 
         public static string RelatorioBase(string Titulo, string estilosAdicionais = null)

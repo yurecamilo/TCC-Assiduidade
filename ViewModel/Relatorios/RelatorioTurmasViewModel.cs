@@ -103,7 +103,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                _listaOriginalDoBanco = DataCacheService.TurmasCache ?? new List<TurmaExibicaoDTO>();
+                _listaOriginalDoBanco = DataCacheService.TurmasHistoricoCache ?? new List<TurmaExibicaoDTO>();
 
                 ExecutarBusca();
             });
@@ -155,7 +155,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             {
                 await DataCacheService.AguardarCarregamentoAsync();
 
-                _listaOriginalDoBanco = DataCacheService.TurmasCache ?? new List<TurmaExibicaoDTO>();
+                _listaOriginalDoBanco = DataCacheService.TurmasHistoricoCache ?? new List<TurmaExibicaoDTO>();
 
                 Turmas = _listaOriginalDoBanco.Select(t => new TurmaRelatorioItem
                 {

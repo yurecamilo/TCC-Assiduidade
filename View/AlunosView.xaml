@@ -377,7 +377,7 @@
                             <Border BorderBrush="#B0C8D6" BorderThickness="0,0,1,1" Padding="8">
                                 <StackPanel>
                                     <TextBlock Text="Assiduidade Geral" FontSize="11" Foreground="#666" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.Assiduidade, StringFormat={}{0}%, FallbackValue='0%'}" FontSize="22" FontWeight="Bold" Foreground="#236B73" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding AlunoSelecionado.DadosFrequencia.Assiduidade, StringFormat={}{0}%, TargetNullValue='Sem aulas', FallbackValue='Sem aulas'}" FontSize="22" FontWeight="Bold" Foreground="#236B73" HorizontalAlignment="Center" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border BorderBrush="#B0C8D6" BorderThickness="0,0,0,1" Padding="8">

@@ -136,7 +136,7 @@ namespace TCC_Assiduidade.ViewModel
             MessageBoxResult resultado = MessageBox.Show(
                 "Deseja excluir também todos os alunos desta turma?\n\n" +
                 "Sim: exclui a turma, as chamadas e os alunos.\n" +
-                "Não: exclui a turma e as chamadas, mas mantém os alunos sem turma.\n" +
+                "Não: arquiva a turma e preserva alunos, chamadas e histórico.\n" +
                 "Cancelar: não exclui nada.",
                 "Excluir turma",
                 MessageBoxButton.YesNoCancel,

@@ -22,6 +22,7 @@ namespace TCC_Assiduidade.Servicos
                 throw new ArgumentNullException(nameof(aluno), "Aluno inválido.");
 
             ValidarAluno(aluno);
+            new TurmaService().GarantirTurmaAtiva(aluno.TurmaId);
 
             _alunoRepository.Adicionar(aluno);
         }
@@ -33,6 +34,9 @@ namespace TCC_Assiduidade.Servicos
             {
                 ValidarAluno(a);
             }
+
+            foreach (int turmaId in new HashSet<int>(alunos.ConvertAll(a => a.TurmaId)))
+                new TurmaService().GarantirTurmaAtiva(turmaId);
 
             _alunoRepository.Adicionar(alunos);
         }
@@ -61,9 +65,20 @@ namespace TCC_Assiduidade.Servicos
 
         public List<AlunoExibicaoDTO> ObterPerfilAluno()
         {
-            return _alunoRepository.ObterPerfilAluno();
+            var alunos = _alunoRepository.ObterPerfilAluno();
+            foreach (var aluno in alunos)
+            {
+                var frequencia = aluno.DadosFrequencia;
+                frequencia.Assiduidade = CalcularAssiduidade(frequencia.TotalAulas, frequencia.TotalFaltas);
+            }
+            return alunos;
         }
 
+        internal static double? CalcularAssiduidade(int totalAulas, int totalFaltas)
+        {
+            if (totalAulas <= 0) return null;
+            return Math.Round((double)(totalAulas - totalFaltas) / totalAulas * 100, 1);
+        }
 
 
         public bool ValidarEmailInstitucional(string email)
@@ -107,6 +122,7 @@ namespace TCC_Assiduidade.Servicos
                 throw new ArgumentNullException(nameof(aluno), "Aluno inválido.");
 
             ValidarAluno(aluno);
+            new TurmaService().GarantirTurmaAtiva(aluno.TurmaId);
             _alunoRepository.Atualizar(aluno);
         }
 

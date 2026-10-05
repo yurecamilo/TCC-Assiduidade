@@ -24,7 +24,9 @@ namespace TCC_Assiduidade.Servicos
 
             var turmaExistente = _turmaRepository.ObterTurmaPorNome(turmaNome);
             if (turmaExistente != null)
-                throw new RegistroDuplicadoException("Já existe uma turma com esse nome.");
+                throw new RegistroDuplicadoException(turmaExistente.DataExclusao.HasValue
+                    ? "Esse nome pertence a uma turma excluída cujo histórico foi preservado. Escolha outro nome para a nova turma."
+                    : "Já existe uma turma com esse nome.");
 
             _turmaRepository.Adicionar(turmaNome);
         }
@@ -50,9 +52,22 @@ namespace TCC_Assiduidade.Servicos
             return _turmaRepository.ObterTurmaPorId(turmaId);
         }
 
-        public List<TurmaExibicaoDTO> ObterTurmasComContagem()
+        public List<TurmaExibicaoDTO> ObterTurmasComContagem(bool incluirExcluidas = false)
         {
-            return _turmaRepository.ObterTurmasComContagem();
+            return _turmaRepository.ObterTurmasComContagem(incluirExcluidas);
+        }
+
+        public void GarantirTurmaAtiva(int turmaId)
+        {
+            ValidarTurmaAtiva(ObterTurmaPorId(turmaId));
+        }
+
+        internal static void ValidarTurmaAtiva(Turma turma)
+        {
+            if (turma == null)
+                throw new RegistroNaoEncontradoException("A turma especificada não existe.");
+            if (turma.DataExclusao.HasValue)
+                throw new ArgumentException("A turma foi excluída e está disponível apenas para consulta do histórico. Selecione uma turma ativa.");
         }
 
         public void Atualizar(int turmaId, string novoNome)
@@ -64,6 +79,7 @@ namespace TCC_Assiduidade.Servicos
             var turmaExistente = _turmaRepository.ObterTurmaPorId(turmaId);
             if (turmaExistente == null)
                 throw new RegistroNaoEncontradoException("A turma especificada não existe.");
+            ValidarTurmaAtiva(turmaExistente);
             var outraTurmaComMesmoNome = _turmaRepository.ObterTurmaPorNome(novoNome);
             if (outraTurmaComMesmoNome != null && outraTurmaComMesmoNome.Id != turmaId)
                 throw new RegistroDuplicadoException("Já existe outra turma com esse nome.");
@@ -82,6 +98,7 @@ namespace TCC_Assiduidade.Servicos
             var turmaExistente = _turmaRepository.ObterTurmaPorId(turmaId);
             if (turmaExistente == null)
                 throw new RegistroNaoEncontradoException("A turma especificada não existe.");
+            ValidarTurmaAtiva(turmaExistente);
             _turmaRepository.Excluir(turmaId, excluirAlunos);
         }
     }
