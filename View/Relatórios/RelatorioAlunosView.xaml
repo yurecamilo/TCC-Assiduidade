@@ -153,6 +153,7 @@
                     </StackPanel>
                     <StackPanel HorizontalAlignment="Left" Margin="20,0,0,0" Grid.Column="1">
                         <TextBlock Margin="0,0,0,5" Text="Selecionar Turma" Foreground="#555" FontSize="13" FontWeight="SemiBold"/>
+                        <CheckBox Content="Incluir alunos de turmas arquivadas" IsChecked="{Binding IncluirTurmasArquivadas}" Foreground="#555" Margin="0,0,0,5"/>
 
                         <Grid>
                             <ComboBox x:Name="CbTurmas" 

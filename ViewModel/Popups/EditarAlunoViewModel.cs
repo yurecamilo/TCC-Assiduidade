@@ -14,15 +14,11 @@ namespace TCC_Assiduidade.ViewModel.Popups
 {
     public class EditarAlunoViewModel : BaseViewModel
     {
-        private List<Turma> _listaOriginalDoBanco = new List<Turma>();
         private readonly AlunoService _alunoService;
 
         private string _matricula;
         private string _nome;
         private string _email;
-        private Turma _turmaSelecionada;
-        private List<Turma> _turmas;
-        private DateTime? _dataEntrada; // Nova propriedade privada para a data
 
         public string Matricula
         {
@@ -42,26 +38,6 @@ namespace TCC_Assiduidade.ViewModel.Popups
             set { _email = value; OnPropertyChanged(); }
         }
 
-        public Turma TurmaSelecionada
-        {
-            get => _turmaSelecionada;
-            set { 
-                _turmaSelecionada = value; 
-                OnPropertyChanged(); 
-            }
-        }
-
-        public List<Turma> Turmas
-        {
-            get => _turmas;
-            set { _turmas = value; OnPropertyChanged(); }
-        }
-
-        public DateTime? DataEntrada
-        {
-            get => _dataEntrada;
-            set { _dataEntrada = value; OnPropertyChanged(); }
-        }
 
         public ICommand SalvarAlunoCommand { get; private set; }
         public ICommand FecharJanelaCommand { get; private set; }
@@ -75,24 +51,6 @@ namespace TCC_Assiduidade.ViewModel.Popups
             Matricula = aluno.Matricula;
             Nome = aluno.Nome;
             Email = aluno.Email;
-            DataEntrada = aluno.DataEntrada;
-            _ = CarregarTurmasDoBanco();
-            TurmaSelecionada = _listaOriginalDoBanco.FirstOrDefault(t => t.Nome == aluno.Turma);
-        }
-
-        async Task CarregarTurmasDoBanco()
-        {
-            try
-            {
-                await DataCacheService.AguardarCarregamentoAsync();
-
-                _listaOriginalDoBanco = DataCacheService.TurmaModeloCache ?? new List<Turma>();
-                Turmas = _listaOriginalDoBanco;
-            }
-            catch (Exception ex)
-            {
-                MostrarErro("Nao foi possivel carregar as turmas. Verifique a conexao com o banco e tente novamente.", ex);
-            }
         }
 
         private async void ExecutarSalvar()
@@ -103,9 +61,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 {
                     Matricula = Matricula,
                     Nome = Nome,
-                    Email = Email,
-                    TurmaId = TurmaSelecionada.Id,
-                    DataEntrada = DataEntrada 
+                    Email = Email
                 };
 
                 _alunoService.Atualizar(aluno);

@@ -4,12 +4,15 @@
     {
         public int Id { get; set; }
         public string Nome { get; set; }
-        public System.DateTime? DataExclusao { get; set; }
-        public string NomeExibicao => FormatarNome(Nome, DataExclusao);
+        public EStatusTurma Status { get; set; } = EStatusTurma.Ativa;
+        public System.DateTime? DataAlteracaoStatus { get; set; }
+        public string NomeExibicao => FormatarNome(Nome, Status);
 
-        internal static string FormatarNome(string nome, System.DateTime? dataExclusao)
+        internal static string FormatarNome(string nome, EStatusTurma status)
         {
-            return dataExclusao.HasValue ? $"{nome} (turma excluída)" : nome;
+            if (status == EStatusTurma.Arquivada) return $"{nome} (arquivada)";
+            if (status == EStatusTurma.Excluida) return $"{nome} (excluída)";
+            return nome;
         }
     }
 }

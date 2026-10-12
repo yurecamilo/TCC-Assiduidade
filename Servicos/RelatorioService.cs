@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
 using TCC_Assiduidade.Modelos.DTO;
+using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.Relatorios;
 using TCC_Assiduidade.Repositories;
 using TCC_Assiduidade.ViewModel.Relatorios;
@@ -121,6 +122,8 @@ namespace TCC_Assiduidade.Servicos
 
                 html.AppendLine("        <div class=\"info\">");
                 html.AppendLine($"            <p><strong>Turma analisada:</strong> {WebUtility.HtmlEncode(turma.Nome)}</p>");
+                if (turma.TurmaOriginal?.Status == EStatusTurma.Arquivada)
+                    html.AppendLine("            <p><strong>Situação:</strong> Turma arquivada</p>");
                 html.AppendLine($"            <p><strong>Total de diários de classe mapeados:</strong> {aulasDaTurma.Count}</p>");
                 html.AppendLine("        </div>");
 

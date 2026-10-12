@@ -25,6 +25,12 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         private DateTime? _dataInicio;
         private DateTime? _dataFim;
         private List<RelatorioAusente> _alunosAusentes;
+        private bool _mostrarArquivadas;
+        public bool MostrarArquivadas
+        {
+            get => _mostrarArquivadas;
+            set { _mostrarArquivadas = value; OnPropertyChanged(); InicializarComboBoxTurmas(); ExecutarBusca(); }
+        }
 
         public List<RelatorioAusente> AlunosAusentes
         {
@@ -150,7 +156,8 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
             if (DataCacheService.TurmasHistoricoCache != null)
             {
-                listaCombo.AddRange(DataCacheService.TurmasHistoricoCache);
+                listaCombo.AddRange(DataCacheService.TurmasHistoricoCache.Where(t => t.TurmaOriginal.Status == EStatusTurma.Ativa ||
+                    (MostrarArquivadas && t.TurmaOriginal.Status == EStatusTurma.Arquivada)));
             }
 
             Turmas = listaCombo;

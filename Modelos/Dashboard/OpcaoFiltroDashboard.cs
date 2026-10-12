@@ -4,6 +4,7 @@ namespace TCC_Assiduidade.Modelos.Dashboard
     {
         public int Id { get; set; }
         public string Nome { get; set; }
+        public bool Arquivada { get; set; }
     }
 
     public class OpcaoAlunoDashboard

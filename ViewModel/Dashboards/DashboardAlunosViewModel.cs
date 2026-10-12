@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using TCC_Assiduidade.Modelos.Dashboard;
+using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Servicos;
 
 namespace TCC_Assiduidade.ViewModel.Dashboards
@@ -19,6 +20,13 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
         private DateTime? _dataFim;
         private ResultadoDashboardAluno _resultado = new ResultadoDashboardAluno();
         private bool _dadosCarregados;
+        private bool _incluirArquivadas;
+
+        public bool IncluirArquivadas
+        {
+            get => _incluirArquivadas;
+            set { _incluirArquivadas = value; OnPropertyChanged(); AtualizarListaTurmas(); }
+        }
 
         public DashboardAlunosViewModel(DashboardsViewModel pai, DashboardService dashboardService)
             : base(pai, dashboardService)
@@ -124,13 +132,11 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
             try
             {
                 await _dashboardService.CarregarDadosAsync();
-                Turmas = _dashboardService.ObterTurmas(true);
                 DataInicio = _dashboardService.ObterPrimeiraData();
                 DataFim = _dashboardService.ObterUltimaData();
                 _dadosCarregados = true;
-                TurmaSelecionada = Turmas.FirstOrDefault();
-                if (TurmaSelecionada == null)
-                    AtualizarListaAlunos();
+                AtualizarListaTurmas();
+                if (TurmaSelecionada == null) AtualizarListaAlunos();
             }
             catch (Exception ex)
             {
@@ -139,11 +145,29 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
             }
         }
 
+        private void AtualizarListaTurmas()
+        {
+            if (!_dadosCarregados) return;
+            var matriculasAtivas = new HashSet<string>(
+                (DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>()).Select(a => a.Matricula),
+                StringComparer.OrdinalIgnoreCase);
+            var turmasArquivadasSoDosAlunosArquivados = new HashSet<int>(
+                (DataCacheService.AlunosHistoricoCache ?? new List<AlunoExibicaoDTO>())
+                    .Where(a => a.Turma != null && a.Turma.Contains("(arquivada)") && !matriculasAtivas.Contains(a.Matricula))
+                    .Select(a => DataCacheService.TurmasHistoricoCache?.FirstOrDefault(t => t.Nome == a.Turma.Replace(" (arquivada)", ""))?.TurmaOriginal?.Id ?? 0)
+                    .Where(id => id > 0));
+            var turmas = _dashboardService.ObterTurmas(true)
+                .Where(t => t.Id == 0 || IncluirArquivadas || !t.Arquivada || turmasArquivadasSoDosAlunosArquivados.Contains(t.Id))
+                .ToList();
+            Turmas = turmas;
+            TurmaSelecionada = Turmas.FirstOrDefault();
+        }
+
         private void AtualizarListaAlunos()
         {
             if (!_dadosCarregados) return;
             int turmaId = TurmaSelecionada?.Id ?? 0;
-            Alunos = _dashboardService.ObterAlunos(turmaId);
+            Alunos = _dashboardService.ObterAlunos(turmaId, IncluirArquivadas || (turmaId > 0 && TurmaSelecionada?.Arquivada == true));
             AlunoSelecionado = Alunos.FirstOrDefault();
             if (AlunoSelecionado == null) AtualizarDashboard();
         }
@@ -156,7 +180,8 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
                 AlunoSelecionado?.Matricula,
                 AlunoSelecionado?.TurmaId ?? TurmaSelecionada?.Id ?? 0,
                 DataInicio,
-                DataFim);
+                DataFim,
+                IncluirArquivadas);
 
             DefinirMensagemSemDados(Resultado.TemDados ? string.Empty : Resultado.Mensagem);
         }

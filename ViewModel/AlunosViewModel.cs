@@ -12,16 +12,23 @@ using TCC_Assiduidade.ViewModel.Relatorios;
 
 namespace TCC_Assiduidade.ViewModel
 {
+    public class AlunoListaItem : AlunoExibicaoDTO
+    {
+        private bool _isSelected;
+        public bool IsSelected { get => _isSelected; set { _isSelected = value; OnPropertyChanged(); } }
+    }
+
     public class AlunosViewModel : BaseViewModel
     {
-        private List<AlunoExibicaoDTO> _listaOriginalDoBanco = new List<AlunoExibicaoDTO>();
+        private List<AlunoListaItem> _listaOriginalDoBanco = new List<AlunoListaItem>();
         private readonly AlunoService _alunoService;
 
-        private IEnumerable<AlunoExibicaoDTO> _alunos;
+        private IEnumerable<AlunoListaItem> _alunos;
         private AlunoExibicaoDTO _alunoSelecionado;
         private string _textoBusca;
         private List<Turma> _turmas;
         private Turma _turmaSelecionada;
+        private bool _modoSelecaoMultipla;
 
         public List<Turma> Turmas
         {
@@ -40,7 +47,7 @@ namespace TCC_Assiduidade.ViewModel
             }
         }
 
-        public IEnumerable<AlunoExibicaoDTO> Alunos
+        public IEnumerable<AlunoListaItem> Alunos
         {
             get => _alunos;
             set { _alunos = value; OnPropertyChanged(); }
@@ -65,6 +72,41 @@ namespace TCC_Assiduidade.ViewModel
             }
         }
 
+        public bool ModoSelecaoMultipla
+        {
+            get => _modoSelecaoMultipla;
+            set
+            {
+                _modoSelecaoMultipla = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(TextoModoSelecao));
+                OnPropertyChanged(nameof(IconeModoSelecao));
+                OnPropertyChanged(nameof(MostrarAcoes));
+                if (value) AlunoSelecionado = null;
+                if (!value)
+                {
+                    SelecionarTodos = false;
+                    foreach (var aluno in _listaOriginalDoBanco) aluno.IsSelected = false;
+                }
+            }
+        }
+
+        public string TextoModoSelecao => ModoSelecaoMultipla ? "Cancelar seleção" : "Selecionar múltiplos";
+        public string IconeModoSelecao => ModoSelecaoMultipla ? "×" : "☷";
+        public bool MostrarAcoes => !ModoSelecaoMultipla;
+
+        private bool _selecionarTodos;
+        public bool SelecionarTodos
+        {
+            get => _selecionarTodos;
+            set
+            {
+                _selecionarTodos = value;
+                OnPropertyChanged();
+                foreach (var aluno in Alunos ?? Enumerable.Empty<AlunoListaItem>()) aluno.IsSelected = value;
+            }
+        }
+
         public string TextoBusca
         {
             get => _textoBusca;
@@ -82,11 +124,13 @@ namespace TCC_Assiduidade.ViewModel
         public ICommand EditarTurmaCommand { get; private set; }
         public ICommand ExcluirTurmaCommand { get; private set; }
         public ICommand VisualizarDadosCommand { get; private set; }
+        public ICommand AlternarModoSelecaoCommand { get; private set; }
+        public ICommand ExcluirSelecionadosCommand { get; private set; }
 
         public AlunosViewModel()
         {
             _alunoService = new AlunoService();
-            Alunos = new List<AlunoExibicaoDTO>();
+            Alunos = new List<AlunoListaItem>();
             Turmas = new List<Turma>();
 
             BuscarCommand = new RelayCommand(ExecutarBusca);
@@ -95,6 +139,8 @@ namespace TCC_Assiduidade.ViewModel
             ExcluirTurmaCommand = new RelayCommand(ExecutarExcluir);
             FecharPerfilCommand = new RelayCommand(ExecutarFecharPerfil);
             VisualizarDadosCommand = new RelayCommand(ExecutarVisualizar);
+            AlternarModoSelecaoCommand = new RelayCommand(() => ModoSelecaoMultipla = !ModoSelecaoMultipla);
+            ExcluirSelecionadosCommand = new RelayCommand(ExecutarExcluirSelecionados);
 
             DataCacheService.CacheAtualizado += OnCacheAtualizado;
 
@@ -105,7 +151,7 @@ namespace TCC_Assiduidade.ViewModel
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+                _listaOriginalDoBanco = (DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>()).Select(CriarItemLista).ToList();
                 InicializarComboBoxTurmas();
                 ExecutarBusca();
             });
@@ -117,7 +163,7 @@ namespace TCC_Assiduidade.ViewModel
             {
                 await DataCacheService.AguardarCarregamentoAsync();
 
-                _listaOriginalDoBanco = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+                _listaOriginalDoBanco = (DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>()).Select(CriarItemLista).ToList();
                 Alunos = _listaOriginalDoBanco;
 
                 InicializarComboBoxTurmas();
@@ -171,15 +217,6 @@ namespace TCC_Assiduidade.ViewModel
 
                     // O aluno só entra na Grid se passar nas duas condições!
                     return bateTexto && bateTurma;
-                }).Select(a => new AlunoRelatorioItem
-                {
-                    Nome = a.Nome,
-                    Matricula = a.Matricula,
-                    Turma = a.Turma,
-                    Email = a.Email,
-                    DadosFrequencia = a.DadosFrequencia,
-                    DataEntrada = a.DataEntrada,
-                    IsSelected = false
                 }).ToList();
             }
             catch (Exception ex)
@@ -229,6 +266,39 @@ namespace TCC_Assiduidade.ViewModel
                     MostrarErro("Não foi possível excluir o aluno. Tente novamente.", ex);
                 }
             }
+        }
+
+        private void ExecutarExcluirSelecionados()
+        {
+            var selecionados = _listaOriginalDoBanco.Where(a => a.IsSelected).ToList();
+            if (selecionados.Count == 0)
+            {
+                MessageBox.Show("Selecione pelo menos um aluno para excluir.", "Nenhum aluno selecionado", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var resultado = MessageBox.Show($"A exclusão removerá permanentemente {selecionados.Count} aluno(s), seus vínculos e registros de ausência. Deseja continuar?", "Excluir alunos selecionados", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (resultado != MessageBoxResult.Yes) return;
+            try
+            {
+                _alunoService.Excluir(selecionados.Select(a => a.Matricula).ToList());
+                ModoSelecaoMultipla = false;
+                AtualizarCacheAposMudanca();
+            }
+            catch (Exception ex) { MostrarErro("Não foi possível excluir os alunos selecionados. Nenhum aluno foi excluído.", ex); }
+        }
+
+        private static AlunoListaItem CriarItemLista(AlunoExibicaoDTO aluno)
+        {
+            return new AlunoListaItem
+            {
+                Nome = aluno.Nome,
+                Matricula = aluno.Matricula,
+                Turma = aluno.Turma,
+                Email = aluno.Email,
+                DadosFrequencia = aluno.DadosFrequencia,
+                DataEntrada = aluno.DataEntrada
+            };
         }
 
         private async void AtualizarCacheAposMudanca()

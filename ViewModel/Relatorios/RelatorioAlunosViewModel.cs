@@ -42,6 +42,13 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         private List<AlunoRelatorioItem> _alunos;
         private bool _selecionarTodos;
         private string _textoBusca;
+        private bool _incluirArquivadas;
+
+        public bool IncluirTurmasArquivadas
+        {
+            get => _incluirArquivadas;
+            set { _incluirArquivadas = value; OnPropertyChanged(); InicializarComboBoxTurmas(); ExecutarBusca(); }
+        }
 
         public List<Turma> Turmas
         {
@@ -143,16 +150,33 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         {
             try
             {
-                var listaDoCache = (DataCacheService.TurmasHistoricoCache ?? new List<TurmaExibicaoDTO>())
-                    .Select(t => new Turma { Id = t.TurmaOriginal.Id, Nome = t.Nome }).ToList();
+                var ativas = DataCacheService.AlunosCache ?? new List<AlunoExibicaoDTO>();
+                var historico = DataCacheService.AlunosHistoricoCache ?? new List<AlunoExibicaoDTO>();
+                var turmasHistorico = DataCacheService.TurmasHistoricoCache ?? new List<TurmaExibicaoDTO>();
+                var matriculasAtivas = new HashSet<string>(ativas.Select(a => a.Matricula), StringComparer.OrdinalIgnoreCase);
+                var matriculasSomenteArquivadas = new HashSet<string>(
+                    historico.Where(a => a.Turma != null && a.Turma.Contains("(arquivada)") && !matriculasAtivas.Contains(a.Matricula))
+                        .Select(a => a.Matricula), StringComparer.OrdinalIgnoreCase);
 
-                var _listaCombo = new List<Turma>
+                var nomesTurmasArquivadasDisponiveis = new HashSet<string>(
+                    historico.Where(a => matriculasSomenteArquivadas.Contains(a.Matricula) && a.Turma != null && a.Turma.Contains("(arquivada)"))
+                        .Select(a => a.Turma), StringComparer.OrdinalIgnoreCase);
+
+                var turmasDisponiveis = turmasHistorico
+                    .Where(t => t.TurmaOriginal.Status == EStatusTurma.Ativa ||
+                        (t.TurmaOriginal.Status == EStatusTurma.Arquivada &&
+                         (IncluirTurmasArquivadas || nomesTurmasArquivadasDisponiveis.Contains(t.Nome))))
+                    .Select(t => new Turma { Id = t.TurmaOriginal.Id, Nome = t.Nome, Status = t.TurmaOriginal.Status })
+                    .ToList();
+
+                Turmas = new List<Turma> { new Turma { Id = 0, Nome = "Selecionar turma" } };
+                Turmas.AddRange(turmasDisponiveis);
+                if (IncluirTurmasArquivadas)
+                    _listaOriginalDoBanco = historico;
+                else
                 {
-                    new Turma { Id = 0, Nome = "Selecionar turma" }
-                };
-
-                _listaCombo.AddRange(listaDoCache);
-                Turmas = _listaCombo;
+                    _listaOriginalDoBanco = ativas.Concat(historico.Where(a => a.Turma != null && a.Turma.Contains("(arquivada)") && matriculasSomenteArquivadas.Contains(a.Matricula))).ToList();
+                }
             }
             catch (Exception ex)
             {

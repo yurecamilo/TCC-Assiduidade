@@ -26,5 +26,6 @@ namespace TCC_Assiduidade.Servicos
         {
             return _aulaRepository.ObterResumoAulas();
         }
+
     }
 }

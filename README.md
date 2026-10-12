@@ -99,11 +99,12 @@ Defina a conexão `MyDbConn` em `App.config`:
 
 O banco utilizado pela aplicação contém as entidades conceituais `Aluno`, `Turma`, `VinculoTurmaAluno`, `Aula` e `Ausencia`. A estrutura deve existir antes da primeira execução.
 
-A exclusão de turmas passa a preservar aulas, ausências e vínculos por meio de
-`Turma.DataExclusao`. A [migração 001](docs/banco/001_exclusao_logica_turma.sql)
-foi aplicada ao banco configurado em 05/10/2026, com autorização e backup.
-Em bancos ainda sem a migração, a exclusão fica bloqueada e as leituras continuam
-compatíveis. Consulte o [procedimento de implantação e reversão](docs/banco/README.md).
+Turmas usam os estados Ativa, Arquivada e Excluida, com tabela de referência e
+data da última transição. Os vínculos, aulas e ausências permanecem no banco.
+A migração [003_status_turmas.sql](docs/banco/003_status_turmas.sql) deve ser
+validada com backup antes de ser aplicada a bancos que ainda usam o esquema
+legado. Ela foi aplicada ao banco configurado em `App.config` em 11/10/2026;
+consulte o [guia da migração](docs/banco/README.md) para o registro e a validação.
 
 ## Compilação e execução
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -169,6 +169,7 @@
     <Compile Include="Modelos\Dashboard\RegistroFrequenciaDashboard.cs" />
     <Compile Include="Modelos\Dashboard\ResultadoDashboard.cs" />
     <Compile Include="Modelos\Banco\Aula.cs" />
+    <Compile Include="Modelos\Banco\EStatusTurma.cs" />
     <Compile Include="Modelos\Banco\Ausencia.cs" />
     <Compile Include="Modelos\DTO\AlunoExibicaoDTO.cs" />
     <Compile Include="Modelos\DTO\TurmaExibicaoDTO.cs" />
@@ -253,6 +254,7 @@
       <DependentUpon>RelatorioAulasView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Converters\NullToVisibilityConverter.cs" />
+    <Compile Include="View\Converters\BindingProxy.cs" />
     <Compile Include="View\BaseWindow.xaml.cs">
       <DependentUpon>BaseWindow.xaml</DependentUpon>
     </Compile>

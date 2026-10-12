@@ -22,7 +22,7 @@ namespace TCC_Assiduidade.Repositories
                     au.Data,
                     t.Id AS TurmaId,
                     t.Nome AS NomeTurma,
-                    {0} AS DataExclusaoTurma,
+                    {0} AS StatusTurma,
                     al.Matricula,
                     al.Nome AS NomeAluno,
                     CASE WHEN aus.AlunoMatricula IS NULL THEN 1 ELSE 0 END AS Presente
@@ -41,6 +41,7 @@ namespace TCC_Assiduidade.Repositories
                 LEFT JOIN Ausencia aus
                     ON aus.AulaId = au.Id
                    AND aus.AlunoMatricula = al.Matricula
+                WHERE {1} <> 3
                 ORDER BY au.Data, au.Id, al.Nome;";
 
             try
@@ -48,7 +49,8 @@ namespace TCC_Assiduidade.Repositories
                 using (var conexao = new MySqlConnection(connectionString))
                 {
                     conexao.Open();
-                    string sql = string.Format(consulta, TurmaRepository.ObterColunaDataExclusao(conexao, "t"));
+                    string colunaStatus = TurmaRepository.ObterColunaStatus(conexao, "t");
+                    string sql = string.Format(consulta, colunaStatus, colunaStatus);
                     using (var comando = new MySqlCommand(sql, conexao))
                     using (var leitor = comando.ExecuteReader())
                     {
@@ -59,8 +61,8 @@ namespace TCC_Assiduidade.Repositories
                                 AulaId = Convert.ToInt32(leitor["AulaId"]),
                                 Data = Convert.ToDateTime(leitor["Data"]),
                                 TurmaId = Convert.ToInt32(leitor["TurmaId"]),
-                                Turma = Turma.FormatarNome(leitor["NomeTurma"].ToString(),
-                                    leitor["DataExclusaoTurma"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(leitor["DataExclusaoTurma"]) : null),
+                                StatusTurma = (EStatusTurma)Convert.ToInt32(leitor["StatusTurma"]),
+                                Turma = Turma.FormatarNome(leitor["NomeTurma"].ToString(), (EStatusTurma)Convert.ToInt32(leitor["StatusTurma"])),
                                 Matricula = leitor["Matricula"].ToString(),
                                 Aluno = leitor["NomeAluno"].ToString(),
                                 Presente = Convert.ToInt32(leitor["Presente"]) == 1

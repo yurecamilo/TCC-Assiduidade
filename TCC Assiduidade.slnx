@@ -1,4 +1,10 @@
 <Solution>
-  <Project Path="TCC Assiduidade.csproj" Id="63fff2b7-5d13-420c-9064-ebbc3a8e20d1" />
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM64" />
+  </Configurations>
+  <Project Path="TCC Assiduidade.csproj" Id="63fff2b7-5d13-420c-9064-ebbc3a8e20d1">
+    <Platform Solution="Debug|ARM64" Project="ARM64" />
+  </Project>
   <Project Path="TCC-Assiduidade.Testes\TCC-Assiduidade.Testes.csproj" Id="9e3b4e1a-9a5b-4e6e-9a9d-2e8b2e6e2b10" />
 </Solution>

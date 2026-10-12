@@ -1,11 +1,14 @@
 ﻿using Microsoft.Win32; // Padrão do WPF
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using TCC_Assiduidade.Modelos.DTO;
+using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Servicos;
 using TCC_Assiduidade.ViewModel.Base;
 
@@ -13,17 +16,6 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 {
     public class TurmaRelatorioItem : TurmaExibicaoDTO
     {
-        private bool _isSelected;
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set
-            {
-                _isSelected = value;
-                OnPropertyChanged(nameof(IsSelected));
-            }
-        }
-
         public void NotificarSelecaoAlterada()
         {
             OnPropertyChanged(nameof(IsSelected));
@@ -37,8 +29,23 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         private readonly RelatoriosViewModel _pai;
         private bool _selecionarTodasTurmas;
 
-        private List<TurmaRelatorioItem> _turmas;
+        private ICollectionView _turmas;
+        private List<TurmaRelatorioItem> _itensTurma = new List<TurmaRelatorioItem>();
+        private ICollectionView _turmasView;
         private string _textoBusca;
+        private bool _mostrarArquivadas;
+
+        public bool MostrarArquivadas
+        {
+            get => _mostrarArquivadas;
+            set
+            {
+                if (_mostrarArquivadas == value) return;
+                _mostrarArquivadas = value;
+                OnPropertyChanged();
+                AtualizarFiltro();
+            }
+        }
 
         public string TextoBusca
         {
@@ -47,7 +54,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             {
                 _textoBusca = value;
                 OnPropertyChanged();
-                ExecutarBusca();
+                AtualizarFiltro();
             }
         }
 
@@ -61,7 +68,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
                 if (Turmas != null)
                 {
-                    foreach (var turma in Turmas)
+                    foreach (var turma in Turmas.Cast<TurmaRelatorioItem>())
                     {
                         // Altera o estado da turma
                         turma.IsSelected = _selecionarTodasTurmas;
@@ -73,7 +80,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
         }
 
-        public List<TurmaRelatorioItem> Turmas
+        public ICollectionView Turmas
         {
             get => _turmas;
             set { _turmas = value; OnPropertyChanged(); }
@@ -113,30 +120,17 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(TextoBusca))
-                {
-                    Turmas = _listaOriginalDoBanco.Select(t => new TurmaRelatorioItem
-                    {
-                        TurmaOriginal = t.TurmaOriginal,
-                        Nome = t.Nome,
-                        QuantidadeAlunos = t.QuantidadeAlunos,
-                        IsSelected = false
-                    }).ToList() ?? new List<TurmaRelatorioItem>();
-                    return;
-                }
-
-                string busca = TextoBusca.Trim().ToLower();
-
-                Turmas = _listaOriginalDoBanco
-                    .Where(t => t.Nome != null && t.Nome.ToLower().Contains(busca))
+                _itensTurma = (_listaOriginalDoBanco ?? new List<TurmaExibicaoDTO>())
                     .Select(t => new TurmaRelatorioItem
                     {
                         TurmaOriginal = t.TurmaOriginal,
                         Nome = t.Nome,
                         QuantidadeAlunos = t.QuantidadeAlunos,
                         IsSelected = false
-                    })
-                    .ToList();
+                    }).ToList();
+                _turmasView = new ListCollectionView(_itensTurma);
+                _turmasView.Filter = FiltrarTurma;
+                Turmas = _turmasView;
             }
             catch (Exception ex)
             {
@@ -149,6 +143,27 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             TextoBusca = string.Empty;
         }
 
+        private bool FiltrarTurma(object item)
+        {
+            if (!(item is TurmaRelatorioItem turma)) return false;
+            if (!MostrarArquivadas && turma.TurmaOriginal?.Status != EStatusTurma.Ativa) return false;
+            string busca = (TextoBusca ?? string.Empty).Trim();
+            return string.IsNullOrEmpty(busca) ||
+                   (!string.IsNullOrEmpty(turma.Nome) && turma.Nome.IndexOf(busca, StringComparison.CurrentCultureIgnoreCase) >= 0);
+        }
+
+        private void AtualizarFiltro()
+        {
+            try
+            {
+                _turmasView?.Refresh();
+            }
+            catch (Exception ex)
+            {
+                MostrarErro("Não foi possível atualizar o filtro de turmas.", ex);
+            }
+        }
+
         private async Task CarregarDadosAsync()
         {
             try
@@ -157,13 +172,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
 
                 _listaOriginalDoBanco = DataCacheService.TurmasHistoricoCache ?? new List<TurmaExibicaoDTO>();
 
-                Turmas = _listaOriginalDoBanco.Select(t => new TurmaRelatorioItem
-                {
-                    TurmaOriginal = t.TurmaOriginal,
-                    Nome = t.Nome,
-                    QuantidadeAlunos = t.QuantidadeAlunos,
-                    IsSelected = false
-                }).ToList() ?? new List<TurmaRelatorioItem>();
+                ExecutarBusca();
             }
             catch (Exception ex)
             {
@@ -175,7 +184,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         {
             try
             {
-                var selecionadas = Turmas.Where(t => t.IsSelected).ToList();
+                var selecionadas = Turmas.Cast<TurmaRelatorioItem>().Where(t => t.IsSelected).ToList();
                 if (!selecionadas.Any()) return;
 
                 string html = _relatorioService.RelatorioPorTurma(selecionadas);

@@ -2,6 +2,7 @@
 using System;
 using System.Configuration;
 using System.Collections.Generic;
+using System.Linq;
 using TCC_Assiduidade.Excecoes;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Modelos.Banco;
@@ -64,14 +65,14 @@ namespace TCC_Assiduidade.Repositories
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-                    string colunaExclusao = TurmaRepository.ObterColunaDataExclusao(conn, "Turma");
+                    string colunaStatus = TurmaRepository.ObterColunaStatus(conn, "Turma");
                     string query = $@"
                     SELECT
                         Aula.Id AS AulaId,
                         Aula.Data,
                         Aula.TurmaId,
                         Turma.Nome AS Turma,
-                        {colunaExclusao} AS DataExclusaoTurma,
+                        {colunaStatus} AS StatusTurma,
                         COUNT(Ausencia.AlunoMatricula) AS NumeroAusentes
                     FROM Aula
                     INNER JOIN Turma ON Turma.Id = Aula.TurmaId
@@ -87,7 +88,8 @@ namespace TCC_Assiduidade.Repositories
                                     AND v2.DataEntrada <= Aula.Data
                               )
                         )
-                    GROUP BY Aula.Id, Aula.Data, Aula.TurmaId, Turma.Nome, DataExclusaoTurma
+                    WHERE {colunaStatus} <> 3
+                    GROUP BY Aula.Id, Aula.Data, Aula.TurmaId, Turma.Nome, StatusTurma
                     ORDER BY Aula.Data DESC, Aula.Id DESC;
                 ";
 
@@ -100,9 +102,9 @@ namespace TCC_Assiduidade.Repositories
                             {
                                 AulaId = Convert.ToInt32(reader["AulaId"]),
                                 TurmaId = Convert.ToInt32(reader["TurmaId"]),
+                                StatusTurma = (EStatusTurma)Convert.ToInt32(reader["StatusTurma"]),
                                 Data = Convert.ToDateTime(reader["Data"]),
-                                Turma = Turma.FormatarNome(reader["Turma"].ToString(),
-                                    reader["DataExclusaoTurma"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusaoTurma"]) : null),
+                                Turma = Turma.FormatarNome(reader["Turma"].ToString(), (EStatusTurma)Convert.ToInt32(reader["StatusTurma"])),
                                 NumeroAusentes = Convert.ToInt32(reader["NumeroAusentes"])
                             });
                         }
@@ -116,5 +118,6 @@ namespace TCC_Assiduidade.Repositories
 
             return aulas;
         }
+
     }
 }

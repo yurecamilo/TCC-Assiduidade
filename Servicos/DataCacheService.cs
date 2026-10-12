@@ -18,6 +18,7 @@ namespace TCC_Assiduidade.Servicos
 
         public static List<Turma> TurmaModeloCache { get; private set; } = new List<Turma>();
         public static List<AlunoExibicaoDTO> AlunosCache { get; private set; } = new List<AlunoExibicaoDTO>();
+        public static List<AlunoExibicaoDTO> AlunosHistoricoCache { get; private set; } = new List<AlunoExibicaoDTO>();
         public static List<TurmaExibicaoDTO> TurmasCache { get; private set; } = new List<TurmaExibicaoDTO>();
         public static List<TurmaExibicaoDTO> TurmasHistoricoCache { get; private set; } = new List<TurmaExibicaoDTO>();
         public static List<AulaExibicaoDTO> AulasCache { get; private set; } = new List<AulaExibicaoDTO>();
@@ -35,13 +36,17 @@ namespace TCC_Assiduidade.Servicos
                 try
                 {
                     var tarefaAlunos = Task.Run(() => _alunoService.ObterPerfilAluno());
-                    var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirExcluidas: true));
+                    var tarefaAlunosHistorico = Task.Run(() => _alunoService.ObterPerfilAluno(incluirArquivados: true));
+                    var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirArquivadas: true));
                     var tarefaAulas = Task.Run(() => _aulaService.ObterResumoAulas());
-                    var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTodasTurmas());
+                    var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirArquivadas: true)
+                        .Where(t => t.TurmaOriginal.Status == EStatusTurma.Ativa)
+                        .Select(t => t.TurmaOriginal).ToList());
 
-                    await Task.WhenAll(tarefaAlunos, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
+                    await Task.WhenAll(tarefaAlunos, tarefaAlunosHistorico, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
 
                     AlunosCache = tarefaAlunos.Result ?? new List<AlunoExibicaoDTO>();
+                    AlunosHistoricoCache = tarefaAlunosHistorico.Result ?? new List<AlunoExibicaoDTO>();
                     TurmasHistoricoCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
                     TurmasCache = FiltrarTurmasAtivas(TurmasHistoricoCache);
                     AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
@@ -55,6 +60,7 @@ namespace TCC_Assiduidade.Servicos
                 catch (Exception ex)
                 {
                     AlunosCache = new List<AlunoExibicaoDTO>();
+                    AlunosHistoricoCache = new List<AlunoExibicaoDTO>();
                     TurmasCache = new List<TurmaExibicaoDTO>();
                     TurmasHistoricoCache = new List<TurmaExibicaoDTO>();
                     AulasCache = new List<AulaExibicaoDTO>();
@@ -90,13 +96,17 @@ namespace TCC_Assiduidade.Servicos
             try
             {
                 var tarefaAlunos = Task.Run(() => _alunoService.ObterPerfilAluno());
-                var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirExcluidas: true));
+                var tarefaAlunosHistorico = Task.Run(() => _alunoService.ObterPerfilAluno(incluirArquivados: true));
+                var tarefaTurmas = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirArquivadas: true));
                 var tarefaAulas = Task.Run(() => _aulaService.ObterResumoAulas());
-                var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTodasTurmas());
+                var tarefaTurmaModelo = Task.Run(() => _turmaService.ObterTurmasComContagem(incluirArquivadas: true)
+                    .Where(t => t.TurmaOriginal.Status == EStatusTurma.Ativa)
+                    .Select(t => t.TurmaOriginal).ToList());
 
-                await Task.WhenAll(tarefaAlunos, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
+                await Task.WhenAll(tarefaAlunos, tarefaAlunosHistorico, tarefaTurmas, tarefaAulas, tarefaTurmaModelo);
 
                 AlunosCache = tarefaAlunos.Result ?? new List<AlunoExibicaoDTO>();
+                AlunosHistoricoCache = tarefaAlunosHistorico.Result ?? new List<AlunoExibicaoDTO>();
                 TurmasHistoricoCache = tarefaTurmas.Result ?? new List<TurmaExibicaoDTO>();
                 TurmasCache = FiltrarTurmasAtivas(TurmasHistoricoCache);
                 AulasCache = tarefaAulas.Result ?? new List<AulaExibicaoDTO>();
@@ -118,7 +128,7 @@ namespace TCC_Assiduidade.Servicos
 
         internal static List<TurmaExibicaoDTO> FiltrarTurmasAtivas(IEnumerable<TurmaExibicaoDTO> turmas)
         {
-            return turmas.Where(t => t.TurmaOriginal != null && !t.TurmaOriginal.DataExclusao.HasValue).ToList();
+            return turmas.Where(t => t.TurmaOriginal != null && t.TurmaOriginal.Status == EStatusTurma.Ativa).ToList();
         }
     }
 }

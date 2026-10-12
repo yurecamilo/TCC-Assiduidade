@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TCC_Assiduidade.Modelos.Dashboard;
 using TCC_Assiduidade.Repositories;
+using TCC_Assiduidade.Modelos.Banco;
 
 namespace TCC_Assiduidade.Servicos
 {
@@ -39,7 +40,7 @@ namespace TCC_Assiduidade.Servicos
         {
             var itens = _registros
                 .GroupBy(r => new { r.TurmaId, r.Turma })
-                .Select(g => new OpcaoTurmaDashboard { Id = g.Key.TurmaId, Nome = g.Key.Turma })
+                .Select(g => new OpcaoTurmaDashboard { Id = g.Key.TurmaId, Nome = g.Key.Turma, Arquivada = g.Any(r => r.StatusTurma == EStatusTurma.Arquivada) })
                 .OrderBy(t => t.Nome)
                 .ToList();
 
@@ -51,10 +52,10 @@ namespace TCC_Assiduidade.Servicos
             return itens;
         }
 
-        public List<OpcaoAlunoDashboard> ObterAlunos(int turmaId)
+        public List<OpcaoAlunoDashboard> ObterAlunos(int turmaId, bool incluirArquivadas = false)
         {
             return _registros
-                .Where(r => turmaId <= 0 || r.TurmaId == turmaId)
+                .Where(r => turmaId > 0 ? r.TurmaId == turmaId : incluirArquivadas || r.StatusTurma == EStatusTurma.Ativa)
                 .GroupBy(r => new { r.Matricula, r.Aluno, r.TurmaId, r.Turma })
                 .Select(g => new OpcaoAlunoDashboard
                 {
@@ -81,11 +82,12 @@ namespace TCC_Assiduidade.Servicos
             string matricula,
             int turmaId,
             DateTime? dataInicio,
-            DateTime? dataFim)
+            DateTime? dataFim,
+            bool incluirArquivadas = false)
         {
             var registrosAluno = FiltrarPeriodo(_registros, dataInicio, dataFim)
                 .Where(r => r.Matricula == matricula &&
-                            (turmaId <= 0 || r.TurmaId == turmaId))
+                            (turmaId > 0 ? r.TurmaId == turmaId : incluirArquivadas || r.StatusTurma == EStatusTurma.Ativa))
                 .OrderBy(r => r.Data)
                 .ToList();
 
@@ -104,7 +106,8 @@ namespace TCC_Assiduidade.Servicos
 
             int turmaAnalisada = turmaId > 0 ? turmaId : primeiro.TurmaId;
             var registrosTurma = FiltrarPeriodo(_registros, dataInicio, dataFim)
-                .Where(r => r.TurmaId == turmaAnalisada)
+                .Where(r => turmaId > 0 ? r.TurmaId == turmaAnalisada :
+                    (incluirArquivadas || r.StatusTurma == EStatusTurma.Ativa) && r.TurmaId == turmaAnalisada)
                 .ToList();
 
             double mediaTurma = CalcularPercentual(
@@ -166,10 +169,11 @@ namespace TCC_Assiduidade.Servicos
         public ResultadoDashboardTurmas ObterDashboardTurmas(
             int turmaId,
             DateTime? dataInicio,
-            DateTime? dataFim)
+            DateTime? dataFim,
+            bool incluirArquivadas = false)
         {
             var registros = FiltrarPeriodo(_registros, dataInicio, dataFim)
-                .Where(r => turmaId <= 0 || r.TurmaId == turmaId)
+                .Where(r => turmaId > 0 ? r.TurmaId == turmaId : incluirArquivadas || r.StatusTurma == EStatusTurma.Ativa)
                 .ToList();
 
             if (registros.Count == 0)
@@ -221,10 +225,11 @@ namespace TCC_Assiduidade.Servicos
         public ResultadoDashboardAulas ObterDashboardAulas(
             int turmaId,
             DateTime? dataInicio,
-            DateTime? dataFim)
+            DateTime? dataFim,
+            bool incluirArquivadas = false)
         {
             var registros = FiltrarPeriodo(_registros, dataInicio, dataFim)
-                .Where(r => turmaId <= 0 || r.TurmaId == turmaId)
+                .Where(r => turmaId > 0 ? r.TurmaId == turmaId : incluirArquivadas || r.StatusTurma == EStatusTurma.Ativa)
                 .ToList();
 
             if (registros.Count == 0)

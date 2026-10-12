@@ -72,7 +72,7 @@ namespace TCC_Assiduidade.Repositories
             Aula.Id AS AulaId,
             Aula.Data,
             Turma.Nome AS NomeTurma,
-            {0} AS DataExclusaoTurma,
+            {0} AS StatusTurma,
             Aluno.Matricula,
             Aluno.Nome AS Aluno,
             Aluno.Email
@@ -98,7 +98,7 @@ namespace TCC_Assiduidade.Repositories
                 using (var conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-                    string query = string.Format(consulta, TurmaRepository.ObterColunaDataExclusao(conn, "Turma"));
+                    string query = string.Format(consulta, TurmaRepository.ObterColunaStatus(conn, "Turma"));
                     using (var cmd = new MySqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@aulaId", aulaId);
@@ -110,8 +110,7 @@ namespace TCC_Assiduidade.Repositories
                                 {
                                     AulaId = Convert.ToInt32(reader["AulaId"]),
                                     Data = Convert.ToDateTime(reader["Data"]),
-                                    Turma = Turma.FormatarNome(reader["NomeTurma"].ToString(),
-                                        reader["DataExclusaoTurma"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(reader["DataExclusaoTurma"]) : null),
+                                    Turma = Turma.FormatarNome(reader["NomeTurma"].ToString(), (EStatusTurma)Convert.ToInt32(reader["StatusTurma"])),
                                     Matricula = reader["Matricula"].ToString(),
                                     Aluno = reader["Aluno"].ToString(),
                                     Email = reader["Email"].ToString()

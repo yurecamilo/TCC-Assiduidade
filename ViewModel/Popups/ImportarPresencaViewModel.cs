@@ -100,7 +100,16 @@ namespace TCC_Assiduidade.ViewModel.Popups
                         return;
                     }
 
-                    await DataCacheService.ForçarAtualizacaoAsync();
+                    // A transação da importação já foi confirmada. Uma falha ao
+                    // atualizar o cache não significa que a importação foi rejeitada.
+                    try
+                    {
+                        await DataCacheService.ForçarAtualizacaoAsync();
+                    }
+                    catch (Exception exAtualizacao)
+                    {
+                        MostrarErro("A importação foi concluída e os dados foram gravados, mas a tela não conseguiu atualizar. Reabra ou atualize a tela para consultar os dados.", exAtualizacao);
+                    }
 
                     MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 }

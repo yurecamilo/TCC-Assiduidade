@@ -164,8 +164,16 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     return;
                 }
 
-                // Atualiza o cache global
-                await DataCacheService.ForçarAtualizacaoAsync();
+                // A gravação já foi confirmada na transação; uma falha de cache
+                // não deve ser apresentada como rejeição da importação.
+                try
+                {
+                    await DataCacheService.ForçarAtualizacaoAsync();
+                }
+                catch (Exception exAtualizacao)
+                {
+                    MostrarErro("A importação foi concluída e os dados foram gravados, mas a tela não conseguiu atualizar. Reabra ou atualize a tela para consultar os dados.", exAtualizacao);
+                }
 
                 MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 _fecharJanela?.Invoke();

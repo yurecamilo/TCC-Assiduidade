@@ -119,6 +119,7 @@
                  Width="218" 
                  Text="{Binding TextoBusca, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
+                <CheckBox Content="Incluir turmas arquivadas" IsChecked="{Binding MostrarArquivadas}" Foreground="#FFFFFF" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="14,0,0,0"/>
                 <Button Content="Limpar busca" 
                 Style="{StaticResource AlertButtonStyle}"
                 Height="38"

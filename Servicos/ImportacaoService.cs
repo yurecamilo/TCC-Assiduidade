@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TCC_Assiduidade.Modelos.Banco;
@@ -30,12 +30,12 @@ namespace TCC_Assiduidade.Servicos
             {
                 if (string.IsNullOrWhiteSpace(turmaNome))
                 {
-                    return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = "Nome da turma inválido." };
+                    return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = "Nome da turma inválido. Nenhum dado foi importado." };
                 }
 
                 if (dados == null || dados.Count == 0)
                 {
-                    return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = "Nenhum dado encontrado no arquivo CSV." };
+                    return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = "Nenhum dado encontrado no arquivo CSV. Nenhum dado foi importado." };
                 }
 
                 string[] colunasObrigatorias = { "matricula", "nome", "email" };
@@ -50,7 +50,7 @@ namespace TCC_Assiduidade.Servicos
                     return new ResultadoImportacaoCadastro
                     {
                         Sucesso = false,
-                        Mensagem = "O arquivo CSV não contém todas as colunas obrigatórias: matricula, nome, email."
+                        Mensagem = "O arquivo CSV não contém todas as colunas obrigatórias: matricula, nome, email. Nenhum dado foi importado."
                     };
                 }
 
@@ -66,18 +66,17 @@ namespace TCC_Assiduidade.Servicos
 
                     if (string.IsNullOrWhiteSpace(matricula))
                     {
-                        return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = $"Erro na linha {linhaId}: A matrícula não pode estar vazia." };
+                        return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = $"Erro na linha {linhaId}: a matrícula não pode estar vazia. Nenhum dado foi importado." };
                     }
                     matriculas.Add(matricula);
                 }
 
-                int alunosExistencia = _alunoService.ObterQuantidadeMatriculasExistentes(matriculas);
-                if (alunosExistencia > 0)
+                if (matriculas.Distinct(StringComparer.OrdinalIgnoreCase).Count() != matriculas.Count)
                 {
                     return new ResultadoImportacaoCadastro
                     {
                         Sucesso = false,
-                        Mensagem = $"Existem {alunosExistencia} alunos com matrícula já cadastrada no sistema."
+                        Mensagem = "O arquivo contém matrículas repetidas. Nenhum dado foi importado."
                     };
                 }
 
@@ -85,17 +84,11 @@ namespace TCC_Assiduidade.Servicos
                     return new ResultadoImportacaoCadastro
                     {
                         Sucesso = false,
-                        Mensagem = "A data de entrada não pode ser futura."
+                        Mensagem = "A data de entrada não pode ser futura. Nenhum dado foi importado."
                     };
 
                 Turma turma = _turmaService.ObterTurmaPorNome(turmaNome);
-
-                if (turma == null)
-                {
-                    _turmaService.Adicionar(turmaNome);
-                    turma = _turmaService.ObterTurmaPorNome(turmaNome);
-                }
-                TurmaService.ValidarTurmaAtiva(turma);
+                if (turma != null) TurmaService.ValidarTurmaAtiva(turma);
 
                 List<Aluno> alunosParaSalvar = new List<Aluno>();
                 linhaId = 1;
@@ -111,14 +104,16 @@ namespace TCC_Assiduidade.Servicos
                     string nome = chaveNome != null ? WebUtilityTrim(linha[chaveNome]) : "";
                     string email = chaveEmail != null ? WebUtilityTrim(linha[chaveEmail]) : "";
 
-                    if (string.IsNullOrWhiteSpace(matricula) || string.IsNullOrWhiteSpace(nome))
+                    if (string.IsNullOrWhiteSpace(matricula) || string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(email))
                     {
                         return new ResultadoImportacaoCadastro
                         {
                             Sucesso = false,
-                            Mensagem = $"Erro na linha {linhaId}: A matrícula e o nome do aluno não podem estar vazios."
+                            Mensagem = $"Erro na linha {linhaId}: matrícula, nome e e-mail são obrigatórios. Nenhum dado foi importado."
                         };
                     }
+                    if (!_alunoService.ValidarEmailInstitucional(email))
+                        return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = $"Erro na linha {linhaId}: e-mail inválido. Nenhum dado foi importado." };
 
                     var aluno = new Aluno
                     {
@@ -131,7 +126,7 @@ namespace TCC_Assiduidade.Servicos
                     alunosParaSalvar.Add(aluno);
                 }
 
-                _alunoService.Adicionar(alunosParaSalvar);
+                _alunoService.ImportarCadastroAtomico(turmaNome, alunosParaSalvar, turma == null);
 
                 return new ResultadoImportacaoCadastro
                 {
@@ -142,7 +137,7 @@ namespace TCC_Assiduidade.Servicos
             }
             catch (Exception ex)
             {
-                return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = $"Erro inesperado: {ex.Message}" };
+                return new ResultadoImportacaoCadastro { Sucesso = false, Mensagem = $"Importação cancelada: {ex.Message} Nenhum dado foi importado." };
             }
         }
 
@@ -152,7 +147,7 @@ namespace TCC_Assiduidade.Servicos
             {
                 if (dadosPresenca == null || dadosPresenca.Count == 0)
                 {
-                    return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Nenhum dado de presença foi fornecido." };
+                    return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Nenhum dado de presença foi fornecido. Nenhum dado foi importado." };
                 }
 
                 // Uma importação representa uma única aula. Valida todas as linhas
@@ -162,7 +157,7 @@ namespace TCC_Assiduidade.Servicos
                 var turmaPresenca = _turmaService.ObterTurmaPorId(turmaId);
                 if (turmaPresenca == null)
                 {
-                    return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Turma nao encontrada." };
+                    return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Turma não encontrada. Nenhum dado foi importado." };
                 }
                 TurmaService.ValidarTurmaAtiva(turmaPresenca);
 
@@ -178,7 +173,7 @@ namespace TCC_Assiduidade.Servicos
                     return new ResultadoImportacaoPresenca
                     {
                         Sucesso = false,
-                        Mensagem = "O arquivo CSV não contém todas as colunas obrigatórias para presença: matricula_aluno, email_aluno, nome_aluno, data_presenca."
+                        Mensagem = "O arquivo CSV não contém todas as colunas obrigatórias para presença: matricula_aluno, email_aluno, nome_aluno, data_presenca. Nenhum dado foi importado."
                     };
                 }
 
@@ -196,10 +191,17 @@ namespace TCC_Assiduidade.Servicos
                         return new ResultadoImportacaoPresenca
                         {
                             Sucesso = false,
-                            Mensagem = $"Erro na linha {linhaId}: O campo 'matricula_aluno' não pode estar vazio."
+                            Mensagem = $"Erro na linha {linhaId}: o campo 'matricula_aluno' não pode estar vazio. Nenhum dado foi importado."
                         };
                     }
-                    matriculasPresentes.Add(matricula);
+                    string chaveNome = linha.Keys.FirstOrDefault(k => k.Equals("nome_aluno", StringComparison.OrdinalIgnoreCase));
+                    string chaveEmail = linha.Keys.FirstOrDefault(k => k.Equals("email_aluno", StringComparison.OrdinalIgnoreCase));
+                    string nomeLinha = chaveNome == null ? "" : WebUtilityTrim(linha[chaveNome]);
+                    string emailLinha = chaveEmail == null ? "" : WebUtilityTrim(linha[chaveEmail]);
+                    if (string.IsNullOrWhiteSpace(nomeLinha) || string.IsNullOrWhiteSpace(emailLinha) || !_alunoService.ValidarEmailInstitucional(emailLinha))
+                        return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = $"Erro na linha {linhaId}: nome e e-mail válidos são obrigatórios. Nenhum dado foi importado." };
+                    if (!matriculasPresentes.Add(matricula))
+                        return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = $"Erro na linha {linhaId}: matrícula repetida no arquivo. Nenhum dado foi importado." };
                 }
 
                 int alunosDeOutraTurma = _alunoService.ContarAlunosDeOutraTurma(turmaId, matriculasPresentes.ToList());
@@ -208,21 +210,30 @@ namespace TCC_Assiduidade.Servicos
                     return new ResultadoImportacaoPresenca
                     {
                         Sucesso = false,
-                        Mensagem = $"Existem {alunosDeOutraTurma} alunos no CSV que pertencem a uma turma diferente da selecionada."
+                        Mensagem = $"Existem {alunosDeOutraTurma} alunos no CSV que pertencem a uma turma diferente da selecionada. Nenhum dado foi importado."
                     };
                 }
 
-                List<Aluno> alunosDaTurma = _alunoService.ObterPorTurma(turmaId);
+                List<Aluno> alunosDaTurma = _alunoService.ObterPorTurma(turmaId) ?? new List<Aluno>();
                 if (alunosDaTurma.Count == 0)
                 {
-                    return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Nenhum aluno encontrado na turma." };
+                    return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = "Nenhum aluno encontrado na turma. Nenhum dado foi importado." };
                 }
 
                 List<string> ausentes = ValidarEObterAusentes(dataAula, matriculasPresentes, alunosDaTurma);
 
-                int aulaId = _aulaService.Adicionar(dataAula, turmaId);
-                _ausenciaService.Adicionar(aulaId, ausentes);
-                List<RelatorioAusente> relatorioAusentes = _relatorioService.ObterDadosRelatorio(aulaId);
+                int aulaId = _alunoService.ImportarAulaEAusenciasAtomico(dataAula, turmaId, matriculasPresentes.ToList());
+                List<RelatorioAusente> relatorioAusentes = alunosDaTurma
+                    .Where(a => ausentes.Contains(a.Matricula, StringComparer.OrdinalIgnoreCase))
+                    .Select(a => new RelatorioAusente
+                    {
+                        AulaId = aulaId,
+                        Data = dataAula,
+                        Turma = turmaPresenca.NomeExibicao,
+                        Matricula = a.Matricula,
+                        Aluno = a.Nome,
+                        Email = a.Email
+                    }).ToList();
 
                 return new ResultadoImportacaoPresenca
                 {
@@ -238,11 +249,11 @@ namespace TCC_Assiduidade.Servicos
             }
             catch (ArgumentException ex)
             {
-                return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = ex.Message };
+                return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = $"Importação cancelada: {ex.Message} Nenhum dado foi importado." };
             }
             catch (Exception ex)
             {
-                return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = $"Erro inesperado: {ex.Message}" };
+                return new ResultadoImportacaoPresenca { Sucesso = false, Mensagem = $"Importação cancelada por erro: {ex.Message} Nenhum dado foi importado." };
             }
         }
 

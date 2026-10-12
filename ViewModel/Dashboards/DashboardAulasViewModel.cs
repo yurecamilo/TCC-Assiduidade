@@ -17,6 +17,13 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
         private DateTime? _dataFim;
         private ResultadoDashboardAulas _resultado = new ResultadoDashboardAulas();
         private bool _dadosCarregados;
+        private bool _mostrarArquivadas;
+
+        public bool MostrarArquivadas
+        {
+            get => _mostrarArquivadas;
+            set { _mostrarArquivadas = value; OnPropertyChanged(); AtualizarListaTurmas(); }
+        }
 
         public DashboardAulasViewModel(DashboardsViewModel pai, DashboardService dashboardService)
             : base(pai, dashboardService)
@@ -104,7 +111,7 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
             try
             {
                 await _dashboardService.CarregarDadosAsync();
-                Turmas = _dashboardService.ObterTurmas(true);
+                AtualizarListaTurmas();
                 DataInicio = _dashboardService.ObterPrimeiraData();
                 DataFim = _dashboardService.ObterUltimaData();
                 _dadosCarregados = true;
@@ -118,6 +125,14 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
             }
         }
 
+        private void AtualizarListaTurmas()
+        {
+            var anterior = TurmaSelecionada?.Id ?? 0;
+            var turmas = _dashboardService.ObterTurmas(true).Where(t => t.Id == 0 || MostrarArquivadas || !t.Arquivada).ToList();
+            Turmas = turmas;
+            TurmaSelecionada = Turmas.FirstOrDefault(t => t.Id == anterior) ?? Turmas[0];
+        }
+
         private void AtualizarDashboard()
         {
             if (!_dadosCarregados) return;
@@ -125,7 +140,8 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
             Resultado = _dashboardService.ObterDashboardAulas(
                 TurmaSelecionada?.Id ?? 0,
                 DataInicio,
-                DataFim);
+                DataFim,
+                MostrarArquivadas);
 
             DefinirMensagemSemDados(Resultado.TemDados ? string.Empty : Resultado.Mensagem);
         }

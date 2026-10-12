@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Repositories;
@@ -33,11 +34,22 @@ namespace TCC_Assiduidade.Servicos
             {
                 ValidarAluno(a);
             }
+            if (alunos.ConvertAll(a => a.TurmaId).Distinct().Count() != 1)
+                throw new ArgumentException("O lote deve associar todos os alunos a uma única turma.");
+            var turma = new TurmaService().ObterTurmaPorId(alunos[0].TurmaId);
+            new TurmaService().GarantirTurmaAtiva(alunos[0].TurmaId);
+            _alunoRepository.ImportarCadastroAtomico(turma.Nome, alunos, false);
+        }
 
-            foreach (int turmaId in new HashSet<int>(alunos.ConvertAll(a => a.TurmaId)))
-                new TurmaService().GarantirTurmaAtiva(turmaId);
+        public void ImportarCadastroAtomico(string turmaNome, List<Aluno> alunos, bool criarTurma)
+        {
+            foreach (var aluno in alunos) ValidarAluno(aluno);
+            _alunoRepository.ImportarCadastroAtomico(turmaNome, alunos, criarTurma);
+        }
 
-            _alunoRepository.Adicionar(alunos);
+        public int ImportarAulaEAusenciasAtomico(DateTime data, int turmaId, List<string> presentes)
+        {
+            return _alunoRepository.ImportarAulaEAusenciasAtomico(data, turmaId, presentes);
         }
 
         public List<Aluno> ObterPorTurma(int turmaId)
@@ -62,9 +74,9 @@ namespace TCC_Assiduidade.Servicos
             return _alunoRepository.ContarAlunosDeOutraTurma(turmaId, matriculas);
         }
 
-        public List<AlunoExibicaoDTO> ObterPerfilAluno()
+        public List<AlunoExibicaoDTO> ObterPerfilAluno(bool incluirArquivados = false)
         {
-            var alunos = _alunoRepository.ObterPerfilAluno();
+            var alunos = _alunoRepository.ObterPerfilAluno(incluirArquivados);
             foreach (var aluno in alunos)
             {
                 var frequencia = aluno.DadosFrequencia;
@@ -120,9 +132,15 @@ namespace TCC_Assiduidade.Servicos
             if (aluno == null)
                 throw new ArgumentNullException(nameof(aluno), "Aluno inválido.");
 
-            ValidarAluno(aluno);
-            new TurmaService().GarantirTurmaAtiva(aluno.TurmaId);
+            ValidarDadosPessoais(aluno);
             _alunoRepository.Atualizar(aluno);
+        }
+
+        private void ValidarDadosPessoais(Aluno aluno)
+        {
+            if (string.IsNullOrWhiteSpace(aluno.Matricula)) throw new ArgumentException("Informe a matrícula do aluno.");
+            if (string.IsNullOrWhiteSpace(aluno.Nome)) throw new ArgumentException("Informe o nome do aluno.");
+            if (!ValidarEmailInstitucional(aluno.Email)) throw new ArgumentException("Informe um endereço de e-mail válido.");
         }
 
         public void Excluir(string matricula)
@@ -130,6 +148,15 @@ namespace TCC_Assiduidade.Servicos
             if (string.IsNullOrWhiteSpace(matricula))
                 throw new ArgumentException("Informe a matrícula do aluno para exclusão.");
             _alunoRepository.Excluir(matricula);
+        }
+
+        public void Excluir(List<string> matriculas)
+        {
+            if (matriculas == null || matriculas.Count == 0)
+                throw new ArgumentException("Selecione pelo menos um aluno para exclusão.");
+            if (matriculas.Any(string.IsNullOrWhiteSpace))
+                throw new ArgumentException("A seleção contém matrícula inválida. Nenhum aluno foi excluído.");
+            _alunoRepository.Excluir(matriculas);
         }
     }
 }
