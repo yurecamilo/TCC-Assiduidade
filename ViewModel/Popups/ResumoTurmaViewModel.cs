@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using TCC_Assiduidade.Modelos.Banco;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.Servicos;
@@ -31,14 +32,25 @@ namespace TCC_Assiduidade.ViewModel.Popups
         {
             _turmaService = new TurmaService();
             _alunoService = new AlunoService();
-            TurmaInfo = turmaSelecionada;
+            TurmaInfo = turmaSelecionada ?? throw new ArgumentNullException(nameof(turmaSelecionada));
             CarregarAlunosDaTurma();
         }
 
         private void CarregarAlunosDaTurma()
         {
-            var turma = _turmaService.ObterTurmaPorNome(TurmaInfo.Nome);
-            AlunosDaTurma = _alunoService.ObterPorTurma(turma.Id);
+            // O nome de exibição recebe o sufixo "(arquivada)"; a consulta deve
+            // usar o nome persistido da turma, preservado em TurmaOriginal.
+            string nomePersistido = TurmaInfo?.TurmaOriginal?.Nome;
+            if (string.IsNullOrWhiteSpace(nomePersistido))
+            {
+                AlunosDaTurma = new List<Aluno>();
+                return;
+            }
+
+            var turma = _turmaService.ObterTurmaPorNome(nomePersistido);
+            AlunosDaTurma = turma == null
+                ? new List<Aluno>()
+                : _alunoService.ObterPorTurma(turma.Id) ?? new List<Aluno>();
         }
     }
 }

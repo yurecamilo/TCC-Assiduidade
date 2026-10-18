@@ -30,18 +30,19 @@ namespace TCC_Assiduidade.Repositories
                         bool alunoExiste = ExisteAluno(conn, trans, aluno.Matricula);
                         if (alunoExiste)
                         {
+                            ValidarMesmoAluno(conn, trans, aluno);
                             VerificarSemVinculoAtivo(conn, trans, aluno.Matricula);
                             VerificarDataNovoVinculo(conn, trans, aluno.Matricula, aluno.DataEntrada ?? DateTime.Today);
                         }
-                        string queryAluno = alunoExiste
-                            ? "UPDATE Aluno SET Nome = @nome, Email = @email WHERE Matricula = @matricula"
-                            : "INSERT INTO Aluno (Matricula, Nome, Email) VALUES (@matricula, @nome, @email)";
-                        using (var cmd = new MySqlCommand(queryAluno, conn, trans))
+                        if (!alunoExiste)
                         {
-                            cmd.Parameters.AddWithValue("@matricula", aluno.Matricula);
-                            cmd.Parameters.AddWithValue("@nome", aluno.Nome);
-                            cmd.Parameters.AddWithValue("@email", aluno.Email ?? "");
-                            cmd.ExecuteNonQuery();
+                            using (var cmd = new MySqlCommand("INSERT INTO Aluno (Matricula, Nome, Email) VALUES (@matricula, @nome, @email)", conn, trans))
+                            {
+                                cmd.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                                cmd.Parameters.AddWithValue("@nome", aluno.Nome);
+                                cmd.Parameters.AddWithValue("@email", aluno.Email ?? "");
+                                cmd.ExecuteNonQuery();
+                            }
                         }
 
                         if (aluno.TurmaId > 0 && aluno.DataEntrada.HasValue)
@@ -221,6 +222,7 @@ namespace TCC_Assiduidade.Repositories
                             bool existe = ExisteAluno(conn, tx, aluno.Matricula);
                             if (existe)
                             {
+                                ValidarMesmoAluno(conn, tx, aluno);
                                 VerificarSemVinculoAtivo(conn, tx, aluno.Matricula);
                                 VerificarDataNovoVinculo(conn, tx, aluno.Matricula, aluno.DataEntrada ?? DateTime.Today);
                             }
@@ -243,10 +245,11 @@ namespace TCC_Assiduidade.Repositories
                                 cmd.Parameters.AddWithValue(m, a.Matricula); cmd.Parameters.AddWithValue(n, a.Nome);
                                 cmd.Parameters.AddWithValue(e, a.Email ?? ""); cmd.Parameters.AddWithValue(t, turmaId);
                                 cmd.Parameters.AddWithValue(d, a.DataEntrada ?? DateTime.Today);
-                                cmd.CommandText = ExisteAluno(conn, tx, a.Matricula)
-                                    ? "UPDATE Aluno SET Nome = " + n + ", Email = " + e + " WHERE Matricula = " + m
-                                    : "INSERT INTO Aluno (Matricula, Nome, Email) VALUES (" + m + "," + n + "," + e + ")";
-                                cmd.ExecuteNonQuery();
+                                if (!ExisteAluno(conn, tx, a.Matricula))
+                                {
+                                    cmd.CommandText = "INSERT INTO Aluno (Matricula, Nome, Email) VALUES (" + m + "," + n + "," + e + ")";
+                                    cmd.ExecuteNonQuery();
+                                }
                             }
                             cmd.CommandText = vinculosSql.Append(string.Join(",", vinculoValues)).ToString(); cmd.ExecuteNonQuery();
                         }
@@ -324,6 +327,18 @@ namespace TCC_Assiduidade.Repositories
             {
                 cmd.Parameters.AddWithValue("@matricula", matricula);
                 return cmd.ExecuteScalar() != null;
+            }
+        }
+
+        private static void ValidarMesmoAluno(MySqlConnection conn, MySqlTransaction trans, Aluno aluno)
+        {
+            const string sql = "SELECT Nome FROM Aluno WHERE Matricula = @matricula FOR UPDATE";
+            using (var cmd = new MySqlCommand(sql, conn, trans))
+            {
+                cmd.Parameters.AddWithValue("@matricula", aluno.Matricula);
+                string nomeCadastrado = Convert.ToString(cmd.ExecuteScalar());
+                if (!string.Equals(nomeCadastrado?.Trim(), aluno.Nome?.Trim(), StringComparison.OrdinalIgnoreCase))
+                    throw new RegistroDuplicadoException("A matrícula " + aluno.Matricula + " já pertence a outro aluno. Confira a matrícula e o nome; nenhum dado foi alterado.");
             }
         }
 
@@ -471,20 +486,14 @@ namespace TCC_Assiduidade.Repositories
                 {
                     conn.Open();
 
-                    // Filtra os alunos cuja maior DataEntrada na tabela Matricula seja igual à turma informada
-                    string colunaStatus = TurmaRepository.ObterColunaStatus(conn, "t");
+                    // O resumo da turma também apresenta o histórico arquivado.
+                    // A contagem da turma considera todos os vínculos registrados nela.
                     string query = $@"
                 SELECT a.Matricula, a.Nome, a.Email, v.TurmaId, v.DataEntrada
                 FROM Aluno a
                 INNER JOIN VinculoTurmaAluno v ON a.Matricula = v.AlunoMatricula
                 INNER JOIN Turma t ON t.Id = v.TurmaId
                 WHERE v.TurmaId = @turmaId
-                AND {colunaStatus} = 1
-                AND v.DataEntrada = (
-                    SELECT MAX(subM.DataEntrada)
-                    FROM VinculoTurmaAluno subM
-                    WHERE subM.AlunoMatricula = a.Matricula
-                )
                 ORDER BY a.Nome ASC;";
 
                     using (var cmd = new MySqlCommand(query, conn))

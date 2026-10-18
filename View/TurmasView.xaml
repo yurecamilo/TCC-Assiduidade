@@ -246,7 +246,7 @@
                         </StackPanel>
                     </Grid>
 
-                    <DataGrid Grid.Row="1" x:Name="GridTurmas" AutoGenerateColumns="False" 
+                    <DataGrid Grid.Row="1" x:Name="GridTurmas" AutoGenerateColumns="False" CanUserAddRows="False"
                               ItemsSource="{Binding Turmas}"
                               SelectedItem="{Binding TurmaSelecionada, Mode=TwoWay}"
                               Background="Transparent" BorderThickness="0"
