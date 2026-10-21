@@ -41,9 +41,25 @@ namespace TCC_Assiduidade.ViewModel.Popups
             try
             {
                 _turmaService.Adicionar(NomeNovaTurma.Trim());
-                await DataCacheService.ForçarAtualizacaoAsync();
 
-                PopupMensagem.Show("Turma cadastrada com sucesso!");
+                // A gravação no banco já aconteceu; uma falha ao atualizar o cache não
+                // deve ser apresentada como erro de salvamento (o usuário tentaria
+                // salvar de novo e tomaria "turma duplicada").
+                string avisoAtualizacao = null;
+                try
+                {
+                    await DataCacheService.ForçarAtualizacaoAsync();
+                }
+                catch (Exception)
+                {
+                    avisoAtualizacao = " A turma foi gravada, mas a lista não conseguiu atualizar. Reabra a tela de turmas para ver os dados atualizados.";
+                }
+
+                PopupMensagem.Show(
+                    "Turma cadastrada com sucesso!" + avisoAtualizacao,
+                    "Turma salva",
+                    MessageBoxButton.OK,
+                    avisoAtualizacao != null ? MessageBoxImage.Warning : MessageBoxImage.Information);
 
                 _fecharJanela?.Invoke();
             }

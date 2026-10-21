@@ -65,9 +65,24 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 };
 
                 _alunoService.Atualizar(aluno);
-                await DataCacheService.ForçarAtualizacaoAsync();
 
-                PopupMensagem.Show("Aluno editado com sucesso!");
+                // A gravação no banco já aconteceu; uma falha ao atualizar o cache não
+                // deve ser apresentada como erro de edição.
+                string avisoAtualizacao = null;
+                try
+                {
+                    await DataCacheService.ForçarAtualizacaoAsync();
+                }
+                catch (Exception)
+                {
+                    avisoAtualizacao = " O aluno foi gravado, mas a lista não conseguiu atualizar. Reabra a tela de alunos para ver os dados atualizados.";
+                }
+
+                PopupMensagem.Show(
+                    "Aluno editado com sucesso!" + avisoAtualizacao,
+                    "Aluno salvo",
+                    MessageBoxButton.OK,
+                    avisoAtualizacao != null ? MessageBoxImage.Warning : MessageBoxImage.Information);
                 FecharJanelaCommand.Execute(null);
             }
             catch (Exception ex)
