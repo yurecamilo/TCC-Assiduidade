@@ -38,6 +38,19 @@ namespace TCC_Assiduidade.Repositories
                     using (var trans = conn.BeginTransaction())
                     {
                         TurmaRepository.VerificarTurmaAtiva(conn, trans, turmaId);
+
+                        // Proteção contra duplicação: a mesma turma não pode ter duas
+                        // aulas gravadas com a mesma data.
+                        using (var cmdVerificarDuplicada = new MySqlCommand(
+                            "SELECT Id FROM Aula WHERE TurmaId = @turmaId AND Data = @data LIMIT 1 FOR UPDATE", conn, trans))
+                        {
+                            cmdVerificarDuplicada.Parameters.AddWithValue("@turmaId", turmaId);
+                            cmdVerificarDuplicada.Parameters.AddWithValue("@data", data.Date);
+                            if (cmdVerificarDuplicada.ExecuteScalar() != null)
+                                throw new RegistroDuplicadoException(
+                                    "Já existe uma aula registrada para esta turma em " + data.ToString("dd/MM/yyyy") + ".");
+                        }
+
                         using (var cmd = new MySqlCommand(query, conn, trans))
                         {
                             cmd.Parameters.AddWithValue("@data", data.Date);

@@ -271,6 +271,20 @@ namespace TCC_Assiduidade.Repositories
                     try
                     {
                         TurmaRepository.VerificarTurmaAtiva(conn, tx, turmaId);
+
+                        // Proteção contra duplicação: importar duas vezes o arquivo do
+                        // mesmo dia não pode criar uma segunda aula idêntica, o que
+                        // inflaria silenciosamente relatórios e dashboards.
+                        using (var cmdVerificacao = new MySqlCommand(
+                            "SELECT Id FROM Aula WHERE TurmaId = @turma AND Data = @data LIMIT 1 FOR UPDATE", conn, tx))
+                        {
+                            cmdVerificacao.Parameters.AddWithValue("@turma", turmaId);
+                            cmdVerificacao.Parameters.AddWithValue("@data", data.Date);
+                            if (cmdVerificacao.ExecuteScalar() != null)
+                                throw new RegistroDuplicadoException(
+                                    "Já existe uma aula registrada para esta turma em " + data.ToString("dd/MM/yyyy") + ". Importar o arquivo novamente duplicaria os registros. Nenhum dado foi importado.");
+                        }
+
                         var matriculasTurma = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         const string sqlTurma = @"SELECT v.AlunoMatricula
                             FROM VinculoTurmaAluno v
