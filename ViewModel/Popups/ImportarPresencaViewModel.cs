@@ -89,8 +89,14 @@ namespace TCC_Assiduidade.ViewModel.Popups
             {
                 try
                 {
-                    List<Dictionary<string, string>> dadosCsv = ArquivoService.LerCsv(_caminhoArquivoCompleto);
-                    ResultadoImportacaoPresenca resultado = _importacaoService.ImportarPresenca(TurmaSelecionada.Id, dadosCsv);
+                    IniciarProgresso("Lendo o arquivo CSV...");
+                    List<Dictionary<string, string>> dadosCsv = await Task.Run(() =>
+                        ArquivoService.LerCsv(_caminhoArquivoCompleto));
+
+                    AtualizarProgresso(35, "Validando os dados da lista de presença...");
+
+                    ResultadoImportacaoPresenca resultado = await Task.Run(() =>
+                        _importacaoService.ImportarPresenca(TurmaSelecionada.Id, dadosCsv));
 
                     // Se a importação falhou (turma sem alunos, coluna faltando, etc.),
                     // avisa o motivo sem atualizar o cache como se tivesse dado certo.
@@ -99,6 +105,8 @@ namespace TCC_Assiduidade.ViewModel.Popups
                         MessageBox.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
+
+                    AtualizarProgresso(90, "Atualizando os dados da aplicação...");
 
                     // A transação da importação já foi confirmada. Uma falha ao
                     // atualizar o cache não significa que a importação foi rejeitada.
@@ -111,11 +119,18 @@ namespace TCC_Assiduidade.ViewModel.Popups
                         MostrarErro("A importação foi concluída e os dados foram gravados, mas a tela não conseguiu atualizar. Reabra ou atualize a tela para consultar os dados.", exAtualizacao);
                     }
 
+                    ConcluirProgresso("Importação concluída!");
+                    await Task.Delay(600);
+
                     MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
                     MostrarErro("Nao foi possivel importar a presenca. Confira o arquivo CSV e tente novamente.", ex);
+                }
+                finally
+                {
+                    FinalizarProgresso();
                 }
             }
         }

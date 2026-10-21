@@ -1,8 +1,8 @@
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Threading;
 using TCC_Assiduidade.Excecoes;
 
 namespace TCC_Assiduidade.ViewModel.Base
@@ -17,6 +17,104 @@ namespace TCC_Assiduidade.ViewModel.Base
         }
 
         /// <summary>
+        /// Limite em percentual que a barra alcança "andando" durante uma etapa
+        /// longa. Evita que o progresso pareça travado quando a etapa mais custosa
+        /// (validação e gravação no banco) é uma única chamada síncrona.
+        /// </summary>
+        private const double LimiteProgressoRastejante = 88;
+
+        private bool _estaOcupado;
+        private double _progressoImportacao;
+        private string _etapaImportacao;
+        private DispatcherTimer _timerProgresso;
+
+        /// <summary>
+        /// Indica que uma operação longa está em andamento e o overlay de
+        /// carregamento deve proteger a janela, bloqueando interações.
+        /// </summary>
+        public bool EstaOcupado
+        {
+            get => _estaOcupado;
+            private set { _estaOcupado = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Percentual (0 a 100) exibido pela barra de progresso do overlay.
+        /// </summary>
+        public double ProgressoImportacao
+        {
+            get => _progressoImportacao;
+            private set { _progressoImportacao = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Texto da etapa atual exibido abaixo da barra de progresso do overlay.
+        /// </summary>
+        public string EtapaImportacao
+        {
+            get => _etapaImportacao;
+            private set { _etapaImportacao = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Abre o overlay exibindo a primeira etapa da operação.</summary>
+        protected void IniciarProgresso(string etapaInicial)
+        {
+            AtualizarProgresso(10, etapaInicial);
+        }
+
+        /// <summary>Move a barra para um ponto fixo e passa a exibir a etapa informada.</summary>
+        protected void AtualizarProgresso(double progresso, string etapa)
+        {
+            ProgressoImportacao = Math.Min(progresso, 100);
+            EtapaImportacao = etapa;
+            IniciarRastejoDoProgresso();
+        }
+
+        /// <summary>Leva a barra a 100% e encerra o rastelo de avanço.</summary>
+        protected void ConcluirProgresso(string etapaFinal)
+        {
+            PararRastejoDoProgresso();
+            ProgressoImportacao = 100;
+            EtapaImportacao = etapaFinal;
+        }
+
+        /// <summary>Zera o indicador e esconde o overlay, devolvendo a janela ao usuário.</summary>
+        protected void FinalizarProgresso()
+        {
+            PararRastejoDoProgresso();
+            ProgressoImportacao = 0;
+            EtapaImportacao = null;
+            EstaOcupado = false;
+        }
+
+        /// <summary>
+        /// Faz a barra avançar lentamente enquanto a operação atual é um bloco único
+        /// sem pontos intermediários de atualização, até o limite de segurança.
+        /// </summary>
+        private void IniciarRastejoDoProgresso()
+        {
+            PararRastejoDoProgresso();
+
+            _timerProgresso = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+            _timerProgresso.Tick += (s, e) =>
+            {
+                if (ProgressoImportacao < LimiteProgressoRastejante)
+                    ProgressoImportacao = Math.Min(ProgressoImportacao + 1, LimiteProgressoRastejante);
+            };
+            _timerProgresso.Start();
+            EstaOcupado = true;
+        }
+
+        private void PararRastejoDoProgresso()
+        {
+            if (_timerProgresso == null)
+                return;
+
+            _timerProgresso.Stop();
+            _timerProgresso = null;
+        }
+
+        /// <summary>
         /// Exibe uma mensagem de erro ao usuário. Quando a exceção é de um dos tipos
         /// de domínio conhecidos (registro duplicado, integridade referencial,
         /// registro não encontrado, falha de conexão ou dados inválidos), mostra um
@@ -26,11 +124,6 @@ namespace TCC_Assiduidade.ViewModel.Base
         /// </summary>
         protected void MostrarErro(string mensagemPadrao, Exception excecao = null)
         {
-            if (excecao != null)
-            {
-                Debug.WriteLine(excecao);
-            }
-
             string titulo;
             string mensagem;
             ClassificarErro(excecao, mensagemPadrao, out titulo, out mensagem);

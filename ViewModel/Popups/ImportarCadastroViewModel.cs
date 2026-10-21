@@ -150,10 +150,16 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
             try
             {
-                List<Dictionary<string, string>> dadosCsv = ArquivoService.LerCsv(_caminhoArquivoCompleto);
+                IniciarProgresso("Lendo o arquivo CSV...");
+
+                List<Dictionary<string, string>> dadosCsv = await Task.Run(() =>
+                    ArquivoService.LerCsv(_caminhoArquivoCompleto));
+
+                AtualizarProgresso(35, "Validando e importando alunos...");
 
                 // ENVIANDO O DADO EXTERNO: Passamos a DataEntrada capturada na tela para a regra de negócio do Service
-                ResultadoImportacaoCadastro resultado = _importacaoService.Importacao(nomeDaTurma, dadosCsv, DataEntrada);
+                ResultadoImportacaoCadastro resultado = await Task.Run(() =>
+                    _importacaoService.Importacao(nomeDaTurma, dadosCsv, DataEntrada));
 
                 // Se a importação falhou (matrícula duplicada, coluna faltando, etc.),
                 // mostra o motivo e mantém o popup aberto — sem atualizar o cache nem
@@ -163,6 +169,8 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     MessageBox.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
+
+                AtualizarProgresso(90, "Atualizando os dados da aplicação...");
 
                 // A gravação já foi confirmada na transação; uma falha de cache
                 // não deve ser apresentada como rejeição da importação.
@@ -175,12 +183,19 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     MostrarErro("A importação foi concluída e os dados foram gravados, mas a tela não conseguiu atualizar. Reabra ou atualize a tela para consultar os dados.", exAtualizacao);
                 }
 
+                ConcluirProgresso("Importação concluída!");
+                await Task.Delay(600);
+
                 MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 _fecharJanela?.Invoke();
             }
             catch (Exception ex)
             {
                 MostrarErro("Nao foi possivel importar o cadastro. Confira o arquivo CSV e tente novamente.", ex);
+            }
+            finally
+            {
+                FinalizarProgresso();
             }
         }
     }

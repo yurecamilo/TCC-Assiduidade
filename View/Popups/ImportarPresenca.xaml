@@ -15,6 +15,23 @@
 
     <Window.Resources>
         <conv:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="BarraProgressoPopUp" TargetType="ProgressBar">
+            <Setter Property="Background" Value="#D8E5E5"/>
+            <Setter Property="Foreground" Value="#2A5C60"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border x:Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="3"/>
+                            <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" CornerRadius="3" HorizontalAlignment="Left"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Background" Value="#E0EBEB"/>
             <Setter Property="BorderBrush" Value="#BFCFCF"/>
@@ -181,6 +198,20 @@
                 <Button Content="Iniciar Importação" Style="{StaticResource PopUpActionButtonStyle}" HorizontalAlignment="Stretch" Height="40" FontSize="15"
                 Command="{Binding IniciarImportacaoCommand}"/>
             </StackPanel>
+
+            <!-- Overlay de progresso da importação: cobre toda a janela e bloqueia interações até o fim da operação. -->
+            <Grid Grid.RowSpan="3" Background="#D9E9EFEF" Visibility="{Binding EstaOcupado, Converter={StaticResource BoolToVis}}">
+                <Border HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FFFFFF" BorderBrush="#B6C9C9" BorderThickness="1" CornerRadius="10" Padding="28,22" Width="320">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" Direction="270" ShadowDepth="2" Opacity="0.18"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Importando presença" FontSize="15" FontWeight="Bold" Foreground="#11181C" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <ProgressBar Height="6" Minimum="0" Maximum="100" Style="{StaticResource BarraProgressoPopUp}" Value="{Binding ProgressoImportacao, Mode=OneWay}"/>
+                        <TextBlock Text="{Binding EtapaImportacao}" FontSize="12" Foreground="#55686A" HorizontalAlignment="Center" Margin="0,12,0,0" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
     </Border>
 </Window>
