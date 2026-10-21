@@ -282,7 +282,7 @@ namespace TCC_Assiduidade.Repositories
                             cmdVerificacao.Parameters.AddWithValue("@data", data.Date);
                             if (cmdVerificacao.ExecuteScalar() != null)
                                 throw new RegistroDuplicadoException(
-                                    "Já existe uma aula registrada para esta turma em " + data.ToString("dd/MM/yyyy") + ". Importar o arquivo novamente duplicaria os registros. Nenhum dado foi importado.");
+                                    "Já existe uma aula registrada para esta turma em " + data.ToString("dd/MM/yyyy") + ". Importar o arquivo novamente duplicaria os registros.");
                         }
 
                         var matriculasTurma = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
