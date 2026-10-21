@@ -130,6 +130,7 @@ namespace TCC_Assiduidade.Testes
                 AulaId = aulaId,
                 Data = data,
                 TurmaId = turmaId,
+                StatusTurma = TCC_Assiduidade.Modelos.Banco.EStatusTurma.Ativa,
                 Turma = turma,
                 Matricula = matricula,
                 Aluno = aluno,
