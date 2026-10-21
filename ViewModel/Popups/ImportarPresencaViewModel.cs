@@ -52,7 +52,9 @@ namespace TCC_Assiduidade.ViewModel.Popups
             _fecharJanela = fecharJanela;
             _turmaService = new TurmaService();
             _importacaoService = new ImportacaoService();
-            IniciarImportacaoCommand = new RelayCommand(async () => await ExecutarImportacao());
+            // Bloqueia o botão enquanto a importação estiver em execução (overlay ativo),
+            // evitando que um segundo clique inicie outra importação concorrente.
+            IniciarImportacaoCommand = new RelayCommand(async () => await ExecutarImportacao(), () => !EstaOcupado);
             SelecionarArquivoCommand = new RelayCommand(SelecionarArquivo);
             _ = CarregarTurmasDoBanco();
         }
@@ -123,6 +125,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     await Task.Delay(600);
 
                     PopupMensagem.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _fecharJanela?.Invoke();
                 }
                 catch (Exception ex)
                 {

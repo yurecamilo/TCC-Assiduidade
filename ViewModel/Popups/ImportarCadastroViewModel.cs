@@ -92,7 +92,9 @@ namespace TCC_Assiduidade.ViewModel.Popups
         {
             _fecharJanela = fecharJanela;
             _importacaoService = new ImportacaoService();
-            IniciarImportacaoCommand = new RelayCommand(async () => await ExecutarImportacao());
+            // Bloqueia o botão enquanto a importação estiver em execução (overlay ativo),
+            // evitando que um segundo clique inicie outra importação concorrente.
+            IniciarImportacaoCommand = new RelayCommand(async () => await ExecutarImportacao(), () => !EstaOcupado);
             SelecionarArquivoCommand = new RelayCommand(SelecionarArquivo);
 
             // Define a data padrão exibida na tela como o dia de hoje ao abrir o popup
