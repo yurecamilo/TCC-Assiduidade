@@ -30,5 +30,22 @@ namespace TCC_Assiduidade
                 }), DispatcherPriority.ApplicationIdle);
             }
         }
+
+        /// <summary>
+        /// Rede de segurança para exceções do fluxo da interface que escaparem do
+        /// tratamento local (falhas fora de comandos com try/catch ou em async void).
+        /// Mostra uma mensagem classificada no padrão do sistema e evita que a
+        /// aplicação inteira feche por um erro pontual.
+        /// </summary>
+        private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            string titulo;
+            string mensagem;
+            ViewModel.Base.BaseViewModel.ClassificarErro(
+                e.Exception, "Ocorreu um erro inesperado e a operação não pôde ser concluída.", out titulo, out mensagem);
+
+            PopupMensagem.Show(mensagem, "Erro inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
+        }
     }
 }
