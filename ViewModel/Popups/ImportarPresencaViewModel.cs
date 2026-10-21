@@ -76,13 +76,13 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
             if (TurmaSelecionada == null)
             {
-                MessageBox.Show("Selecione uma turma.");
+                PopupMensagem.Show("Selecione uma turma.");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(_caminhoArquivoCompleto))
             {
-                MessageBox.Show("Escolha um arquivo CSV.");
+                PopupMensagem.Show("Escolha um arquivo CSV.");
                 return;
             }
 
@@ -102,7 +102,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     // avisa o motivo sem atualizar o cache como se tivesse dado certo.
                     if (!resultado.Sucesso)
                     {
-                        MessageBox.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        PopupMensagem.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
 
@@ -122,7 +122,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                     ConcluirProgresso("Importação concluída!");
                     await Task.Delay(600);
 
-                    MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
+                    PopupMensagem.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {

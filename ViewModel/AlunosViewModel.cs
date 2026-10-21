@@ -253,7 +253,7 @@ namespace TCC_Assiduidade.ViewModel
 
         private void ExecutarExcluir(object obj)
         {
-            MessageBoxResult resultado = MessageBox.Show("Tem certeza que deseja excluir este aluno? Essa ação excluirá todos os dados associados a ele", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            MessageBoxResult resultado = PopupMensagem.Show("Tem certeza que deseja excluir este aluno? Essa ação excluirá todos os dados associados a ele", "Confirmar Exclusão", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (resultado == MessageBoxResult.Yes && obj is AlunoExibicaoDTO aluno)
             {
                 try
@@ -273,12 +273,17 @@ namespace TCC_Assiduidade.ViewModel
             var selecionados = _listaOriginalDoBanco.Where(a => a.IsSelected).ToList();
             if (selecionados.Count == 0)
             {
-                MessageBox.Show("Selecione pelo menos um aluno para excluir.", "Nenhum aluno selecionado", MessageBoxButton.OK, MessageBoxImage.Information);
+                PopupMensagem.Show("Selecione pelo menos um aluno para excluir.", "Nenhum aluno selecionado", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var resultado = MessageBox.Show($"A exclusão removerá permanentemente {selecionados.Count} aluno(s), seus vínculos e registros de ausência. Deseja continuar?", "Excluir alunos selecionados", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            MessageBoxResult resultado = PopupMensagem.Show(
+                $"A exclusão removerá permanentemente {selecionados.Count} aluno(s), seus vínculos e registros de ausência. Deseja continuar?",
+                "Excluir alunos selecionados",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
             if (resultado != MessageBoxResult.Yes) return;
+
             try
             {
                 _alunoService.Excluir(selecionados.Select(a => a.Matricula).ToList());

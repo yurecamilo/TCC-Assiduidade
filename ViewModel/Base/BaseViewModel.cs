@@ -128,7 +128,7 @@ namespace TCC_Assiduidade.ViewModel.Base
             string mensagem;
             ClassificarErro(excecao, mensagemPadrao, out titulo, out mensagem);
 
-            MessageBox.Show(mensagem, titulo, MessageBoxButton.OK, MessageBoxImage.Error);
+            PopupMensagem.Show(mensagem, titulo, MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         /// <summary>

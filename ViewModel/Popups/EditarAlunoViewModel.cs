@@ -67,7 +67,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 _alunoService.Atualizar(aluno);
                 await DataCacheService.ForçarAtualizacaoAsync();
 
-                MessageBox.Show("Aluno editado com sucesso!");
+                PopupMensagem.Show("Aluno editado com sucesso!");
                 FecharJanelaCommand.Execute(null);
             }
             catch (Exception ex)

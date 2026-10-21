@@ -138,13 +138,13 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
             if (string.IsNullOrWhiteSpace(nomeDaTurma))
             {
-                MessageBox.Show(IsNovaTurma ? "Informe o nome da nova turma." : "Selecione uma turma existente.");
+                PopupMensagem.Show(IsNovaTurma ? "Informe o nome da nova turma." : "Selecione uma turma existente.");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(_caminhoArquivoCompleto))
             {
-                MessageBox.Show("Escolha um arquivo CSV.");
+                PopupMensagem.Show("Escolha um arquivo CSV.");
                 return;
             }
 
@@ -166,7 +166,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 // fechar a janela como se tivesse dado certo.
                 if (!resultado.Sucesso)
                 {
-                    MessageBox.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    PopupMensagem.Show(resultado.Mensagem, "Não foi possível importar", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -186,7 +186,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 ConcluirProgresso("Importação concluída!");
                 await Task.Delay(600);
 
-                MessageBox.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
+                PopupMensagem.Show(resultado.Mensagem, "Importação concluída", MessageBoxButton.OK, MessageBoxImage.Information);
                 _fecharJanela?.Invoke();
             }
             catch (Exception ex)

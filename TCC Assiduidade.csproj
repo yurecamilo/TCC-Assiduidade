@@ -265,6 +265,10 @@
     <Compile Include="View\Popups\ImportarCadastro.xaml.cs">
       <DependentUpon>ImportarCadastro.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\Popups\MensagemPopup.xaml.cs">
+      <DependentUpon>MensagemPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Popups\PopupMensagem.cs" />
     <Compile Include="View\Popups\ImportarPresenca.xaml.cs">
       <DependentUpon>ImportarPresenca.xaml</DependentUpon>
     </Compile>
@@ -347,6 +351,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Popups\ImportarPresenca.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Popups\MensagemPopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

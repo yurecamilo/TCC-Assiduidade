@@ -207,7 +207,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
                     "Relatorio_Aula_" + AulaSelecionada.AulaId + "_" + AulaSelecionada.Turma + ".html");
 
                 if (caminho != null)
-                    MessageBox.Show("Relatorio HTML gerado com sucesso.");
+                    PopupMensagem.Show("Relatorio HTML gerado com sucesso.");
             }
             catch (Exception ex)
             {

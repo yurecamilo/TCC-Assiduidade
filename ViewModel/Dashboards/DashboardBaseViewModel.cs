@@ -52,7 +52,7 @@ namespace TCC_Assiduidade.ViewModel.Dashboards
                 string caminho = ArquivoService.SalvarHtmlEAbrir(html, NomeArquivoHtml);
                 if (caminho == null) return;
 
-                MessageBox.Show(
+                PopupMensagem.Show(
                     "Dashboard HTML gerado e aberto no navegador.\n\n" + Path.GetFileName(caminho),
                     "Dashboard gerado",
                     MessageBoxButton.OK,

@@ -93,7 +93,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
         {
             if (string.IsNullOrWhiteSpace(Matricula) || string.IsNullOrWhiteSpace(Nome) || TurmaSelecionada == null)
             {
-                MessageBox.Show("Por favor, preencha todos os campos obrigatórios (Matrícula, Nome e Turma).");
+                PopupMensagem.Show("Por favor, preencha todos os campos obrigatórios (Matrícula, Nome e Turma).");
                 return;
             }
 
@@ -111,7 +111,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 _alunoService.Adicionar(aluno);
                 await DataCacheService.ForçarAtualizacaoAsync();
 
-                MessageBox.Show("Aluno cadastrado com sucesso!");
+                PopupMensagem.Show("Aluno cadastrado com sucesso!");
                 FecharJanelaCommand.Execute(null);
             }
             catch (Exception ex)

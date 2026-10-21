@@ -191,7 +191,7 @@ namespace TCC_Assiduidade.ViewModel
         private void ExecutarExcluir(object obj)
         {
             if (!(obj is TurmaExibicaoDTO turma)) return;
-            MessageBoxResult resultado = MessageBox.Show("Ao excluir esta turma, seus dados deixarão de estar disponíveis nas consultas e filtros. Alunos, vínculos, aulas e ausências serão preservados no banco. Essa ação não pode ser desfeita. Deseja confirmar?", "Excluir turma", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            MessageBoxResult resultado = PopupMensagem.Show("Ao excluir esta turma, seus dados deixarão de estar disponíveis nas consultas e filtros. Alunos, vínculos, aulas e ausências serão preservados no banco. Essa ação não pode ser desfeita. Deseja confirmar?", "Excluir turma", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (resultado == MessageBoxResult.Yes)
             {
                 try
@@ -213,7 +213,7 @@ namespace TCC_Assiduidade.ViewModel
             var texto = desarquivar
                 ? "Ao desarquivar esta turma, ela voltará a aparecer entre as turmas ativas e poderá receber novos vínculos e aulas. Deseja continuar?"
                 : "Ao arquivar esta turma, seus dados continuarão disponíveis nas consultas de turmas e aulas arquivadas. Deseja confirmar a arquivação?";
-            var resultado = MessageBox.Show(texto, desarquivar ? "Desarquivar turma" : "Arquivar turma", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var resultado = PopupMensagem.Show(texto, desarquivar ? "Desarquivar turma" : "Arquivar turma", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (resultado != MessageBoxResult.Yes) return;
             try
             {
@@ -229,8 +229,8 @@ namespace TCC_Assiduidade.ViewModel
         private void ExcluirSelecionadas()
         {
             var selecionadas = TurmasSelecionadas.Where(t => t.TurmaOriginal.Status != EStatusTurma.Excluida).ToList();
-            if (selecionadas.Count == 0) { MessageBox.Show("Selecione pelo menos uma turma."); return; }
-            var confirmacao = MessageBox.Show($"Excluir {selecionadas.Count} turma(s)? Os alunos, vínculos, aulas e ausências serão preservados, mas ficarão indisponíveis. Essa ação não pode ser desfeita.", "Excluir turmas selecionadas", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (selecionadas.Count == 0) { PopupMensagem.Show("Selecione pelo menos uma turma."); return; }
+            var confirmacao = PopupMensagem.Show($"Excluir {selecionadas.Count} turma(s)? Os alunos, vínculos, aulas e ausências serão preservados, mas ficarão indisponíveis. Essa ação não pode ser desfeita.", "Excluir turmas selecionadas", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (confirmacao != MessageBoxResult.Yes) return;
             ExecutarAlteracaoLote(selecionadas, EStatusTurma.Excluida, "A exclusão foi concluída.");
         }
@@ -239,9 +239,9 @@ namespace TCC_Assiduidade.ViewModel
         {
             var selecionadas = TurmasSelecionadas.Where(t =>
                 destino == EStatusTurma.Arquivada ? t.TurmaOriginal.Status == EStatusTurma.Ativa : t.TurmaOriginal.Status == EStatusTurma.Arquivada).ToList();
-            if (selecionadas.Count == 0) { MessageBox.Show(destino == EStatusTurma.Arquivada ? "Selecione turmas ativas para arquivar." : "Selecione turmas arquivadas para desarquivar."); return; }
+            if (selecionadas.Count == 0) { PopupMensagem.Show(destino == EStatusTurma.Arquivada ? "Selecione turmas ativas para arquivar." : "Selecione turmas arquivadas para desarquivar."); return; }
             string acao = destino == EStatusTurma.Arquivada ? "arquivar" : "desarquivar";
-            var confirmar = MessageBox.Show($"{acao} {selecionadas.Count} turma(s)? Os dados associados serão preservados.", "Confirmar operação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var confirmar = PopupMensagem.Show($"{acao} {selecionadas.Count} turma(s)? Os dados associados serão preservados.", "Confirmar operação", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (confirmar != MessageBoxResult.Yes) return;
             ExecutarAlteracaoLote(selecionadas, destino, "A operação foi concluída.");
         }
@@ -254,7 +254,7 @@ namespace TCC_Assiduidade.ViewModel
                 _turmaService.AlterarStatusEmLote(alteracoes);
                 ModoSelecaoMultipla = false;
                 AtualizarCacheAposMudanca();
-                MessageBox.Show(mensagemSucesso, "Turmas atualizadas", MessageBoxButton.OK, MessageBoxImage.Information);
+                PopupMensagem.Show(mensagemSucesso, "Turmas atualizadas", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex) { MostrarErro("Não foi possível atualizar as turmas. Nenhuma turma foi alterada.", ex); }
         }

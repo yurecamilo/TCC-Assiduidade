@@ -34,7 +34,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
         {
             if (string.IsNullOrWhiteSpace(NomeNovaTurma))
             {
-                MessageBox.Show("Por favor, informe o nome da turma.");
+                PopupMensagem.Show("Por favor, informe o nome da turma.");
                 return;
             }
 
@@ -43,7 +43,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 _turmaService.Adicionar(NomeNovaTurma.Trim());
                 await DataCacheService.ForçarAtualizacaoAsync();
 
-                MessageBox.Show("Turma cadastrada com sucesso!");
+                PopupMensagem.Show("Turma cadastrada com sucesso!");
 
                 _fecharJanela?.Invoke();
             }
