@@ -308,7 +308,16 @@ namespace TCC_Assiduidade.ViewModel
 
         private async void AtualizarCacheAposMudanca()
         {
-            await DataCacheService.ForçarAtualizacaoAsync();
+            // O dado já foi gravado no banco; uma falha de conexão na atualização
+            // do cache não deve derrubar a aplicação — apenas avisar o usuário.
+            try
+            {
+                await DataCacheService.ForçarAtualizacaoAsync();
+            }
+            catch (Exception ex)
+            {
+                MostrarErro("A alteração foi salva no banco, mas a lista não conseguiu atualizar. Reabra a tela de alunos para ver os dados atualizados.", ex);
+            }
         }
     }
 }
