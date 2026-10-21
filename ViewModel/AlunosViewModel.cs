@@ -18,7 +18,7 @@ namespace TCC_Assiduidade.ViewModel
         public bool IsSelected { get => _isSelected; set { _isSelected = value; OnPropertyChanged(); } }
     }
 
-    public class AlunosViewModel : BaseViewModel
+    public class AlunosViewModel : BaseViewModel, IDisposable
     {
         private List<AlunoListaItem> _listaOriginalDoBanco = new List<AlunoListaItem>();
         private readonly AlunoService _alunoService;
@@ -155,6 +155,13 @@ namespace TCC_Assiduidade.ViewModel
                 InicializarComboBoxTurmas();
                 ExecutarBusca();
             });
+        }
+
+        /// <summary>Soltura do evento estático de cache quando a view sai da tela,
+        /// evitando acúmulo de ViewModels vivos na memória (leak de assinatura).</summary>
+        public void Dispose()
+        {
+            DataCacheService.CacheAtualizado -= OnCacheAtualizado;
         }
 
         private async Task CarregarDadosIniciaisAsync()

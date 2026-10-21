@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using TCC_Assiduidade.Modelos.DTO;
 using TCC_Assiduidade.View.Popups;
@@ -18,6 +19,9 @@ namespace TCC_Assiduidade.View.Relatórios
             InitializeComponent();
             _viewModel = new RelatorioAulasViewModel(pai);
             DataContext = _viewModel;
+
+            // Ao sair da tela o ViewModel solta a assinatura do evento estático.
+            Unloaded += (s, e) => (DataContext as IDisposable)?.Dispose();
         }
 
         private void BtnVisualizarAula_Click(object sender, RoutedEventArgs e)

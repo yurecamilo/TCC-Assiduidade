@@ -11,7 +11,7 @@ using TCC_Assiduidade.ViewModel.Base;
 
 namespace TCC_Assiduidade.ViewModel
 {
-    public class TurmasViewModel : BaseViewModel
+    public class TurmasViewModel : BaseViewModel, IDisposable
     {
         private readonly TurmaService _turmaService;
         private readonly AlunoService _alunoService;
@@ -129,6 +129,13 @@ namespace TCC_Assiduidade.ViewModel
 
                 ExecutarBusca();
             });
+        }
+
+        /// <summary>Soltura do evento estático de cache quando a view sai da tela,
+        /// evitando acúmulo de ViewModels vivos na memória (leak de assinatura).</summary>
+        public void Dispose()
+        {
+            DataCacheService.CacheAtualizado -= OnCacheAtualizado;
         }
 
         private async Task CarregarTurmasAsync()

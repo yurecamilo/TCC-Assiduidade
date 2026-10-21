@@ -13,7 +13,7 @@ using TCC_Assiduidade.ViewModel.Base;
 
 namespace TCC_Assiduidade.ViewModel.Relatorios
 {
-    public class RelatorioAulasViewModel : BaseViewModel
+    public class RelatorioAulasViewModel : BaseViewModel, IDisposable
     {
         private List<AulaExibicaoDTO> _listaOriginalDoBanco = new List<AulaExibicaoDTO>();
         private readonly RelatorioService _relatorioService = new RelatorioService();
@@ -120,6 +120,13 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
                 ExecutarBusca();
                 AulaSelecionada = _listaOriginalDoBanco.FirstOrDefault(a => a.AulaId == aulaId);
             });
+        }
+
+        /// <summary>Soltura do evento estático de cache quando a view sai da tela,
+        /// evitando acúmulo de ViewModels vivos na memória (leak de assinatura).</summary>
+        public void Dispose()
+        {
+            DataCacheService.CacheAtualizado -= OnCacheAtualizado;
         }
 
         private void Voltar()

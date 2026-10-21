@@ -31,7 +31,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         }
     }
 
-    public class RelatorioAlunosViewModel : BaseViewModel
+    public class RelatorioAlunosViewModel : BaseViewModel, IDisposable
     {
         private List<AlunoExibicaoDTO> _listaOriginalDoBanco = new List<AlunoExibicaoDTO>();
         private readonly RelatorioService _relatorioService = new RelatorioService();
@@ -128,6 +128,13 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
                 InicializarComboBoxTurmas();
                 ExecutarBusca();
             });
+        }
+
+        /// <summary>Soltura do evento estático de cache quando a view sai da tela,
+        /// evitando acúmulo de ViewModels vivos na memória (leak de assinatura).</summary>
+        public void Dispose()
+        {
+            DataCacheService.CacheAtualizado -= OnCacheAtualizado;
         }
 
         private async Task CarregarDadosAsync()
