@@ -14,9 +14,11 @@ namespace TCC_Assiduidade.Servicos
     public class RelatorioService
     {
         private readonly AusenciaRepository _ausenciaRepository;
+        private readonly AulaService _aulaService;
         public RelatorioService()
         {
             _ausenciaRepository = new AusenciaRepository();
+            _aulaService = new AulaService();
         }
 
         public List<RelatorioAusente> ObterDadosRelatorio(int aulaId)
@@ -113,10 +115,13 @@ namespace TCC_Assiduidade.Servicos
             html.AppendLine(RelatorioBase("Relatório Geral Por Turma"));
             html.AppendLine($"    <h1>Relatório de Histórico por Turma</h1>");
 
+            // Histórico lido direto do banco: o cache global pode estar desatualizado
+            // se uma aula foi importada nesta mesma sessão.
+            List<AulaExibicaoDTO> aulasDoBanco = _aulaService.ObterResumoAulas();
+
             foreach (var turma in selecionadas)
             {
-                List<AulaExibicaoDTO> aulasDaTurma = ObterAulasDaTurma(turma,
-                    DataCacheService.AulasCache ?? new List<AulaExibicaoDTO>());
+                List<AulaExibicaoDTO> aulasDaTurma = ObterAulasDaTurma(turma, aulasDoBanco);
 
                 html.AppendLine("    <div class=\"quadro-turma\" style=\"border: 1px solid #ccc; border-radius: 8px; padding: 15px; margin-bottom: 25px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);\">");
 

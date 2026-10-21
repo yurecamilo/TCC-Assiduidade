@@ -22,7 +22,7 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
         }
     }
 
-    public class RelatorioTurmasViewModel : BaseViewModel
+    public class RelatorioTurmasViewModel : BaseViewModel, IDisposable
     {
         private List<TurmaExibicaoDTO> _listaOriginalDoBanco = new List<TurmaExibicaoDTO>();
         private readonly RelatorioService _relatorioService = new RelatorioService();
@@ -116,6 +116,13 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             });
         }
 
+        /// <summary>Soltura do evento estático de cache quando a view sai da tela,
+        /// evitando acúmulo de ViewModels vivos na memória (leak de assinatura).</summary>
+        public void Dispose()
+        {
+            DataCacheService.CacheAtualizado -= OnCacheAtualizado;
+        }
+
         private void ExecutarBusca()
         {
             try
@@ -180,19 +187,29 @@ namespace TCC_Assiduidade.ViewModel.Relatorios
             }
         }
 
-        private void GerarRelatorioTurmasLote()
+        private bool _gerandoRelatorioLote;
+
+        private async void GerarRelatorioTurmasLote()
         {
+            if (_gerandoRelatorioLote) return;
+            _gerandoRelatorioLote = true;
+
             try
             {
                 var selecionadas = Turmas.Cast<TurmaRelatorioItem>().Where(t => t.IsSelected).ToList();
                 if (!selecionadas.Any()) return;
 
-                string html = _relatorioService.RelatorioPorTurma(selecionadas);
+                // Leitura do histórico no banco em trabalho de fundo; a interface não congela.
+                string html = await Task.Run(() => _relatorioService.RelatorioPorTurma(selecionadas));
                 ArquivoService.SalvarHtmlEAbrir(html, "Relatorio_Turmas.html");
             }
             catch (Exception ex)
             {
                 MostrarErro("Nao foi possivel gerar o relatorio de turmas.", ex);
+            }
+            finally
+            {
+                _gerandoRelatorioLote = false;
             }
         }
     }
