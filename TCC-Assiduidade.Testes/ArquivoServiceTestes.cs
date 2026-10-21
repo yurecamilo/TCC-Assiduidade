@@ -97,5 +97,56 @@ namespace TCC_Assiduidade.Testes
             Assert.AreEqual(1, resultado.Count);
             Assert.AreEqual("", resultado[0]["email"]);
         }
+
+        [TestMethod]
+        public void LerCsv_ComSeparadorDentroDeCampoEntreAspas_PreservaCampoCompleto()
+        {
+            File.WriteAllText(_arquivoTemporario,
+                "matricula,nome,email\n123,\"Silva, João\",joao@escola.com\n");
+
+            var resultado = ArquivoService.LerCsv(_arquivoTemporario);
+
+            Assert.AreEqual("Silva, João", resultado[0]["nome"]);
+        }
+
+        [TestMethod]
+        public void LerCsv_ComAspasEscapadas_ConverteAspasDuplicadas()
+        {
+            File.WriteAllText(_arquivoTemporario,
+                "matricula,nome,email\n123,\"João \"\"Joca\"\" Silva\",joao@escola.com\n");
+
+            var resultado = ArquivoService.LerCsv(_arquivoTemporario);
+
+            Assert.AreEqual("João \"Joca\" Silva", resultado[0]["nome"]);
+        }
+
+        [TestMethod]
+        public void LerCsv_ComCampoEntreAspasEmMaisDeUmaLinha_PreservaQuebraDeLinha()
+        {
+            File.WriteAllText(_arquivoTemporario,
+                "matricula,nome,email\n123,\"João\nSilva\",joao@escola.com\n");
+
+            var resultado = ArquivoService.LerCsv(_arquivoTemporario);
+
+            Assert.AreEqual("João\nSilva", resultado[0]["nome"]);
+        }
+
+        [TestMethod]
+        public void LerCsv_ComMaisValoresQueCabecalhos_DeveLancarInvalidDataException()
+        {
+            File.WriteAllText(_arquivoTemporario,
+                "matricula,nome,email\n123,João,joao@escola.com,valor-excedente\n");
+
+            Assert.ThrowsException<InvalidDataException>(() => ArquivoService.LerCsv(_arquivoTemporario));
+        }
+
+        [TestMethod]
+        public void LerCsv_ComAspasNaoFechadas_DeveLancarInvalidDataException()
+        {
+            File.WriteAllText(_arquivoTemporario,
+                "matricula,nome,email\n123,\"João Silva,joao@escola.com\n");
+
+            Assert.ThrowsException<InvalidDataException>(() => ArquivoService.LerCsv(_arquivoTemporario));
+        }
     }
 }

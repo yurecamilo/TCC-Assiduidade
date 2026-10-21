@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TCC_Assiduidade.Servicos;
 
@@ -27,6 +28,21 @@ namespace TCC_Assiduidade.Testes
         public void Adicionar_ComTurmaInvalida_DeveLancarArgumentException()
         {
             Assert.ThrowsException<ArgumentException>(() => _service.Adicionar(DateTime.Now.AddDays(-1), 0));
+        }
+
+        [TestMethod]
+        public void AdicionarComAusencias_ComListaNula_DeveLancarArgumentNullException()
+        {
+            Assert.ThrowsException<ArgumentNullException>(() =>
+                _service.AdicionarComAusencias(DateTime.Today, 1, null));
+        }
+
+        [TestMethod]
+        public void AdicionarComAusencias_ComMatriculaRepetida_DeveLancarArgumentException()
+        {
+            Assert.ThrowsException<ArgumentException>(() =>
+                _service.AdicionarComAusencias(DateTime.Today, 1,
+                    new List<string> { "2026001", "2026001" }));
         }
     }
 }

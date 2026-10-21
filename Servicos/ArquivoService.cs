@@ -47,48 +47,129 @@ namespace TCC_Assiduidade.Servicos
                 throw new FileNotFoundException($"O arquivo '{caminho}' não foi encontrado.", caminho);
 
             var dados = new List<Dictionary<string, string>>();
+            string conteudo = File.ReadAllText(caminho);
+            if (string.IsNullOrWhiteSpace(conteudo))
+                return dados;
 
-            using (var reader = new StreamReader(caminho))
+            separador = DetectarSeparador(conteudo, separador);
+            List<List<string>> linhas = AnalisarCsv(conteudo, separador);
+            if (linhas.Count == 0)
+                return dados;
+
+            string[] headers = linhas[0].ConvertAll(valor => valor.Trim().ToLowerInvariant()).ToArray();
+            var colunasVerificadas = new HashSet<string>();
+            for (int i = 0; i < headers.Length; i++)
             {
-                string headerLine = reader.ReadLine();
+                if (string.IsNullOrWhiteSpace(headers[i]))
+                    throw new InvalidDataException($"O cabeçalho contém uma coluna vazia na posição {i + 1}.");
 
-                if (string.IsNullOrWhiteSpace(headerLine))
-                    return dados;
+                if (!colunasVerificadas.Add(headers[i]))
+                    throw new InvalidDataException($"O arquivo CSV contém colunas duplicadas no cabeçalho: '{headers[i]}'.");
+            }
 
-                if (headerLine.Contains(";"))
-                    separador = ';';
+            for (int linhaIndice = 1; linhaIndice < linhas.Count; linhaIndice++)
+            {
+                List<string> valores = linhas[linhaIndice];
+                if (valores.Count == 1 && string.IsNullOrWhiteSpace(valores[0]))
+                    continue;
+                if (valores.Count > headers.Length)
+                    throw new InvalidDataException($"A linha {linhaIndice + 1} contém mais colunas que o cabeçalho.");
 
-                string[] headers = headerLine.Split(separador);
-                var colunasVerificadas = new HashSet<string>();
-
+                var registro = new Dictionary<string, string>();
                 for (int i = 0; i < headers.Length; i++)
-                {
-                    headers[i] = headers[i].Trim().ToLower();
+                    registro[headers[i]] = i < valores.Count ? valores[i].Trim() : string.Empty;
 
-                    if (string.IsNullOrWhiteSpace(headers[i]))
-                        throw new InvalidDataException($"O cabeçalho contém uma coluna vazia na posição {i + 1}.");
-
-                    if (!colunasVerificadas.Add(headers[i]))
-                        throw new InvalidDataException($"O arquivo CSV contém colunas duplicadas no cabeçalho: '{headers[i]}'.");
-                }
-
-                while (!reader.EndOfStream)
-                {
-                    string linha = reader.ReadLine();
-                    if (string.IsNullOrWhiteSpace(linha))
-                        continue;
-
-                    string[] valores = linha.Split(separador);
-                    var registro = new Dictionary<string, string>();
-
-                    for (int i = 0; i < headers.Length; i++)
-                        registro[headers[i]] = i < valores.Length ? valores[i].Trim() : string.Empty;
-
-                    dados.Add(registro);
-                }
+                dados.Add(registro);
             }
 
             return dados;
+        }
+
+        private static char DetectarSeparador(string conteudo, char separadorPadrao)
+        {
+            int virgulas = ContarSeparadoresNoCabecalho(conteudo, ',');
+            int pontosEVirgulas = ContarSeparadoresNoCabecalho(conteudo, ';');
+            return pontosEVirgulas > virgulas ? ';' : separadorPadrao;
+        }
+
+        private static int ContarSeparadoresNoCabecalho(string conteudo, char separador)
+        {
+            int quantidade = 0;
+            bool entreAspas = false;
+            for (int i = 0; i < conteudo.Length; i++)
+            {
+                char atual = conteudo[i];
+                if (atual == '"')
+                {
+                    if (entreAspas && i + 1 < conteudo.Length && conteudo[i + 1] == '"')
+                        i++;
+                    else
+                        entreAspas = !entreAspas;
+                }
+                else if (!entreAspas && atual == separador)
+                    quantidade++;
+                else if (!entreAspas && (atual == '\r' || atual == '\n'))
+                    break;
+            }
+            return quantidade;
+        }
+
+        private static List<List<string>> AnalisarCsv(string conteudo, char separador)
+        {
+            var linhas = new List<List<string>>();
+            var linha = new List<string>();
+            var campo = new StringBuilder();
+            bool entreAspas = false;
+
+            for (int i = 0; i < conteudo.Length; i++)
+            {
+                char atual = conteudo[i];
+                if (atual == '"')
+                {
+                    if (entreAspas && i + 1 < conteudo.Length && conteudo[i + 1] == '"')
+                    {
+                        campo.Append('"');
+                        i++;
+                    }
+                    else
+                        entreAspas = !entreAspas;
+                }
+                else if (!entreAspas && atual == separador)
+                {
+                    linha.Add(campo.ToString());
+                    campo.Clear();
+                }
+                else if (!entreAspas && (atual == '\r' || atual == '\n'))
+                {
+                    if (atual == '\r' && i + 1 < conteudo.Length && conteudo[i + 1] == '\n')
+                        i++;
+                    linha.Add(campo.ToString());
+                    campo.Clear();
+                    linhas.Add(linha);
+                    linha = new List<string>();
+                }
+                else
+                {
+                    if (entreAspas && atual == '\r' && i + 1 < conteudo.Length && conteudo[i + 1] == '\n')
+                    {
+                        campo.Append('\n');
+                        i++;
+                    }
+                    else
+                        campo.Append(atual);
+                }
+            }
+
+            if (entreAspas)
+                throw new InvalidDataException("O arquivo CSV contém um campo com aspas não fechadas.");
+
+            if (campo.Length > 0 || linha.Count > 0)
+            {
+                linha.Add(campo.ToString());
+                linhas.Add(linha);
+            }
+
+            return linhas;
         }
 
         private static string SanitizarNomeArquivo(string nomeArquivo)
