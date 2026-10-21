@@ -47,7 +47,7 @@ namespace TCC_Assiduidade.Servicos
                 throw new FileNotFoundException($"O arquivo '{caminho}' não foi encontrado.", caminho);
 
             var dados = new List<Dictionary<string, string>>();
-            string conteudo = File.ReadAllText(caminho);
+            string conteudo = LerArquivoComEncodingDetectado(caminho);
             if (string.IsNullOrWhiteSpace(conteudo))
                 return dados;
 
@@ -83,6 +83,35 @@ namespace TCC_Assiduidade.Servicos
             }
 
             return dados;
+        }
+
+        /// <summary>
+        /// Lê o arquivo escolhendo o encoding pelo conteúdo, e não por um
+        /// encoding único fixado. Com BOM, fala UTF-8/UTF-16 direto. Sem BOM, tenta validar
+        /// os bytes como UTF-8 estrito; se inválido, assume ANSI (Windows-1252) —
+        /// que é o formato que o Excel em português exporta por padrão — para não
+        /// gravar nomes corrompidos ("JosÃ©") no banco sem nenhum aviso.
+        /// </summary>
+        private static string LerArquivoComEncodingDetectado(string caminho)
+        {
+            byte[] bytes = File.ReadAllBytes(caminho);
+
+            if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+                return Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
+
+            if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
+                return Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2);
+
+            // Sem BOM: ASCII válido é idêntico em UTF-8 e ANSI; o que decide são os acentos.
+            try
+            {
+                var utf8Estrito = new UTF8Encoding(false, true);
+                return utf8Estrito.GetString(bytes);
+            }
+            catch (DecoderFallbackException)
+            {
+                return Encoding.GetEncoding(1252).GetString(bytes);
+            }
         }
 
         private static char DetectarSeparador(string conteudo, char separadorPadrao)

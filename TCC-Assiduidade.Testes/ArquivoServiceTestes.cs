@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TCC_Assiduidade.Servicos;
 
@@ -147,6 +148,37 @@ namespace TCC_Assiduidade.Testes
                 "matricula,nome,email\n123,\"João Silva,joao@escola.com\n");
 
             Assert.ThrowsException<InvalidDataException>(() => ArquivoService.LerCsv(_arquivoTemporario));
+        }
+
+        [TestMethod]
+        public void LerCsv_ComEncodingAnsiDoExcel_LeAcentosCorretamente()
+        {
+            // O Excel em português exporta CSV em ANSI (Windows-1252) e sem BOM.
+            // Os acentos ficam como um único byte (ex.: 'é' = 0xE9), que não é
+            // UTF-8 válido — o leitor deve recorrer ao fallback ANSI em vez de
+            // corromper o nome gravado no banco.
+            byte[] bytesAnsi = Encoding.GetEncoding(1252).GetBytes(
+                "matricula,nome,email\r\n2026901,José Aparecido,jose.aparecido@escola.com\r\n");
+            File.WriteAllBytes(_arquivoTemporario, bytesAnsi);
+
+            var resultado = ArquivoService.LerCsv(_arquivoTemporario);
+
+            Assert.AreEqual(1, resultado.Count);
+            Assert.AreEqual("José Aparecido", resultado[0]["nome"]);
+        }
+
+        [TestMethod]
+        public void LerCsv_ComUtf8SemBom_LeAcentosCorretamente()
+        {
+            // Arquivos UTF-8 sem BOM continuam sendo lidos normalmente.
+            File.WriteAllText(_arquivoTemporario,
+                "matricula,nome,email\r\n2026902,Éder Müller,eder.muller@escola.com\r\n",
+                new UTF8Encoding(false));
+
+            var resultado = ArquivoService.LerCsv(_arquivoTemporario);
+
+            Assert.AreEqual(1, resultado.Count);
+            Assert.AreEqual("Éder Müller", resultado[0]["nome"]);
         }
     }
 }
