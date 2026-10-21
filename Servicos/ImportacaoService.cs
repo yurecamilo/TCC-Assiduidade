@@ -88,7 +88,14 @@ namespace TCC_Assiduidade.Servicos
                     };
 
                 Turma turma = _turmaService.ObterTurmaPorNome(turmaNome);
-                if (turma != null) TurmaService.ValidarTurmaAtiva(turma);
+                if (turma == null)
+                {
+                    // Turma nova: cria o registro e o obtém de volta para que os alunos
+                    // do arquivo recebam um TurmaId válido na validação e na gravação.
+                    _turmaService.Adicionar(turmaNome);
+                    turma = _turmaService.ObterTurmaPorNome(turmaNome);
+                }
+                TurmaService.ValidarTurmaAtiva(turma);
 
                 List<Aluno> alunosParaSalvar = new List<Aluno>();
                 linhaId = 1;
@@ -131,7 +138,7 @@ namespace TCC_Assiduidade.Servicos
                 return new ResultadoImportacaoCadastro
                 {
                     Sucesso = true,
-                    Mensagem = $"Turma {turma.Nome} processada com sucesso. {alunosParaSalvar.Count} alunos importados.",
+                    Mensagem = $"Turma {turmaNome} processada com sucesso. {alunosParaSalvar.Count} alunos importados.",
                     Alunos = alunosParaSalvar
                 };
             }
