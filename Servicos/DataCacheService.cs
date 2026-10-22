@@ -84,8 +84,13 @@ namespace TCC_Assiduidade.Servicos
             if (!IsCarregado)
                 throw new TimeoutException("O carregamento inicial do banco excedeu 40 segundos.");
 
+            // Uma falha pontual (blip de rede, restart da instância) não pode
+            // envenenar o resto da sessão: se a carga terminou com erro, tenta
+            // recarregar uma vez antes de devolver a falha para a tela. Só
+            // desiste quando a nova tentativa também falha — nesse caso o erro
+            // real (traduzido) é o que sobe.
             if (ErroCarregamento != null)
-                throw ErroCarregamento;
+                await ForçarAtualizacaoAsync();
         }
 
         /// <summary>
