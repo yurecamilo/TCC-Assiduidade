@@ -45,6 +45,11 @@ namespace TCC_Assiduidade.ViewModel.Popups
 
         public ICommand IniciarImportacaoCommand { get; private set; }
         public ICommand SelecionarArquivoCommand { get; private set; }
+        public ICommand SincronizarFormsCommand { get; private set; }
+
+        // Respostas baixadas da planilha do Google Forms. Quando existem,
+        // substituem o arquivo CSV escolhido no recurso "Iniciar Importação".
+        private List<Dictionary<string, string>> _dadosFormsPendentes;
 
         private readonly Action _fecharJanela;
         public ImportarPresencaViewModel(Action fecharJanela)
@@ -56,6 +61,7 @@ namespace TCC_Assiduidade.ViewModel.Popups
             // evitando que um segundo clique inicie outra importação concorrente.
             IniciarImportacaoCommand = new RelayCommand(async () => await ExecutarImportacao(), () => !EstaOcupado);
             SelecionarArquivoCommand = new RelayCommand(SelecionarArquivo);
+            SincronizarFormsCommand = new RelayCommand(async () => await SincronizarForms(), () => !EstaOcupado);
             _ = CarregarTurmasDoBanco();
         }
 
@@ -68,8 +74,50 @@ namespace TCC_Assiduidade.ViewModel.Popups
             };
             if (dialog.ShowDialog() == true)
             {
+                // Um CSV manual substitui qualquer resposta baixada do Forms.
+                _dadosFormsPendentes = null;
                 CaminhoArquivo = dialog.FileName.Substring(dialog.FileName.LastIndexOf('\\') + 1);
                 _caminhoArquivoCompleto = dialog.FileName;
+            }
+        }
+
+        /// <summary>
+        /// Baixa o CSV publicado da planilha de respostas do Google Forms e
+        /// deixa os dados prontos para o "Iniciar Importação" da mesma forma
+        /// que um arquivo escolhido à mão — toda a validação e gravação
+        /// continuam no ImportacaoService, que é o único caminho de escrita.
+        /// </summary>
+        private async Task SincronizarForms()
+        {
+            if (TurmaSelecionada == null)
+            {
+                PopupMensagem.Show("Selecione uma turma.");
+                return;
+            }
+
+            try
+            {
+                IniciarProgresso("Baixando respostas da planilha (Google Forms)...");
+
+                List<Dictionary<string, string>> respostas = await Task.Run(() =>
+                    GoogleFormsService.BaixarRespostas());
+
+                if (respostas.Count == 0)
+                {
+                    PopupMensagem.Show("A planilha publicada ainda não tem respostas para importar.", "Sem respostas", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                _dadosFormsPendentes = respostas;
+                CaminhoArquivo = $"Planilha do Google Forms — {respostas.Count} resposta(s) baixada(s)";
+            }
+            catch (Exception ex)
+            {
+                MostrarErro("Não foi possível baixar as respostas do Google Forms. Verifique a internet e tente novamente.", ex);
+            }
+            finally
+            {
+                FinalizarProgresso();
             }
         }
 
@@ -82,18 +130,18 @@ namespace TCC_Assiduidade.ViewModel.Popups
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(_caminhoArquivoCompleto))
+            if (string.IsNullOrWhiteSpace(_caminhoArquivoCompleto) && _dadosFormsPendentes == null)
             {
-                PopupMensagem.Show("Escolha um arquivo CSV.");
+                PopupMensagem.Show("Escolha um arquivo CSV, ou sincronize as respostas do Google Forms.");
                 return;
             }
 
             {
                 try
                 {
-                    IniciarProgresso("Lendo o arquivo CSV...");
-                    List<Dictionary<string, string>> dadosCsv = await Task.Run(() =>
-                        ArquivoService.LerCsv(_caminhoArquivoCompleto));
+                    IniciarProgresso("Carregando os dados de presença...");
+                    List<Dictionary<string, string>> dadosCsv = _dadosFormsPendentes
+                        ?? await Task.Run(() => ArquivoService.LerCsv(_caminhoArquivoCompleto));
 
                     AtualizarProgresso(35, "Validando os dados da lista de presença...");
 

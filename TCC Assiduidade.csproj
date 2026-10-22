@@ -53,16 +53,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>6A8F74AFC6A52D5B2F887F4869C1BFFF82B8BD75</ManifestCertificateThumbprint>
+    <GenerateManifests>false</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>TCC Assiduidade_TemporaryKey.pfx</ManifestKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <GenerateManifests>true</GenerateManifests>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM64'">
     <DebugSymbols>true</DebugSymbols>
@@ -175,6 +169,7 @@
     <Compile Include="Modelos\DTO\TurmaExibicaoDTO.cs" />
     <Compile Include="Modelos\Relatorios\RelatorioFrequencia.cs" />
     <Compile Include="Servicos\ArquivoService.cs" />
+    <Compile Include="Servicos\GoogleFormsService.cs" />
     <Compile Include="Modelos\Relatorios\RelatorioAusente.cs" />
     <Compile Include="Modelos\DTO\AulaExibicaoDTO.cs" />
     <Compile Include="Modelos\Resultados\ResultadoImportacaoCadastro.cs" />

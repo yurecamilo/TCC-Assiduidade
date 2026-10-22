@@ -46,8 +46,18 @@ namespace TCC_Assiduidade.Servicos
             if (!File.Exists(caminho))
                 throw new FileNotFoundException($"O arquivo '{caminho}' não foi encontrado.", caminho);
 
-            var dados = new List<Dictionary<string, string>>();
             string conteudo = LerArquivoComEncodingDetectado(caminho);
+            return AnalisarConteudoCsv(conteudo, separador);
+        }
+
+        /// <summary>
+        /// Converte o conteúdo bruto de um CSV em registros, sem depender de
+        /// arquivo em disco. Usado pelo leitor de arquivos e pelo serviço
+        /// que baixa as respostas do Google Forms pela web.
+        /// </summary>
+        public static List<Dictionary<string, string>> AnalisarConteudoCsv(string conteudo, char separador = ',')
+        {
+            var dados = new List<Dictionary<string, string>>();
             if (string.IsNullOrWhiteSpace(conteudo))
                 return dados;
 

@@ -7,7 +7,7 @@
         xmlns:conv="clr-namespace:TCC_Assiduidade.View.Converters"
         mc:Ignorable="d"
         Title="Processo de Importação" 
-        Height="400" Width="520"
+        Height="400" Width="560"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -170,23 +170,32 @@
                         </StackPanel>
                     </Border>
 
-                    <TextBlock Text="Passo 2: Seleção de arquivo" FontSize="15" FontWeight="Bold" Foreground="#222" Margin="0,0,0,8"/>
+                    <TextBlock Text="Passo 2: Origem dos dados de presença (CSV ou Google Forms)" FontSize="15" FontWeight="Bold" Foreground="#222" Margin="0,0,0,8"/>
                     <Border BorderBrush="#BFCFCF" BorderThickness="1" CornerRadius="8" Padding="15" Background="#F0F7F7">
                         <StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Button Grid.Column="0" Style="{StaticResource SecondaryActionButtonStyle}" Width="150" Height="38" Command="{Binding SelecionarArquivoCommand}">
+                                <Button Grid.Column="0" Style="{StaticResource SecondaryActionButtonStyle}" Width="140" Height="38" Command="{Binding SelecionarArquivoCommand}">
                                     <StackPanel Orientation="Horizontal">
                                         <Path Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,11L16,15H13V18H11V15H8L12,11Z" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Escolher Arquivo" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Escolher CSV" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
 
-                                <TextBox Grid.Column="1" BorderBrush="Transparent" Height="38" Margin="10,0,0,0" IsReadOnly="True" Background="Transparent" VerticalContentAlignment="Center" Padding="8,0" FontSize="14" Foreground="#556666"
+                                <Button Grid.Column="1" Style="{StaticResource PopUpActionButtonStyle}" Width="160" Height="38" Margin="8,0,0,0"
+                                        Command="{Binding SincronizarFormsCommand}" Background="#2A5C60">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Path Data="M12,18.5A6.5,6.5 0 0,1 5.5,12A6.5,6.5 0 0,1 12,5.5A6.47,6.47 0 0,1 16.95,7.55L14,10.5H21V3.5L18.6,5.9A8.5,8.5 0 1,0 12,20.5C15.63,20.5 18.69,18.22 19.86,15H17.65A6.5,6.5 0 0,1 12,18.5Z" Fill="White" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Sincronizar Forms" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <TextBox Grid.Column="2" BorderBrush="Transparent" Height="38" Margin="10,0,0,0" IsReadOnly="True" Background="Transparent" VerticalContentAlignment="Center" Padding="8,0" FontSize="13" Foreground="#556666"
                                     Text="{Binding CaminhoArquivo, Mode=OneWay}"/>
                             </Grid>
                         </StackPanel>
