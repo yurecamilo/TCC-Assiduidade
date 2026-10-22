@@ -22,6 +22,7 @@ precise dar manutenção no sistema no futuro.
 | [04-fluxo-de-dados-e-regras-de-negocio.md](04-fluxo-de-dados-e-regras-de-negocio.md) | O caminho completo de cada operação (cadastrar, editar, excluir, importar CSV, gerar relatório) desde o clique na tela até o banco de dados e de volta. |
 | [05-tratamento-de-erros-e-testes.md](05-tratamento-de-erros-e-testes.md) | Como o sistema identifica e comunica cada tipo de erro ao usuário, e os testes automatizados que garantem a integridade e a consistência dos dados. |
 | [06-dashboards-e-geracao-de-graficos.md](06-dashboards-e-geracao-de-graficos.md) | Como a frequência é consultada e agregada para os dashboards de alunos, aulas e turmas; como os gráficos são desenhados no WPF e recriados na exportação HTML. |
+| [07-integracao-google-forms.md](07-integracao-google-forms.md) | Como as respostas do formulário de presença do Google Forms chegam ao sistema: configuração da publicação da planilha, download do CSV, uso no popup de presença e regras/idempotência garantidas. |
 
 ## Como ler este material
 
